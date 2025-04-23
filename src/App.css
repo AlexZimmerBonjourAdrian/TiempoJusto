@@ -160,3 +160,15 @@ li {
     margin-bottom: 10px;
   }
 }
+
+.input-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centra los cuadros de texto horizontalmente */
+  margin-bottom: 20px;
+}
+
+.input-hour {
+  text-align: center; /* Centra el texto dentro del cuadro */
+  width: 200px; /* Ajusta el ancho del cuadro de texto */
+}
