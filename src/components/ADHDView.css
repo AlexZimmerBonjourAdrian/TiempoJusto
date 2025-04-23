@@ -1,0 +1,16 @@
+.adhd-view {
+  background-color: #f0f8ff; /* Light blue background */
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.adhd-view h1 {
+  color: #333;
+  text-align: center;
+}
+
+.adhd-view p {
+  font-size: 16px;
+  line-height: 1.5;
+}

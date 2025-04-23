@@ -1,25 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import Cookies from 'js-cookie';
-import TaskBoard from './components/TaskBoard';
-import { InputText } from 'primereact/inputtext';
-import { Card } from 'primereact/card';
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LogPage from './components/LogPage';
 import Header from './components/Header';
-import Donation from './components/Donation';
+import ADHDView from './components/ADHDView'; // Import the ADHDView component
+import MainView from './components/MainView'; // Import the MainView component
 import Footer from './components/Footer';
 
 function App() {
-  const [inputHour1, setInputHour1] = useState(() => Cookies.get('inputHour1') || '');
-  const [inputHour2, setInputHour2] = useState(() => Cookies.get('inputHour2') || '');
+  const [inputHour1] = useState(() => Cookies.get('inputHour1') || '');
+  const [inputHour2] = useState(() => Cookies.get('inputHour2') || '');
   const [adjustedTime1, setAdjustedTime1] = useState(() => Cookies.get('adjustedTime1') || '');
   const [adjustedTime2, setAdjustedTime2] = useState(() => Cookies.get('adjustedTime2') || '');
   const [remainingHours, setRemainingHours] = useState(() => Cookies.get('remainingHours') || '');
-  const [useCurrentTime, setUseCurrentTime] = useState(false);
+  const [hasADHD, setHasADHD] = useState(() => {
+    const savedPreference = Cookies.get('hasADHD');
+    return savedPreference !== undefined ? JSON.parse(savedPreference) : null;
+  });
+
+  const toggleADHDMode = () => {
+    setHasADHD((prev) => {
+      const newMode = !prev;
+      Cookies.set('hasADHD', newMode, { expires: 182 });
+      return newMode;
+    });
+  };
+
+  useEffect(() => {
+    if (hasADHD !== null) {
+      Cookies.set('hasADHD', hasADHD, { expires: 182 });
+    }
+  }, [hasADHD]);
 
   useEffect(() => {
     Cookies.set('inputHour1', inputHour1, { expires: 182 });
@@ -74,65 +89,57 @@ function App() {
     }
   }, [inputHour1, inputHour2]);
 
+  if (hasADHD === null) {
+    return (
+      <div className="preference-selection" style={{ textAlign: 'center', padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+        <h1 style={{ color: '#4CAF50', fontSize: '2.5em' }}>¡Hola! 😊</h1>
+        <p style={{ fontSize: '1.2em', color: '#555' }}>
+          Antes de comenzar, queremos conocerte un poco mejor. ¿Tienes ADHD? Esto nos ayudará a personalizar tu experiencia.
+        </p>
+        <div style={{ marginTop: '20px' }}>
+          <button 
+            onClick={() => setHasADHD(true)} 
+            style={{ 
+              backgroundColor: '#4CAF50', 
+              color: 'white', 
+              border: 'none', 
+              padding: '10px 20px', 
+              fontSize: '1em', 
+              borderRadius: '5px', 
+              cursor: 'pointer', 
+              marginRight: '10px' 
+            }}
+          >
+            Sí, tengo ADHD
+          </button>
+          <button 
+            onClick={() => setHasADHD(false)} 
+            style={{ 
+              backgroundColor: '#f44336', 
+              color: 'white', 
+              border: 'none', 
+              padding: '10px 20px', 
+              fontSize: '1em', 
+              borderRadius: '5px', 
+              cursor: 'pointer' 
+            }}
+          >
+            No, no tengo ADHD
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Router>
       <Header />
       <Routes>
-        <Route path="/" element={
-          <div className="App">
-            <Card title={<h1 className="task-board-title">Calculadora de Horas</h1>} className="task-board">
-              <p className="description-text">Esta herramienta te ayuda a calcular la diferencia entre dos horas del día. Introduce las horas en formato de 24 horas (0-23).</p>
-              <div className="task-counter">Cargar Hora 1</div>
-              <div className="input-container">
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <InputText
-                    value={inputHour1}
-                    onChange={(e) => setInputHour1(e.target.value)}
-                    placeholder="Introduce una hora (ej. 4:30 AM o 16:30 PM)"
-                    className="input-hour"
-                    disabled={useCurrentTime}
-                  />
-                  <div style={{ marginLeft: '10px' }}>
-                    <input
-                      type="checkbox"
-                      id="useCurrentTime"
-                      checked={useCurrentTime}
-                      onChange={(e) => {
-                        setUseCurrentTime(e.target.checked);
-                        if (e.target.checked) {
-                          const now = new Date();
-                          const formattedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-                          setInputHour1(formattedTime);
-                        }
-                      }}
-                    />
-                    <label htmlFor="useCurrentTime">Usar hora actual</label>
-                  </div>
-                </div>
-                <p className="info-text">{adjustedTime1}</p>
-              </div>
-
-              <div className="task-counter">Cargar Hora 2</div>
-              <div className="input-container">
-                <InputText
-                  value={inputHour2}
-                  onChange={(e) => setInputHour2(e.target.value)}
-                  placeholder="Introduce una hora (ej. 4:30 AM o 16:30 PM)"
-                  className="input-hour"
-                />
-                <p className="info-text">{adjustedTime2}</p>
-              </div>
-
-              <div className="completed-counter">Resultado</div>
-              <p className="info-text">{remainingHours}</p>
-            </Card>
-            <TaskBoard />
-            <Donation />
-            <Footer />
-          </div>
-        } />
+        <Route path="/" element={hasADHD ? <ADHDView /> : <MainView />} /> {/* Render based on ADHD preference */}
         <Route path="/log" element={<LogPage />} />
+        <Route path="/adhd" element={<ADHDView />} /> {/* Add the ADHD route */}
       </Routes>
+      <Footer hasADHD={hasADHD} toggleADHDMode={toggleADHDMode} />
     </Router>
   );
 }
