@@ -1,10 +1,10 @@
 /* General styles for the app */
 body {
   font-family: 'Poppins', sans-serif;
-  background: #000; /* Black */
+  background: #F3E5F5; /* Light lavender */
   margin: 0;
   padding: 0;
-  color: #FFF; /* White */
+  color: #4A148C; /* Deep purple */
   overflow-x: hidden;
 }
 
@@ -23,10 +23,10 @@ header {
 }
 
 .card {
-  background: #000; /* Black */
-  border: 2px solid #FFD700; /* Gold */
+  background: #EDE7F6; /* Very light purple */
+  border: 2px solid #7B1FA2; /* Medium purple */
   border-radius: 16px;
-  box-shadow: 0 8px 16px rgba(255, 215, 0, 0.2);
+  box-shadow: 0 8px 16px rgba(123, 31, 162, 0.2);
   padding: 2rem;
   margin: 2rem auto;
   max-width: 800px;
@@ -35,12 +35,12 @@ header {
 
 .card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 24px rgba(255, 215, 0, 0.3);
+  box-shadow: 0 12px 24px rgba(123, 31, 162, 0.3);
 }
 
 h1, h2, h3 {
   font-weight: 700;
-  color: #FFD700; /* Gold */
+  color: #7B1FA2; /* Medium purple */
   text-transform: uppercase;
   margin-bottom: 1rem;
 }
@@ -48,7 +48,7 @@ h1, h2, h3 {
 p {
   font-size: 1rem;
   line-height: 1.6;
-  color: #FFF; /* White */
+  color: #6A1B9A; /* Purple */
 }
 
 ul {
@@ -59,10 +59,10 @@ ul {
 li {
   margin-bottom: 1rem;
   padding: 0.5rem;
-  border: 1px solid #FFD700; /* Gold */
+  border: 1px solid #7B1FA2; /* Medium purple */
   border-radius: 4px;
-  background: #000; /* Black */
-  color: #FFF; /* White */
+  background: #EDE7F6; /* Very light purple */
+  color: #4A148C; /* Deep purple */
 }
 
 /* Removed button-specific styles */
@@ -73,18 +73,18 @@ li {
   font-size: 1.2rem;
   font-weight: bold;
   margin-bottom: 1rem;
-  color: #FFD700; /* Gold */
+  color: #7B1FA2; /* Medium purple */
 }
 
 .completed-counter {
   font-size: 1rem;
-  color: #FFF; /* White */
+  color: #6A1B9A; /* Purple */
   margin-bottom: 1rem;
 }
 
 .board-legend {
   font-style: italic;
-  color: #FFD700; /* Gold */
+  color: #7B1FA2; /* Medium purple */
   margin-bottom: 1.5rem;
 }
 
@@ -95,10 +95,44 @@ li {
 /* Add separators */
 .separator {
   height: 4px;
-  background: #FFD700; /* Gold */
+  background: #7B1FA2; /* Medium purple */
   margin: 2rem 0;
   border-radius: 2px;
 }
 
 /* Add a Google Font for productivity */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+
+/* Make the app responsive */
+@media (max-width: 768px) {
+  .card {
+    padding: 1rem;
+    margin: 1rem;
+    max-width: 100%;
+  }
+
+  h1, h2, h3 {
+    font-size: 1.5rem;
+  }
+
+  p {
+    font-size: 0.9rem;
+  }
+
+  .task-counter, .completed-counter {
+    font-size: 1rem;
+  }
+
+  .board-legend {
+    font-size: 0.9rem;
+  }
+
+  ul {
+    padding: 0;
+  }
+
+  li {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+}

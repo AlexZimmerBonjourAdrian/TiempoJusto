@@ -19,6 +19,8 @@ function TaskBoard() {
     const savedLog = Cookies.get('completedLog');
     return savedLog ? JSON.parse(savedLog) : [];
   });
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [connectedUsers, setConnectedUsers] = useState(0);
 
   useEffect(() => {
     Cookies.set('tasks', JSON.stringify(tasks), { expires: 7 });
@@ -53,6 +55,28 @@ function TaskBoard() {
     }
   }, [tasks, completedLog]);
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    // Simulate fetching the number of connected users from a server
+    const fetchConnectedUsers = () => {
+      // Replace this with an actual API call in a real application
+      const simulatedUsers = Math.floor(Math.random() * 100) + 1; // Random number between 1 and 100
+      setConnectedUsers(simulatedUsers);
+    };
+
+    fetchConnectedUsers();
+    const interval = setInterval(fetchConnectedUsers, 5000); // Update every 5 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
   const handleInputChange = (event) => {
     setNewTask(event.target.value);
   };
@@ -80,6 +104,12 @@ function TaskBoard() {
 
   return (
     <Card title="Task Board" className="task-board">
+      <div className="clock" style={{ position: 'absolute', top: '10px', right: '10px', fontSize: '1.2rem', color: '#4A148C' }}>
+        {currentTime.toLocaleTimeString()}
+      </div>
+      <div className="connected-users" style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '1.2rem', color: '#4A148C' }}>
+        Usuarios conectados: {connectedUsers}
+      </div>
       <div className="task-counter">
         {tasks.length}/8
       </div>

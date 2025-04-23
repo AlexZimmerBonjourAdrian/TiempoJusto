@@ -11,6 +11,37 @@ import 'primeicons/primeicons.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LogPage from './components/LogPage';
 
+function HeaderSection() {
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [connectedUsers, setConnectedUsers] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    const fetchConnectedUsers = () => {
+      const simulatedUsers = Math.floor(Math.random() * 100) + 1;
+      setConnectedUsers(simulatedUsers);
+    };
+
+    fetchConnectedUsers();
+    const interval = setInterval(fetchConnectedUsers, 5000);
+
+    return () => {
+      clearInterval(timer);
+      clearInterval(interval);
+    };
+  }, []);
+
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', backgroundColor: '#EDE7F6', color: '#4A148C' }}>
+      <div style={{ fontSize: '1.2rem' }}>Hora actual: {currentTime.toLocaleTimeString()}</div>
+      <div style={{ fontSize: '1.2rem' }}>Usuarios conectados: {connectedUsers}</div>
+    </div>
+  );
+}
+
 function App() {
   const [inputHour1, setInputHour1] = useState(() => Cookies.get('inputHour1') || '');
   const [inputHour2, setInputHour2] = useState(() => Cookies.get('inputHour2') || '');
@@ -26,31 +57,25 @@ function App() {
     Cookies.set('remainingHours', remainingHours, { expires: 7 });
   }, [inputHour1, inputHour2, adjustedTime1, adjustedTime2, remainingHours]);
 
-  const handleSubmit1 = () => {
-    const hour = parseInt(inputHour1);
-    if (!isNaN(hour) && hour >= 0 && hour < 24) {
+  useEffect(() => {
+    const hour1 = parseInt(inputHour1);
+    const hour2 = parseInt(inputHour2);
+
+    if (!isNaN(hour1) && hour1 >= 0 && hour1 < 24) {
       const now = new Date();
-      const adjusted = new Date(now.setHours(now.getHours() - hour));
+      const adjusted = new Date(now.setHours(now.getHours() - hour1));
       setAdjustedTime1(`Hora ajustada: ${adjusted.toLocaleTimeString()}`);
     } else {
       setAdjustedTime1('Por favor, introduce una hora válida (0-23).');
     }
-  };
 
-  const handleSubmit2 = () => {
-    const hour = parseInt(inputHour2);
-    if (!isNaN(hour) && hour >= 0 && hour < 24) {
+    if (!isNaN(hour2) && hour2 >= 0 && hour2 < 24) {
       const now = new Date();
-      const adjusted = new Date(now.setHours(now.getHours() - hour));
+      const adjusted = new Date(now.setHours(now.getHours() - hour2));
       setAdjustedTime2(`Hora ajustada: ${adjusted.toLocaleTimeString()}`);
     } else {
       setAdjustedTime2('Por favor, introduce una hora válida (0-23).');
     }
-  };
-
-  const calculateRemainingHours = () => {
-    const hour1 = parseInt(inputHour1);
-    const hour2 = parseInt(inputHour2);
 
     if (!isNaN(hour1) && hour1 >= 0 && hour1 < 24 && !isNaN(hour2) && hour2 >= 0 && hour2 < 24) {
       let difference = hour2 - hour1;
@@ -61,10 +86,11 @@ function App() {
     } else {
       setRemainingHours('Por favor, introduce horas válidas (0-23).');
     }
-  };
+  }, [inputHour1, inputHour2]);
 
   return (
     <Router>
+      <HeaderSection />
       <Routes>
         <Route path="/" element={
           <div className="App">
@@ -77,7 +103,6 @@ function App() {
                 min={0}
                 max={23}
               />
-              <Button label="Ajustar Hora" onClick={handleSubmit1} className="p-button-outlined" />
               <p>{adjustedTime1}</p>
 
               <h2>Cargar Hora 2</h2>
@@ -88,11 +113,9 @@ function App() {
                 min={0}
                 max={23}
               />
-              <Button label="Ajustar Hora" onClick={handleSubmit2} className="p-button-outlined" />
               <p>{adjustedTime2}</p>
 
               <h2>Calculadora de Horas Restantes</h2>
-              <Button label="Calcular Horas Restantes" onClick={calculateRemainingHours} className="p-button-outlined" />
               <p>{remainingHours}</p>
             </Card>
             <TaskBoard />
