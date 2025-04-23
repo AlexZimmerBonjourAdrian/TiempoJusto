@@ -1,3 +1,4 @@
+/* Ensure compatibility with older browsers */
 .footer {
   text-align: center;
   padding: 10px;
@@ -9,4 +10,26 @@
 .footer p {
   margin: 0;
   font-size: 0.9rem;
+}
+
+.footer button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 0.9em;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+/* Add fallback for older browsers */
+.footer {
+  -webkit-border-radius: 8px;
+  -moz-border-radius: 8px;
+}
+
+.footer button {
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
 }
