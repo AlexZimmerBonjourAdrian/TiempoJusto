@@ -3,13 +3,13 @@ import './App.css';
 import Cookies from 'js-cookie';
 import TaskBoard from './components/TaskBoard';
 import { InputNumber } from 'primereact/inputnumber';
-import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LogPage from './components/LogPage';
+import Header from './components/Header';
 
 function App() {
   const [inputHour1, setInputHour1] = useState(() => Cookies.get('inputHour1') || '');
@@ -59,32 +59,39 @@ function App() {
 
   return (
     <Router>
+      <Header />
       <Routes>
         <Route path="/" element={
           <div className="App">
-            <Card title="Introduce una hora">
-              <h2>Cargar Hora 1</h2>
-              <InputNumber
-                value={inputHour1}
-                onValueChange={(e) => setInputHour1(e.value)}
-                placeholder="Introduce una hora (0-23)"
-                min={0}
-                max={23}
-              />
-              <p>{adjustedTime1}</p>
+            <Card title={<h1 className="task-board-title">Introduce una hora</h1>} className="task-board">
+              <div className="task-counter">Cargar Hora 1</div>
+              <div className="input-container">
+                <InputNumber
+                  value={inputHour1}
+                  onValueChange={(e) => setInputHour1(e.value)}
+                  placeholder="Introduce una hora (0-23)"
+                  min={0}
+                  max={23}
+                  className="input-hour"
+                />
+                <p className="info-text">{adjustedTime1}</p>
+              </div>
 
-              <h2>Cargar Hora 2</h2>
-              <InputNumber
-                value={inputHour2}
-                onValueChange={(e) => setInputHour2(e.value)}
-                placeholder="Introduce una hora (0-23)"
-                min={0}
-                max={23}
-              />
-              <p>{adjustedTime2}</p>
+              <div className="task-counter">Cargar Hora 2</div>
+              <div className="input-container">
+                <InputNumber
+                  value={inputHour2}
+                  onValueChange={(e) => setInputHour2(e.value)}
+                  placeholder="Introduce una hora (0-23)"
+                  min={0}
+                  max={23}
+                  className="input-hour"
+                />
+                <p className="info-text">{adjustedTime2}</p>
+              </div>
 
-              <h2>Calculadora de Horas Restantes</h2>
-              <p>{remainingHours}</p>
+              <div className="completed-counter">Calculadora de Horas Restantes</div>
+              <p className="info-text">{remainingHours}</p>
             </Card>
             <TaskBoard />
           </div>

@@ -157,6 +157,10 @@ function TaskBoard() {
         <h1>Tareas para tu día a día</h1>
         <p>Concéntrate en lo que es importante</p>
       </div>
+
+      {/* Línea separadora azul */}
+      <hr style={{ border: '2px solid blue', margin: '20px 0' }} />
+
       <div className="layout-info" style={{ marginTop: '20px', padding: '10px', border: '1px solid #ccc', borderRadius: '5px', backgroundColor: '#f9f9f9' }}>
         <h2>Propósito de la Aplicación</h2>
         <p>"Tiempo Justo" es una herramienta diseñada para ayudarte a gestionar tus tareas diarias de manera eficiente y significativa. Inspirada en las filosofías de productividad de Brian Tracy y los principios de responsabilidad personal de Jordan Peterson, esta aplicación busca empoderarte para que te concentres en lo que realmente importa y avances hacia tus metas con claridad y propósito.</p>

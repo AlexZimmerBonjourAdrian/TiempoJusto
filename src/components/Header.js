@@ -1,20 +1,12 @@
-// Eliminé los elementos de "Hora actual" y "Usuarios conectados" de la barra superior.
-// Commented out the Header component to remove it from the application.
-// import React from 'react';
-// import { Menubar } from 'primereact/menubar';
+import React from 'react';
+import './Header.css';
 
-// function Header() {
-//   const items = [
-//     { label: 'Inicio', icon: 'pi pi-home' },
-//     { label: 'Tareas', icon: 'pi pi-list' },
-//     { label: 'Perfil', icon: 'pi pi-user' },
-//   ];
+function Header() {
+  return (
+    <header className="app-header">
+      <h1 className="app-title">Cómete esos sapos: Filosofías de Productividad</h1>
+    </header>
+  );
+}
 
-//   return (
-//     <header className="App-header">
-//       <Menubar model={items} />
-//     </header>
-//   );
-// }
-
-// export default Header;
+export default Header;
