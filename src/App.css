@@ -1,9 +1,108 @@
+/* General styles for the app */
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #FFFDE7; /* Cream yellow */
+  margin: 0;
+  padding: 0;
+  color: #000; /* Black */
+}
+
+header {
+  background-color: #D32F2F; /* Desaturated red */
+  color: #FFF; /* White */
+  padding: 1rem;
+  text-align: center;
+  font-size: 1.5rem;
+}
+
 .App {
   font-family: Arial, sans-serif;
   text-align: center;
   padding: 20px;
 }
 
+.card {
+  margin: 2rem auto;
+  padding: 1.5rem;
+  max-width: 800px;
+  background: #FFF; /* White */
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
 h1 {
   color: #333;
 }
+
+h3 {
+  color: #D32F2F; /* Desaturated red */
+  margin-bottom: 1rem;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  border: 1px solid #D32F2F; /* Desaturated red */
+  border-radius: 4px;
+  background: #FFF; /* White */
+}
+
+button {
+  background-color: #D32F2F; /* Desaturated red */
+  color: #FFF; /* White */
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background-color: #B71C1C; /* Darker desaturated red */
+  transform: scale(1.05);
+}
+
+/* Specific styles for segments */
+.task-counter {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #000; /* Black */
+}
+
+.completed-counter {
+  font-size: 1rem;
+  color: #555; /* Dark gray */
+  margin-bottom: 1rem;
+}
+
+.board-legend {
+  font-style: italic;
+  color: #777; /* Light gray */
+  margin-bottom: 1.5rem;
+}
+
+.log-container, .log-task {
+  margin-top: 2rem;
+}
+
+/* Add separators */
+.separator {
+  height: 2px;
+  background-color: #D32F2F; /* Desaturated red */
+  margin: 2rem 0;
+}
+
+/* Add a Google Font for productivity */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');

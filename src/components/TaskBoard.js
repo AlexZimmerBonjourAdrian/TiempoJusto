@@ -51,7 +51,7 @@ function TaskBoard() {
       Cookies.set('lastReset', now.toISOString(), { expires: 7 });
       setTasks([]); // Reset tasks for the new day
     }
-  }, [tasks]);
+  }, [tasks, completedLog]);
 
   const handleInputChange = (event) => {
     setNewTask(event.target.value);

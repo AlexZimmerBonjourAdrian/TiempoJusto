@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import Header from './components/Header';
 import Cookies from 'js-cookie';
 import TaskBoard from './components/TaskBoard';
 import { InputNumber } from 'primereact/inputnumber';
@@ -69,7 +68,6 @@ function App() {
       <Routes>
         <Route path="/" element={
           <div className="App">
-            <Header />
             <Card title="Introduce una hora">
               <h2>Cargar Hora 1</h2>
               <InputNumber

@@ -14,7 +14,7 @@ function LogPage() {
     const filteredLog = completedLog.filter(log => new Date(log.date) >= sixMonthsAgo);
     setCompletedLog(filteredLog);
     Cookies.set('completedLog', JSON.stringify(filteredLog), { expires: 7 });
-  }, []);
+  }, [completedLog]);
 
   return (
     <Card title="Productivity Log" className="log-page">
