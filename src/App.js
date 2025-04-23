@@ -10,6 +10,8 @@ import 'primeicons/primeicons.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LogPage from './components/LogPage';
 import Header from './components/Header';
+import Donation from './components/Donation';
+import Footer from './components/Footer';
 
 function App() {
   const [inputHour1, setInputHour1] = useState(() => Cookies.get('inputHour1') || '');
@@ -94,6 +96,8 @@ function App() {
               <p className="info-text">{remainingHours}</p>
             </Card>
             <TaskBoard />
+            <Donation />
+            <Footer />
           </div>
         } />
         <Route path="/log" element={<LogPage />} />

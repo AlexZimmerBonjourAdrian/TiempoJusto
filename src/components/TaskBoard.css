@@ -135,6 +135,14 @@ button:hover {
   color: #6A1B9A; /* Purple */
 }
 
+/* Estilos para la sección Acerca de */
+.about-section {
+  text-align: center;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #4A148C;
+}
+
 /* Improve responsiveness */
 @media (max-width: 768px) {
   .task-board {
@@ -147,6 +155,19 @@ button:hover {
   }
 
   .task-board .legend {
+    font-size: 0.9rem;
+  }
+
+  .task-board {
+    padding: 10px;
+  }
+
+  .about-section {
+    font-size: 0.9rem;
+    padding: 10px;
+  }
+
+  .task-list li {
     font-size: 0.9rem;
   }
 }
