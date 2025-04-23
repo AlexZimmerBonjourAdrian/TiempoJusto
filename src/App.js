@@ -9,6 +9,8 @@ import { Card } from 'primereact/card';
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LogPage from './components/LogPage';
 
 function App() {
   const [inputHour1, setInputHour1] = useState(() => Cookies.get('inputHour1') || '');
@@ -24,14 +26,6 @@ function App() {
     Cookies.set('adjustedTime2', adjustedTime2, { expires: 7 });
     Cookies.set('remainingHours', remainingHours, { expires: 7 });
   }, [inputHour1, inputHour2, adjustedTime1, adjustedTime2, remainingHours]);
-
-  const handleInputChange1 = (event) => {
-    setInputHour1(event.target.value);
-  };
-
-  const handleInputChange2 = (event) => {
-    setInputHour2(event.target.value);
-  };
 
   const handleSubmit1 = () => {
     const hour = parseInt(inputHour1);
@@ -71,37 +65,44 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <Header />
-      <Card title="Introduce una hora">
-        <h2>Cargar Hora 1</h2>
-        <InputNumber
-          value={inputHour1}
-          onValueChange={(e) => setInputHour1(e.value)}
-          placeholder="Introduce una hora (0-23)"
-          min={0}
-          max={23}
-        />
-        <Button label="Ajustar Hora" onClick={handleSubmit1} className="p-button-outlined" />
-        <p>{adjustedTime1}</p>
+    <Router>
+      <Routes>
+        <Route path="/" element={
+          <div className="App">
+            <Header />
+            <Card title="Introduce una hora">
+              <h2>Cargar Hora 1</h2>
+              <InputNumber
+                value={inputHour1}
+                onValueChange={(e) => setInputHour1(e.value)}
+                placeholder="Introduce una hora (0-23)"
+                min={0}
+                max={23}
+              />
+              <Button label="Ajustar Hora" onClick={handleSubmit1} className="p-button-outlined" />
+              <p>{adjustedTime1}</p>
 
-        <h2>Cargar Hora 2</h2>
-        <InputNumber
-          value={inputHour2}
-          onValueChange={(e) => setInputHour2(e.value)}
-          placeholder="Introduce una hora (0-23)"
-          min={0}
-          max={23}
-        />
-        <Button label="Ajustar Hora" onClick={handleSubmit2} className="p-button-outlined" />
-        <p>{adjustedTime2}</p>
+              <h2>Cargar Hora 2</h2>
+              <InputNumber
+                value={inputHour2}
+                onValueChange={(e) => setInputHour2(e.value)}
+                placeholder="Introduce una hora (0-23)"
+                min={0}
+                max={23}
+              />
+              <Button label="Ajustar Hora" onClick={handleSubmit2} className="p-button-outlined" />
+              <p>{adjustedTime2}</p>
 
-        <h2>Calculadora de Horas Restantes</h2>
-        <Button label="Calcular Horas Restantes" onClick={calculateRemainingHours} className="p-button-outlined" />
-        <p>{remainingHours}</p>
-      </Card>
-      <TaskBoard />
-    </div>
+              <h2>Calculadora de Horas Restantes</h2>
+              <Button label="Calcular Horas Restantes" onClick={calculateRemainingHours} className="p-button-outlined" />
+              <p>{remainingHours}</p>
+            </Card>
+            <TaskBoard />
+          </div>
+        } />
+        <Route path="/log" element={<LogPage />} />
+      </Routes>
+    </Router>
   );
 }
 
