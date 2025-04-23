@@ -1,0 +1,152 @@
+.task-board {
+  text-align: center;
+  padding: 20px;
+  background: #EDE7F6; /* Very light purple */
+  border-radius: 16px;
+  box-shadow: 0 8px 16px rgba(123, 31, 162, 0.2);
+  padding: 2rem;
+  margin: 2rem auto;
+  max-width: 800px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin-top: 2rem;
+}
+
+.task-board:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.input-container {
+  margin-bottom: 20px;
+}
+
+input[type="text"] {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 300px;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #D32F2F;
+  color: #FFF;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background-color: #B71C1C;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.task-list {
+  list-style: none;
+  padding: 0;
+}
+
+.task-list li {
+  background: #FFF;
+  border: 1px solid #D32F2F;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.task-list li:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.task-list li.completed {
+  text-decoration: line-through;
+  color: #999;
+}
+
+.task {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.task span {
+  flex-grow: 1;
+  margin-left: 10px;
+}
+
+.task.completed span {
+  text-decoration: line-through;
+  color: #888;
+}
+
+.task input[type="checkbox"] {
+  margin-right: 10px;
+}
+
+.task button {
+  background-color: #dc3545;
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.task button:hover {
+  background-color: #c82333;
+}
+
+.task-counter, .completed-counter {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #7B1FA2; /* Medium purple */
+  margin-bottom: 1rem;
+}
+
+.board-legend {
+  font-style: italic;
+  color: #777;
+  margin-bottom: 1.5rem;
+}
+
+.task-board .task-counter,
+.task-board .completed-counter {
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #7B1FA2; /* Medium purple */
+}
+
+.task-board .legend {
+  margin-top: 2rem;
+  font-style: italic;
+  color: #6A1B9A; /* Purple */
+}
+
+/* Improve responsiveness */
+@media (max-width: 768px) {
+  .task-board {
+    padding: 1rem;
+  }
+
+  .task-board .task-counter,
+  .task-board .completed-counter {
+    font-size: 1rem;
+  }
+
+  .task-board .legend {
+    font-size: 0.9rem;
+  }
+}
