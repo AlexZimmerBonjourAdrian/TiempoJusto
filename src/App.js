@@ -9,6 +9,7 @@ import LogPage from './components/LogPage';
 import Header from './components/Header';
 import ADHDView from './components/ADHDView'; // Import the ADHDView component
 import MainView from './components/MainView'; // Import the MainView component
+import Footer from './components/Footer';
 
 function App() {
   const [inputHour1] = useState(() => Cookies.get('inputHour1') || '');
@@ -20,6 +21,14 @@ function App() {
     const savedPreference = Cookies.get('hasADHD');
     return savedPreference !== undefined ? JSON.parse(savedPreference) : null;
   });
+
+  const toggleADHDMode = () => {
+    setHasADHD((prev) => {
+      const newMode = !prev;
+      Cookies.set('hasADHD', newMode, { expires: 182 });
+      return newMode;
+    });
+  };
 
   useEffect(() => {
     if (hasADHD !== null) {
@@ -82,10 +91,42 @@ function App() {
 
   if (hasADHD === null) {
     return (
-      <div className="preference-selection">
-        <h1>¿Tienes ADHD?</h1>
-        <button onClick={() => setHasADHD(true)}>Sí</button>
-        <button onClick={() => setHasADHD(false)}>No</button>
+      <div className="preference-selection" style={{ textAlign: 'center', padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+        <h1 style={{ color: '#4CAF50', fontSize: '2.5em' }}>¡Hola! 😊</h1>
+        <p style={{ fontSize: '1.2em', color: '#555' }}>
+          Antes de comenzar, queremos conocerte un poco mejor. ¿Tienes ADHD? Esto nos ayudará a personalizar tu experiencia.
+        </p>
+        <div style={{ marginTop: '20px' }}>
+          <button 
+            onClick={() => setHasADHD(true)} 
+            style={{ 
+              backgroundColor: '#4CAF50', 
+              color: 'white', 
+              border: 'none', 
+              padding: '10px 20px', 
+              fontSize: '1em', 
+              borderRadius: '5px', 
+              cursor: 'pointer', 
+              marginRight: '10px' 
+            }}
+          >
+            Sí, tengo ADHD
+          </button>
+          <button 
+            onClick={() => setHasADHD(false)} 
+            style={{ 
+              backgroundColor: '#f44336', 
+              color: 'white', 
+              border: 'none', 
+              padding: '10px 20px', 
+              fontSize: '1em', 
+              borderRadius: '5px', 
+              cursor: 'pointer' 
+            }}
+          >
+            No, no tengo ADHD
+          </button>
+        </div>
       </div>
     );
   }
@@ -98,6 +139,7 @@ function App() {
         <Route path="/log" element={<LogPage />} />
         <Route path="/adhd" element={<ADHDView />} /> {/* Add the ADHD route */}
       </Routes>
+      <Footer hasADHD={hasADHD} toggleADHDMode={toggleADHDMode} />
     </Router>
   );
 }
