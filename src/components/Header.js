@@ -1,9 +1,16 @@
 import React from 'react';
+import { Menubar } from 'primereact/menubar';
 
 function Header() {
+  const items = [
+    { label: 'Inicio', icon: 'pi pi-home' },
+    { label: 'Tareas', icon: 'pi pi-list' },
+    { label: 'Perfil', icon: 'pi pi-user' },
+  ];
+
   return (
     <header className="App-header">
-      <h1>Tiempo Justo</h1>
+      <Menubar model={items} />
     </header>
   );
 }

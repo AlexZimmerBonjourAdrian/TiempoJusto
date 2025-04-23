@@ -42,3 +42,19 @@ Tiempo Justo es una aplicación web diseñada para calcular de manera sencilla l
 
 ¡Las contribuciones son bienvenidas! Si tienes ideas o mejoras, no dudes en abrir un issue o enviar un pull request.
 
+
+## Google Calendar Integration Setup
+
+To enable Google Calendar integration, you need to set the following environment variables:
+
+-   `REACT_APP_GOOGLE_CLIENT_ID`: Your Google Client ID.
+-   `REACT_APP_GOOGLE_API_KEY`: Your Google API Key.
+
+You can set these environment variables in your `.env` file or directly in your terminal. For example:
+
+```bash
+REACT_APP_GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID
+REACT_APP_GOOGLE_API_KEY=YOUR_GOOGLE_API_KEY
+```
+
+Remember to replace `YOUR_GOOGLE_CLIENT_ID` and `YOUR_GOOGLE_API_KEY` with your actual credentials.
