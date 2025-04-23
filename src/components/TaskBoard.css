@@ -1,13 +1,14 @@
 .task-board {
   text-align: center;
   padding: 20px;
-  background: #FFF;
+  background: #EDE7F6; /* Very light purple */
   border-radius: 16px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 16px rgba(123, 31, 162, 0.2);
   padding: 2rem;
   margin: 2rem auto;
   max-width: 800px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin-top: 2rem;
 }
 
 .task-board:hover {
@@ -110,7 +111,7 @@ button:hover {
 .task-counter, .completed-counter {
   font-size: 1.2rem;
   font-weight: bold;
-  color: #D32F2F;
+  color: #7B1FA2; /* Medium purple */
   margin-bottom: 1rem;
 }
 
@@ -118,4 +119,34 @@ button:hover {
   font-style: italic;
   color: #777;
   margin-bottom: 1.5rem;
+}
+
+.task-board .task-counter,
+.task-board .completed-counter {
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #7B1FA2; /* Medium purple */
+}
+
+.task-board .legend {
+  margin-top: 2rem;
+  font-style: italic;
+  color: #6A1B9A; /* Purple */
+}
+
+/* Improve responsiveness */
+@media (max-width: 768px) {
+  .task-board {
+    padding: 1rem;
+  }
+
+  .task-board .task-counter,
+  .task-board .completed-counter {
+    font-size: 1rem;
+  }
+
+  .task-board .legend {
+    font-size: 0.9rem;
+  }
 }

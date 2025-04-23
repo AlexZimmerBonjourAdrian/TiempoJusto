@@ -1,3 +1,4 @@
+// Eliminé los elementos de "Hora actual" y "Usuarios conectados" de la barra superior.
 // Commented out the Header component to remove it from the application.
 // import React from 'react';
 // import { Menubar } from 'primereact/menubar';

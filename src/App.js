@@ -11,37 +11,6 @@ import 'primeicons/primeicons.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LogPage from './components/LogPage';
 
-function HeaderSection() {
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [connectedUsers, setConnectedUsers] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    const fetchConnectedUsers = () => {
-      const simulatedUsers = Math.floor(Math.random() * 100) + 1;
-      setConnectedUsers(simulatedUsers);
-    };
-
-    fetchConnectedUsers();
-    const interval = setInterval(fetchConnectedUsers, 5000);
-
-    return () => {
-      clearInterval(timer);
-      clearInterval(interval);
-    };
-  }, []);
-
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', backgroundColor: '#EDE7F6', color: '#4A148C' }}>
-      <div style={{ fontSize: '1.2rem' }}>Hora actual: {currentTime.toLocaleTimeString()}</div>
-      <div style={{ fontSize: '1.2rem' }}>Usuarios conectados: {connectedUsers}</div>
-    </div>
-  );
-}
-
 function App() {
   const [inputHour1, setInputHour1] = useState(() => Cookies.get('inputHour1') || '');
   const [inputHour2, setInputHour2] = useState(() => Cookies.get('inputHour2') || '');
@@ -90,7 +59,6 @@ function App() {
 
   return (
     <Router>
-      <HeaderSection />
       <Routes>
         <Route path="/" element={
           <div className="App">

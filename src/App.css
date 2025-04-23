@@ -100,6 +100,21 @@ li {
   border-radius: 2px;
 }
 
+/* Centralized styles for the HeaderSection */
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #EDE7F6; /* Very light purple */
+  color: #4A148C; /* Deep purple */
+  border-bottom: 2px solid #7B1FA2; /* Medium purple */
+}
+
+.header-section div {
+  font-size: 1.2rem;
+}
+
 /* Add a Google Font for productivity */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
 
@@ -134,5 +149,14 @@ li {
   li {
     padding: 0.5rem;
     font-size: 0.9rem;
+  }
+
+  .header-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-section div {
+    margin-bottom: 10px;
   }
 }

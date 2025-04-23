@@ -104,14 +104,16 @@ function TaskBoard() {
 
   return (
     <Card title="Task Board" className="task-board">
-      <div className="clock" style={{ position: 'absolute', top: '10px', right: '10px', fontSize: '1.2rem', color: '#4A148C' }}>
-        {currentTime.toLocaleTimeString()}
-      </div>
-      <div className="connected-users" style={{ position: 'absolute', top: '10px', left: '10px', fontSize: '1.2rem', color: '#4A148C' }}>
-        Usuarios conectados: {connectedUsers}
-      </div>
       <div className="task-counter">
         {tasks.length}/8
+      </div>
+      <div className="header-info" style={{ marginBottom: '10px', textAlign: 'center' }}>
+        <div className="connected-users" style={{ fontSize: '1.2rem', color: '#4A148C', marginBottom: '5px' }}>
+          Usuarios conectados: {connectedUsers}
+        </div>
+        <div className="clock" style={{ fontSize: '1.2rem', color: '#4A148C' }}>
+          {currentTime.toLocaleTimeString()}
+        </div>
       </div>
       <p className="board-legend">Asigna solo las tareas que sean significativas para ti y que te acerquen a tus metas.</p>
       <div className="completed-counter">
@@ -154,6 +156,31 @@ function TaskBoard() {
       <div className="legend">
         <h1>Tareas para tu día a día</h1>
         <p>Concéntrate en lo que es importante</p>
+      </div>
+      <div className="layout-info" style={{ marginTop: '20px', padding: '10px', border: '1px solid #ccc', borderRadius: '5px', backgroundColor: '#f9f9f9' }}>
+        <h2>Propósito de la Aplicación</h2>
+        <p>"Tiempo Justo" es una herramienta diseñada para ayudarte a gestionar tus tareas diarias de manera eficiente y significativa. Inspirada en las filosofías de productividad de Brian Tracy y los principios de responsabilidad personal de Jordan Peterson, esta aplicación busca empoderarte para que te concentres en lo que realmente importa y avances hacia tus metas con claridad y propósito.</p>
+
+        <h3>Enfoque Principal</h3>
+        <ul>
+          <li><strong>Priorizar lo Importante:</strong> Identifica y completa primero las tareas más importantes y significativas.</li>
+          <li><strong>Responsabilidad Personal:</strong> Lleva un registro de tus logros diarios para construir una narrativa positiva sobre tu progreso.</li>
+          <li><strong>Gestión del Tiempo:</strong> Limita tus tareas diarias a 8 para mantener un enfoque claro en tus prioridades.</li>
+        </ul>
+
+        <h3>Filosofías Inspiradoras</h3>
+        <ul>
+          <li><strong>Brian Tracy:</strong> "Come That Frog" te anima a abordar primero las tareas más difíciles y significativas.</li>
+          <li><strong>Jordan Peterson:</strong> "Poner tu casa en orden" fomenta la responsabilidad personal y el progreso diario.</li>
+        </ul>
+
+        <h3>Beneficios</h3>
+        <ul>
+          <li>Incrementa tu productividad al enfocarte en lo que realmente importa.</li>
+          <li>Reduce el estrés al limitar el número de tareas diarias.</li>
+          <li>Fomenta un sentido de logro y responsabilidad personal.</li>
+          <li>Te ayuda a construir hábitos positivos que impactan tu vida a largo plazo.</li>
+        </ul>
       </div>
     </Card>
   );
