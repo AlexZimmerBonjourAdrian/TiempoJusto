@@ -1,10 +1,11 @@
 /* General styles for the app */
 body {
-  font-family: 'Roboto', sans-serif;
-  background-color: #FFFDE7; /* Cream yellow */
+  font-family: 'Poppins', sans-serif;
+  background: #000; /* Black */
   margin: 0;
   padding: 0;
-  color: #000; /* Black */
+  color: #FFF; /* White */
+  overflow-x: hidden;
 }
 
 header {
@@ -22,27 +23,32 @@ header {
 }
 
 .card {
+  background: #000; /* Black */
+  border: 2px solid #FFD700; /* Gold */
+  border-radius: 16px;
+  box-shadow: 0 8px 16px rgba(255, 215, 0, 0.2);
+  padding: 2rem;
   margin: 2rem auto;
-  padding: 1.5rem;
   max-width: 800px;
-  background: #FFF; /* White */
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 12px 24px rgba(255, 215, 0, 0.3);
 }
 
-h1 {
-  color: #333;
-}
-
-h3 {
-  color: #D32F2F; /* Desaturated red */
+h1, h2, h3 {
+  font-weight: 700;
+  color: #FFD700; /* Gold */
+  text-transform: uppercase;
   margin-bottom: 1rem;
+}
+
+p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #FFF; /* White */
 }
 
 ul {
@@ -53,43 +59,32 @@ ul {
 li {
   margin-bottom: 1rem;
   padding: 0.5rem;
-  border: 1px solid #D32F2F; /* Desaturated red */
+  border: 1px solid #FFD700; /* Gold */
   border-radius: 4px;
-  background: #FFF; /* White */
-}
-
-button {
-  background-color: #D32F2F; /* Desaturated red */
+  background: #000; /* Black */
   color: #FFF; /* White */
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-button:hover {
-  background-color: #B71C1C; /* Darker desaturated red */
-  transform: scale(1.05);
-}
+/* Removed button-specific styles */
+/* Removed button hover effects */
 
 /* Specific styles for segments */
 .task-counter {
   font-size: 1.2rem;
   font-weight: bold;
   margin-bottom: 1rem;
-  color: #000; /* Black */
+  color: #FFD700; /* Gold */
 }
 
 .completed-counter {
   font-size: 1rem;
-  color: #555; /* Dark gray */
+  color: #FFF; /* White */
   margin-bottom: 1rem;
 }
 
 .board-legend {
   font-style: italic;
-  color: #777; /* Light gray */
+  color: #FFD700; /* Gold */
   margin-bottom: 1.5rem;
 }
 
@@ -99,10 +94,11 @@ button:hover {
 
 /* Add separators */
 .separator {
-  height: 2px;
-  background-color: #D32F2F; /* Desaturated red */
+  height: 4px;
+  background: #FFD700; /* Gold */
   margin: 2rem 0;
+  border-radius: 2px;
 }
 
 /* Add a Google Font for productivity */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
