@@ -21,11 +21,11 @@ function App() {
   const [remainingHours, setRemainingHours] = useState(() => Cookies.get('remainingHours') || '');
 
   useEffect(() => {
-    Cookies.set('inputHour1', inputHour1, { expires: 7 });
-    Cookies.set('inputHour2', inputHour2, { expires: 7 });
-    Cookies.set('adjustedTime1', adjustedTime1, { expires: 7 });
-    Cookies.set('adjustedTime2', adjustedTime2, { expires: 7 });
-    Cookies.set('remainingHours', remainingHours, { expires: 7 });
+    Cookies.set('inputHour1', inputHour1, { expires: 182 });
+    Cookies.set('inputHour2', inputHour2, { expires: 182 });
+    Cookies.set('adjustedTime1', adjustedTime1, { expires: 182 });
+    Cookies.set('adjustedTime2', adjustedTime2, { expires: 182 });
+    Cookies.set('remainingHours', remainingHours, { expires: 182 });
   }, [inputHour1, inputHour2, adjustedTime1, adjustedTime2, remainingHours]);
 
   useEffect(() => {

@@ -18,11 +18,11 @@ function LogTask() {
     const sixMonthsAgo = new Date(now.setMonth(now.getMonth() - 6));
     const filteredTaskLog = taskLog.filter(log => new Date(log.date) >= sixMonthsAgo);
     setTaskLog(filteredTaskLog);
-    Cookies.set('taskLog', JSON.stringify(filteredTaskLog), { expires: 7 });
+    Cookies.set('taskLog', JSON.stringify(filteredTaskLog), { expires: 182 });
 
     const filteredCompletedLog = completedLog.filter(log => new Date(log.date) >= sixMonthsAgo);
     setCompletedLog(filteredCompletedLog);
-    Cookies.set('completedLog', JSON.stringify(filteredCompletedLog), { expires: 7 });
+    Cookies.set('completedLog', JSON.stringify(filteredCompletedLog), { expires: 182 });
   }, []);
 
   return (

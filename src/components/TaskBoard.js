@@ -23,7 +23,7 @@ function TaskBoard() {
   const [connectedUsers, setConnectedUsers] = useState(0);
 
   useEffect(() => {
-    Cookies.set('tasks', JSON.stringify(tasks), { expires: 7 });
+    Cookies.set('tasks', JSON.stringify(tasks), { expires: 182 });
   }, [tasks]);
 
   useEffect(() => {
@@ -48,9 +48,9 @@ function TaskBoard() {
       const productivity = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
       setCompletedLog([...completedLog, { date: lastResetDate || now, completedTasks, totalTasks, productivity }]);
-      Cookies.set('completedLog', JSON.stringify([...completedLog, { date: lastResetDate || now, completedTasks, totalTasks, productivity }]), { expires: 7 });
+      Cookies.set('completedLog', JSON.stringify([...completedLog, { date: lastResetDate || now, completedTasks, totalTasks, productivity }]), { expires: 182 });
 
-      Cookies.set('lastReset', now.toISOString(), { expires: 7 });
+      Cookies.set('lastReset', now.toISOString(), { expires: 182 });
       setTasks([]); // Reset tasks for the new day
     }
   }, [tasks, completedLog]);

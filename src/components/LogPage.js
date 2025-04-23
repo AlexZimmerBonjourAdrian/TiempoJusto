@@ -13,7 +13,7 @@ function LogPage() {
     const sixMonthsAgo = new Date(now.setMonth(now.getMonth() - 6));
     const filteredLog = completedLog.filter(log => new Date(log.date) >= sixMonthsAgo);
     setCompletedLog(filteredLog);
-    Cookies.set('completedLog', JSON.stringify(filteredLog), { expires: 7 });
+    Cookies.set('completedLog', JSON.stringify(filteredLog), { expires: 182 });
   }, [completedLog]);
 
   return (
