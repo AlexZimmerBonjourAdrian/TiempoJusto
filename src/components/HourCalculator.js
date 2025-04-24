@@ -8,7 +8,6 @@ function HourCalculator() {
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
     const [duration, setDuration] = useState('');
-    const [adjustedTime, setAdjustedTime] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
 
     const calculateDuration = () => {
@@ -73,15 +72,15 @@ function HourCalculator() {
 
     const adjustTime = () => {
         if (startTime) {
-            const [hours, minutes] = startTime.split(':').map(Number);
-            const adjusted = new Date();
-            adjusted.setHours(hours);
-            adjusted.setMinutes(minutes);
-            adjusted.setMinutes(adjusted.getMinutes() + 30); // Ajuste de 30 minutos
+            // const [hours, minutes] = startTime.split(':').map(Number);
+            // const adjusted = new Date();
+            // adjusted.setHours(hours);
+            // adjusted.setMinutes(minutes);
+            // adjusted.setMinutes(adjusted.getMinutes() + 30); // Ajuste de 30 minutos
 
-            setAdjustedTime(`Hora ajustada: ${adjusted.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
+            // setAdjustedTime(`Hora ajustada: ${adjusted.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
         } else {
-            setAdjustedTime('Por favor, introduce una hora de inicio.');
+            // setAdjustedTime('Por favor, introduce una hora de inicio.');
         }
     };
 

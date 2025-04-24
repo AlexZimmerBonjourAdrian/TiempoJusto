@@ -20,7 +20,6 @@ function TaskBoard() {
     return savedLog ? JSON.parse(savedLog) : [];
   });
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [connectedUsers, setConnectedUsers] = useState(0);
   const [activeTask, setActiveTask] = useState(null); // Add activeTask state
 
   useEffect(() => {
@@ -62,20 +61,6 @@ function TaskBoard() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    // Simulate fetching the number of connected users from a server
-    const fetchConnectedUsers = () => {
-      // Replace this with an actual API call in a real application
-      const simulatedUsers = Math.floor(Math.random() * 100) + 1; // Random number between 1 and 100
-      setConnectedUsers(simulatedUsers);
-    };
-
-    fetchConnectedUsers();
-    const interval = setInterval(fetchConnectedUsers, 5000); // Update every 5 seconds
-
-    return () => clearInterval(interval);
   }, []);
 
   const handleInputChange = (event) => {
@@ -123,9 +108,6 @@ function TaskBoard() {
       <hr style={{ border: '1px solid #ccc', margin: '20px 0' }} />
 
       <div className="header-info" style={{ marginBottom: '10px', textAlign: 'center' }}>
-        {/* <div className="connected-users" style={{ fontSize: '1.2rem', color: '#4A148C', marginBottom: '5px' }}>
-          Usuarios conectados: {connectedUsers}
-        </div> */}
         <div className="clock" style={{ fontSize: '1.2rem', color: '#4A148C' }}>
           {currentTime.toLocaleTimeString()}
         </div>
