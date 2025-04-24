@@ -42,7 +42,6 @@ Tiempo Justo es una aplicación web diseñada para calcular de manera sencilla l
 
 ¡Las contribuciones son bienvenidas! Si tienes ideas o mejoras, no dudes en abrir un issue o enviar un pull request.
 
-
 ## Google Calendar Integration Setup
 
 To enable Google Calendar integration, you need to set the following environment variables:
@@ -58,3 +57,59 @@ REACT_APP_GOOGLE_API_KEY=YOUR_GOOGLE_API_KEY
 ```
 
 Remember to replace `YOUR_GOOGLE_CLIENT_ID` and `YOUR_GOOGLE_API_KEY` with your actual credentials.
+
+## Plan para Ampliación de Funcionalidades
+
+### 1. Notificaciones Locales
+**Objetivo:** Implementar recordatorios para eventos próximos.
+
+#### Pasos:
+1. **Investigar APIs de notificaciones:**
+   - Utilizar la API de Notificaciones del navegador para enviar recordatorios locales.
+   - Asegurarse de que los permisos de notificación sean solicitados al usuario.
+
+2. **Implementar lógica de notificaciones:**
+   - Crear un componente o función que calcule el tiempo restante para un evento.
+   - Configurar un temporizador (`setTimeout`) para enviar la notificación cuando el evento esté próximo.
+
+3. **Pruebas:**
+   - Verificar que las notificaciones funcionen en diferentes navegadores.
+   - Asegurarse de que las notificaciones sean claras y útiles.
+
+4. **Documentación:**
+   - Actualizar el README con instrucciones sobre cómo habilitar las notificaciones.
+
+### 2. Personalización Temporal
+**Objetivo:** Permitir configuraciones que se mantengan solo durante la sesión del usuario.
+
+#### Pasos:
+1. **Definir configuraciones personalizables:**
+   - Por ejemplo, colores de fondo, formato de hora (12h/24h), etc.
+
+2. **Implementar almacenamiento en memoria:**
+   - Utilizar el estado de React o `sessionStorage` para guardar las configuraciones temporalmente.
+
+3. **Crear una interfaz de configuración:**
+   - Agregar un modal o sección en la aplicación donde los usuarios puedan ajustar sus preferencias.
+
+4. **Pruebas:**
+   - Verificar que las configuraciones se apliquen correctamente durante la sesión.
+   - Asegurarse de que las configuraciones se restablezcan al cerrar la aplicación.
+
+5. **Documentación:**
+   - Actualizar el README con detalles sobre las opciones de personalización.
+
+### 3. Cronograma
+- **Semana 1:** Investigación y diseño de las funcionalidades.
+- **Semana 2:** Implementación de notificaciones locales.
+- **Semana 3:** Implementación de personalización temporal.
+- **Semana 4:** Pruebas y documentación.
+
+### 4. Recursos Necesarios
+- Acceso a documentación de la API de Notificaciones.
+- Herramientas de prueba en diferentes navegadores.
+
+### 5. Resultados Esperados
+- Los usuarios recibirán recordatorios oportunos para sus eventos.
+- Los usuarios podrán personalizar su experiencia durante cada sesión.
+```

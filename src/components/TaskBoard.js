@@ -118,10 +118,14 @@ function TaskBoard() {
       <div className="task-counter">
         {tasks.length}/8
       </div>
+
+      {/* Línea separadora entre el contador de tareas y la información del encabezado */}
+      <hr style={{ border: '1px solid #ccc', margin: '20px 0' }} />
+
       <div className="header-info" style={{ marginBottom: '10px', textAlign: 'center' }}>
-        <div className="connected-users" style={{ fontSize: '1.2rem', color: '#4A148C', marginBottom: '5px' }}>
+        {/* <div className="connected-users" style={{ fontSize: '1.2rem', color: '#4A148C', marginBottom: '5px' }}>
           Usuarios conectados: {connectedUsers}
-        </div>
+        </div> */}
         <div className="clock" style={{ fontSize: '1.2rem', color: '#4A148C' }}>
           {currentTime.toLocaleTimeString()}
         </div>
@@ -168,6 +172,10 @@ function TaskBoard() {
           </li>
         ))}
       </ul>
+
+      {/* Línea separadora entre la lista de tareas y la leyenda */}
+      <hr style={{ border: '1px solid #ccc', margin: '20px 0' }} />
+
       <div className="legend">
         <h1>Tareas para tu día a día</h1>
         <p>Concéntrate en lo que es importante</p>
@@ -175,6 +183,9 @@ function TaskBoard() {
 
       {/* Línea separadora azul */}
       <hr style={{ border: '2px solid blue', margin: '20px 0' }} />
+
+      {/* Línea separadora entre la leyenda y la información del diseño */}
+      <hr style={{ border: '1px solid #ccc', margin: '20px 0' }} />
 
       <div className="layout-info" style={{ marginTop: '20px', padding: '10px', border: '1px solid #ccc', borderRadius: '5px', backgroundColor: '#f9f9f9' }}>
         <h2>Propósito de la Aplicación</h2>
@@ -201,6 +212,9 @@ function TaskBoard() {
             <li>Te ayuda a construir hábitos positivos que impactan tu vida a largo plazo.</li>
           </ul>
         </div>
+
+        {/* Línea separadora entre la información del diseño y la sección Acerca de */}
+        <hr style={{ border: '1px solid #ccc', margin: '20px 0' }} />
 
         {/* Sección Acerca de */}
         <div className="about-section" style={{ marginTop: '20px', padding: '15px', backgroundColor: '#EDE7F6', borderRadius: '8px' }}>

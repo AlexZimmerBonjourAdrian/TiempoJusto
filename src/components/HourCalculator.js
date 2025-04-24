@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
+import './HourCalculator.css';
 
 function HourCalculator() {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [duration, setDuration] = useState('');
   const [adjustedTime, setAdjustedTime] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const calculateDuration = () => {
     const parseTime = (time) => {
@@ -24,11 +26,14 @@ function HourCalculator() {
         const hours = Math.floor(diff / 60);
         const minutes = diff % 60;
         setDuration(`${hours} horas y ${minutes} minutos`);
+        setErrorMessage('');
       } else {
-        setDuration('La hora de fin debe ser posterior a la hora de inicio.');
+        setErrorMessage('La hora de fin debe ser posterior a la hora de inicio.');
+        setDuration('');
       }
     } else {
-      setDuration('Por favor, introduce ambas horas.');
+      setErrorMessage('Por favor, introduce ambas horas en formato HH:MM.');
+      setDuration('');
     }
   };
 
@@ -48,32 +53,29 @@ function HourCalculator() {
 
   return (
     <Card title="Calculadora de Horas" className="hour-calculator">
-      <div className="input-container">
-        <h3>Calcula la duración entre dos horas</h3>
-        <InputText
-          value={startTime}
-          onChange={(e) => setStartTime(e.target.value)}
-          placeholder="Hora de inicio (HH:MM)"
-        />
-        <InputText
-          value={endTime}
-          onChange={(e) => setEndTime(e.target.value)}
-          placeholder="Hora de fin (HH:MM)"
-        />
-        <Button label="Calcular Duración" onClick={calculateDuration} className="p-button-success" />
-        <p>{duration}</p>
+      <div className="hour-calculator-section">
+        <h3>Calcula las horas faltantes desde la hora de inicio hasta la hora de fin</h3>
+        <div className="input-group">
+          <InputText
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            placeholder="Hora de inicio (HH:MM)"
+            className="hour-input"
+          />
+          <InputText
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+            placeholder="Hora de fin (HH:MM)"
+            className="hour-input"
+          />
+        </div>
+        <Button label="Calcular Duración" onClick={calculateDuration} className="p-button-success calculate-button" />
+        {errorMessage && <p className="error-text">{errorMessage}</p>}
+        {duration && <p className="result-text">Duración: {duration}</p>}
+        <p className="info-text">Ingresa las horas en formato HH:MM para calcular la duración o ajustar la hora.</p>
       </div>
 
-      <div className="input-container">
-        <h3>Ajusta una hora específica</h3>
-        <InputText
-          value={startTime}
-          onChange={(e) => setStartTime(e.target.value)}
-          placeholder="Hora de inicio (HH:MM)"
-        />
-        <Button label="Ajustar Hora" onClick={adjustTime} className="p-button-info" />
-        <p>{adjustedTime}</p>
-      </div>
+      
     </Card>
   );
 }
