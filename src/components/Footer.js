@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import './Footer.css';
 
 function Footer({ hasADHD, toggleADHDMode }) {
@@ -23,5 +24,10 @@ function Footer({ hasADHD, toggleADHDMode }) {
     </footer>
   );
 }
+
+Footer.propTypes = {
+  hasADHD: PropTypes.bool.isRequired,
+  toggleADHDMode: PropTypes.func.isRequired,
+};
 
 export default Footer;
