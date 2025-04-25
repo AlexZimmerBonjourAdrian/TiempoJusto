@@ -182,3 +182,39 @@ button:hover {
   box-shadow: 0 0 10px rgba(0, 150, 136, 0.5); /* Teal glow */
   transform: scale(1.05);
 }
+
+.page-purpose {
+  margin-bottom: 20px;
+  text-align: center;
+  color: #4A148C;
+}
+
+.hr-separator {
+  border: 1px solid #ccc;
+  margin: 20px 0;
+}
+
+.header-info {
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.hr-blue-separator {
+  border: 2px solid blue;
+  margin: 20px 0;
+}
+
+.layout-info {
+  margin-top: 20px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.about-section {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #EDE7F6;
+  border-radius: 8px;
+}

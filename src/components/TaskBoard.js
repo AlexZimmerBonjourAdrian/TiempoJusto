@@ -11,19 +11,33 @@ import { useNavigate } from 'react-router-dom';
 function TaskBoard() {
   const navigate = useNavigate();
   const [tasks, setTasks] = useState(() => {
-    const savedTasks = Cookies.get('tasks');
-    return savedTasks ? JSON.parse(savedTasks) : [];
+    try {
+      const savedTasks = Cookies.get('tasks');
+      return savedTasks ? JSON.parse(savedTasks) : [];
+    } catch (error) {
+      console.error('Error reading tasks from cookies:', error);
+      return [];
+    }
   });
   const [newTask, setNewTask] = useState('');
   const [completedLog, setCompletedLog] = useState(() => {
-    const savedLog = Cookies.get('completedLog');
-    return savedLog ? JSON.parse(savedLog) : [];
+    try {
+      const savedLog = Cookies.get('completedLog');
+      return savedLog ? JSON.parse(savedLog) : [];
+    } catch (error) {
+      console.error('Error reading completedLog from cookies:', error);
+      return [];
+    }
   });
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeTask, setActiveTask] = useState(null); // Add activeTask state
 
   useEffect(() => {
-    Cookies.set('tasks', JSON.stringify(tasks), { expires: 182 });
+    try {
+      Cookies.set('tasks', JSON.stringify(tasks), { expires: 182 });
+    } catch (error) {
+      console.error('Error writing tasks to cookies:', error);
+    }
   }, [tasks]);
 
   useEffect(() => {
@@ -33,7 +47,9 @@ function TaskBoard() {
       return isAfter(addHours(taskTime, 24), now);
     });
     if (filteredTasks.length !== tasks.length) {
-      setTasks(filteredTasks);
+      if (filteredTasks.length !== tasks.length) {
+        setTasks(filteredTasks);
+      }
     }
   }, [tasks]);
 
@@ -48,9 +64,11 @@ function TaskBoard() {
       const productivity = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
       setCompletedLog([...completedLog, { date: lastResetDate || now, completedTasks, totalTasks, productivity }]);
-      Cookies.set('completedLog', JSON.stringify([...completedLog, { date: lastResetDate || now, completedTasks, totalTasks, productivity }]), { expires: 182 });
-
-      Cookies.set('lastReset', now.toISOString(), { expires: 182 });
+      try {
+        Cookies.set('lastReset', now.toISOString(), { expires: 182 });
+      } catch (error) {
+        console.error('Error writing lastReset to cookies:', error);
+      }
       setTasks([]); // Reset tasks for the new day
     }
   }, [tasks, completedLog]);
@@ -67,14 +85,8 @@ function TaskBoard() {
     setNewTask(event.target.value);
   };
 
-  const handleAddTask = () => {
-    if (newTask.trim() !== '' && tasks.length < 8) {
-      setTasks([...tasks, { id: Date.now(), text: newTask, completed: false, timestamp: new Date() }]);
-      setNewTask('');
-    } else if (tasks.length >= 8) {
-      alert('You can only have up to 8 tasks at a time.');
-    }
-  };
+  
+
 
   const handleTaskComplete = (id) => {
     setTasks(
@@ -85,19 +97,43 @@ function TaskBoard() {
   };
 
   const handleDeleteTask = (id) => {
-    setTasks(tasks.filter((task) => task.id !== id));
+    if (window.confirm('Are you sure you want to delete this task?')) {
+      setTasks(tasks.filter((task) => task.id !== id));
+    }
+  };
+
+
+
+
+
+  const handleAddTask = () => {
+    if (newTask.trim() !== '' && !isTaskDuplicate(newTask) && tasks.length < 8) {
+      setTasks([...tasks, { id: Date.now(), text: newTask, completed: false, timestamp: new Date() }]);
+      setNewTask('');
+    } else if (isTaskDuplicate(newTask)) {
+      alert('This task already exists.');
+    } else if (tasks.length >= 8) {
+      alert('You can only have up to 8 tasks at a time.');
+    }
+  };
+
+
+
+  const isTaskDuplicate = (newTaskText) => {
+    return tasks.some(task => task.text.trim() === newTaskText.trim());
   };
 
   const handleTaskFocus = (id) => {
+    // Function to highlight the selected task
     setActiveTask(id);
   };
 
   return (
     <Card title="Task Board" className="task-board">
       {/* Propósito de la página */}
-      <div className="page-purpose" style={{ marginBottom: '20px', textAlign: 'center', color: '#4A148C' }}>
-        <h2>Bienvenido a "Tiempo Justo"</h2>
-        <p>Gestiona tus tareas diarias de manera eficiente y significativa. Prioriza lo importante y avanza hacia tus metas con claridad.</p>
+      <div className="page-purpose">
+        <h2>Welcome to "Tiempo Justo"</h2>
+        <p>Manage your daily tasks efficiently and meaningfully. Prioritize what's important and move towards your goals with clarity.</p>
       </div>
 
       <div className="task-counter">
@@ -105,18 +141,18 @@ function TaskBoard() {
       </div>
 
       {/* Línea separadora entre el contador de tareas y la información del encabezado */}
-      <hr style={{ border: '1px solid #ccc', margin: '20px 0' }} />
+      <hr className="hr-separator" />
 
-      <div className="header-info" style={{ marginBottom: '10px', textAlign: 'center' }}>
+      <div className="header-info">
         <div className="clock" style={{ fontSize: '1.2rem', color: '#4A148C' }}>
           {currentTime.toLocaleTimeString()}
         </div>
       </div>
       <p className="board-legend">Asigna solo las tareas que sean significativas para ti y que te acerquen a tus metas.</p>
       <div className="completed-counter">
-        Tareas Completadas: {tasks.filter(task => task.completed).length}
+        Completed Tasks: {tasks.filter(task => task.completed).length}
       </div>
-      <Button label="Ver Log" onClick={() => navigate('/log')} className="p-button-info" />
+      <Button label="View Log" onClick={() => navigate('/log')} className="p-button-info" />
       <div className="log-container">
         <h3>Daily Productivity Log</h3>
         <ul>
@@ -131,12 +167,13 @@ function TaskBoard() {
         <span className="p-input-icon-left">
           <i className="pi pi-plus" />
           <InputText
-            placeholder="Add a new task"
+            placeholder="Add new task"
             value={newTask}
             onChange={handleInputChange}
+            aria-label="Add a new task"
           />
         </span>
-        <Button label="Add Task" icon="pi pi-check" onClick={handleAddTask} className="p-button-success" />
+        <Button label="Agregar Tarea" icon="pi pi-check" onClick={handleAddTask} className="p-button-success" aria-label="Add Task" />
       </div>
       <ul className="task-list">
         {tasks.map((task) => (
@@ -154,56 +191,6 @@ function TaskBoard() {
           </li>
         ))}
       </ul>
-
-      {/* Línea separadora entre la lista de tareas y la leyenda */}
-      <hr style={{ border: '1px solid #ccc', margin: '20px 0' }} />
-
-      <div className="legend">
-        <h1>Tareas para tu día a día</h1>
-        <p>Concéntrate en lo que es importante</p>
-      </div>
-
-      {/* Línea separadora azul */}
-      <hr style={{ border: '2px solid blue', margin: '20px 0' }} />
-
-      {/* Línea separadora entre la leyenda y la información del diseño */}
-      <hr style={{ border: '1px solid #ccc', margin: '20px 0' }} />
-
-      <div className="layout-info" style={{ marginTop: '20px', padding: '10px', border: '1px solid #ccc', borderRadius: '5px', backgroundColor: '#f9f9f9' }}>
-        <h2>Propósito de la Aplicación</h2>
-        <p>"Tiempo Justo" es una herramienta diseñada para ayudarte a gestionar tus tareas diarias de manera eficiente y significativa. Inspirada en las filosofías de productividad de Brian Tracy y los principios de responsabilidad personal de Jordan Peterson, esta aplicación busca empoderarte para que te concentres en lo que realmente importa y avances hacia tus metas con claridad y propósito.</p>
-
-        <h3>Enfoque Principal</h3>
-        <ul>
-          <li><strong>Priorizar lo Importante:</strong> Identifica y completa primero las tareas más importantes y significativas.</li>
-          <li><strong>Responsabilidad Personal:</strong> Lleva un registro de tus logros diarios para construir una narrativa positiva sobre tu progreso.</li>
-            <li><strong>Gestión del Tiempo:</strong> Limita tus tareas diarias a 8 para mantener un enfoque claro en tus prioridades.</li>
-          </ul>
-
-          <h3>Filosofías Inspiradoras</h3>
-          <ul>
-            <li><strong>Brian Tracy:</strong> "Come That Frog" te anima a abordar primero las tareas más difíciles y significativas.</li>
-            <li><strong>Jordan Peterson:</strong> "Poner tu casa en orden" fomenta la responsabilidad personal y el progreso diario.</li>
-          </ul>
-
-          <h3>Beneficios</h3>
-          <ul>
-            <li>Incrementa tu productividad al enfocarte en lo que realmente importa.</li>
-            <li>Reduce el estrés al limitar el número de tareas diarias.</li>
-            <li>Fomenta un sentido de logro y responsabilidad personal.</li>
-            <li>Te ayuda a construir hábitos positivos que impactan tu vida a largo plazo.</li>
-          </ul>
-        </div>
-
-        {/* Línea separadora entre la información del diseño y la sección Acerca de */}
-        <hr style={{ border: '1px solid #ccc', margin: '20px 0' }} />
-
-        {/* Sección Acerca de */}
-        <div className="about-section" style={{ marginTop: '20px', padding: '15px', backgroundColor: '#EDE7F6', borderRadius: '8px' }}>
-          <h2>Acerca de "Tiempo Justo"</h2>
-          <p>"Tiempo Justo" es una aplicación diseñada para ayudarte a gestionar tus tareas diarias de manera eficiente. Prioriza lo importante, mantén un registro de tus logros y avanza hacia tus metas con claridad y propósito.</p>
-          <p>Utiliza las herramientas disponibles para añadir, completar y eliminar tareas, y consulta el registro de productividad para evaluar tu progreso diario.</p>
-        </div>
       </Card>
   );
 }

@@ -10,6 +10,7 @@ import Header from './components/Header';
 import ADHDView from './components/ADHDView'; // Import the ADHDView component
 import MainView from './components/MainView'; // Import the MainView component
 import Footer from './components/Footer';
+import About from './components/About';
 
 function App() {
   const [hasADHD, setHasADHD] = useState(() => {
@@ -80,6 +81,7 @@ function App() {
         <Route path="/" element={hasADHD ? <ADHDView /> : <MainView />} /> {/* Render based on ADHD preference */}
         <Route path="/log" element={<LogPage />} />
         <Route path="/adhd" element={<ADHDView />} /> {/* Add the ADHD route */}
+        <Route path="/about" element={<About />} />
       </Routes>
       <Footer hasADHD={hasADHD} toggleADHDMode={toggleADHDMode} />
     </Router>
