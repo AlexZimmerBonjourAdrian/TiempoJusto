@@ -8,6 +8,7 @@ import { Checkbox } from 'primereact/checkbox';
 import { Card } from 'primereact/card';
 import { addHours, isAfter } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import DailyLog from './DailyLog';
 
 function TaskBoard() {
   const navigate = useNavigate();
@@ -21,15 +22,6 @@ function TaskBoard() {
     }
   });
   const [newTask, setNewTask] = useState('');
-  const [completedLog, setCompletedLog] = useState(() => {
-    try {
-      const savedLog = Cookies.get('completedLog');
-      return savedLog ? JSON.parse(savedLog) : [];
-    } catch (error) {
-      console.error('Error reading completedLog from cookies:', error);
-      return [];
-    }
-  });
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeTask, setActiveTask] = useState(null); // Add activeTask state
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -56,25 +48,25 @@ function TaskBoard() {
     }
   }, [tasks]);
 
-  useEffect(() => {
-    const now = new Date();
-    const lastReset = Cookies.get('lastReset');
-    const lastResetDate = lastReset ? new Date(lastReset) : null;
+  // useEffect(() => {
+  //   const now = new Date();
+  //   const lastReset = Cookies.get('lastReset');
+  //   const lastResetDate = lastReset ? new Date(lastReset) : null;
 
-    if (!lastResetDate || now - lastResetDate >= 24 * 60 * 60 * 1000) {
-      const completedTasks = tasks.filter(task => task.completed).length;
-      const totalTasks = tasks.length;
-      const productivity = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+  //   if (!lastResetDate || now - lastResetDate >= 24 * 60 * 60 * 1000) {
+  //     const completedTasks = tasks.filter(task => task.completed).length;
+  //     const totalTasks = tasks.length;
+  //     const productivity = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
-      setCompletedLog([...completedLog, { date: lastResetDate || now, completedTasks, totalTasks, productivity }]);
-      try {
-        Cookies.set('lastReset', now.toISOString(), { expires: 182 });
-      } catch (error) {
-        console.error('Error writing lastReset to cookies:', error);
-      }
-      setTasks([]); // Reset tasks for the new day
-    }
-  }, [tasks, completedLog]);
+  //     setCompletedLog([...completedLog, { date: (lastResetDate || now).toDateString(), completedTasks, totalTasks, productivity }]);
+  //     try {
+  //       Cookies.set('lastReset', now.toISOString(), { expires: 182 });
+  //     } catch (error) {
+  //       console.error('Error writing lastReset to cookies:', error);
+  //     }
+  //     //setTasks([]); // Reset tasks for the new day
+  //   }
+  // }, [tasks, completedLog]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -162,16 +154,7 @@ function TaskBoard() {
         Completed Tasks: {tasks.filter(task => task.completed).length}
       </div>
       <Button label="View Log" onClick={() => navigate('/log')} className="p-button-info" />
-      <div className="log-container">
-        <h3>Daily Productivity Log</h3>
-        <ul>
-          {completedLog.map((log, index) => (
-            <li key={index}>
-              {new Date(log.date).toLocaleDateString()}: {log.completedTasks}/{log.totalTasks} tasks completed ({log.productivity.toFixed(2)}% productivity)
-            </li>
-          ))}
-        </ul>
-      </div>
+      <DailyLog tasks={tasks} />
       <div className="input-container">
         <span className="p-input-icon-left">
           <i className="pi pi-plus" />
