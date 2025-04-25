@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './TaskBoard.css';
 import Cookies from 'js-cookie';
+import ConfirmationPopup from './ConfirmationPopup';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { Checkbox } from 'primereact/checkbox';
@@ -31,6 +32,8 @@ function TaskBoard() {
   });
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeTask, setActiveTask] = useState(null); // Add activeTask state
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState(null);
 
   useEffect(() => {
     try {
@@ -97,14 +100,20 @@ function TaskBoard() {
   };
 
   const handleDeleteTask = (id) => {
-    if (window.confirm('Are you sure you want to delete this task?')) {
-      setTasks(tasks.filter((task) => task.id !== id));
-    }
+    setTaskToDelete(id);
+    setShowConfirmation(true);
   };
 
+  const handleConfirmDelete = () => {
+    setTasks(tasks.filter((task) => task.id !== taskToDelete));
+    setShowConfirmation(false);
+    setTaskToDelete(null);
+  };
 
-
-
+  const handleCancelDelete = () => {
+    setShowConfirmation(false);
+    setTaskToDelete(null);
+  };
 
   const handleAddTask = () => {
     if (newTask.trim() !== '' && !isTaskDuplicate(newTask) && tasks.length < 8) {
@@ -191,6 +200,13 @@ function TaskBoard() {
           </li>
         ))}
       </ul>
+      {showConfirmation && (
+        <ConfirmationPopup
+          message="Are you sure you want to delete this task?"
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+        />
+      )}
       </Card>
   );
 }
