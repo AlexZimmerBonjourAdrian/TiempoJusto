@@ -112,7 +112,7 @@ function TaskBoard() {
     if (newTask.trim() !== '' && !isTaskDuplicate(newTask) && tasks.length < 8) {
       setTasks([...tasks, { id: Date.now(), text: newTask, completed: false, timestamp: new Date(), importance: newImportance }]);
       setNewTask('');
-      setNewImportance(1);
+      setNewImportance('A');
     } else if (isTaskDuplicate(newTask)) {
       alert('This task already exists.');
     } else if (tasks.length >= 8) {
@@ -169,14 +169,16 @@ function TaskBoard() {
         </span>
         <Button label="Agregar Tarea" icon="pi pi-check" onClick={handleAddTask} className="p-button-success" aria-label="Add Task" />
         <label htmlFor="importance">Importance:</label>
-        <input
-          type="number"
+        <select
           id="importance"
           value={newImportance}
-          onChange={(e) => setNewImportance(parseInt(e.target.value, 10))}
-          min="1"
-          max="5"
-        />
+          onChange={(e) => setNewImportance(e.target.value)}
+        >
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="C">C</option>
+          <option value="D">D</option>
+        </select>
       </div>
       <ul className="task-list">
         {tasks.map((task) => (
