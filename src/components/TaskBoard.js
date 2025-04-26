@@ -24,7 +24,6 @@ function TaskBoard() {
   const [newTask, setNewTask] = useState('');
   const [newImportance, setNewImportance] = useState('A');
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [activeTask, setActiveTask] = useState(null); // Add activeTask state
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState(null);
 
@@ -147,10 +146,10 @@ function TaskBoard() {
     return tasks.some(task => task.text.trim() === newTaskText.trim());
   };
 
-  const handleTaskFocus = (id) => {
-    // Function to highlight the selected task
-    setActiveTask(id);
-  };
+  // const handleTaskFocus = (id) => {
+  //   // Function to highlight the selected task
+  //   setActiveTask(id);
+  // };
 
   return (
     <Card title="Task Board" className="task-board">
