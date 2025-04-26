@@ -81,8 +81,25 @@ function TaskBoard() {
     setNewTask(event.target.value);
   };
 
-  
+  const sortTasksByImportance = (tasksToSort) => {
+    return [...tasksToSort].sort((a, b) => {
+      const importanceOrder = { 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
+      const [importanceA, indexA] = a.importance.split('-');
+      const [importanceB, indexB] = b.importance.split('-');
 
+      const orderA = importanceOrder[importanceA] || 5; // Default to a lower priority if importance is not A, B, C, or D
+      const orderB = importanceOrder[importanceB] || 5;
+
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+
+      // If importances are the same, sort by index
+      const indexANum = parseInt(indexA) || 0;
+      const indexBNum = parseInt(indexB) || 0;
+      return indexANum - indexBNum;
+    });
+  };
 
   const handleTaskComplete = (id) => {
     setTasks(
@@ -109,18 +126,22 @@ function TaskBoard() {
   };
 
   const handleAddTask = () => {
-    if (newTask.trim() !== '' && !isTaskDuplicate(newTask) && tasks.length < 8) {
-      setTasks([...tasks, { id: Date.now(), text: newTask, completed: false, timestamp: new Date(), importance: newImportance }]);
+    const trimmedNewTask = newTask.trim();
+    if (trimmedNewTask !== '' && !isTaskDuplicate(trimmedNewTask) && tasks.length < 8) {
+      const tasksWithSameImportance = tasks.filter(task => task.importance.startsWith(newImportance));
+      const nextIndex = tasksWithSameImportance.length + 1;
+      const indexedImportance = `${newImportance}-${nextIndex}`;
+      const updatedTasks = [...tasks, { id: Date.now(), text: trimmedNewTask, completed: false, timestamp: new Date(), importance: indexedImportance }];
+      const sortedTasks = sortTasksByImportance(updatedTasks);
+      setTasks(sortedTasks);
       setNewTask('');
       setNewImportance('A');
-    } else if (isTaskDuplicate(newTask)) {
+    } else if (isTaskDuplicate(trimmedNewTask)) {
       alert('This task already exists.');
     } else if (tasks.length >= 8) {
       alert('You can only have up to 8 tasks at a time.');
     }
   };
-
-
 
   const isTaskDuplicate = (newTaskText) => {
     return tasks.some(task => task.text.trim() === newTaskText.trim());
