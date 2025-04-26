@@ -4,8 +4,8 @@ import Cookies from 'js-cookie';
 import ConfirmationPopup from './ConfirmationPopup';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
-import { Checkbox } from 'primereact/checkbox';
 import { Card } from 'primereact/card';
+import Task from './Task';
 import { addHours, isAfter } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import DailyLog from './DailyLog';
@@ -22,6 +22,7 @@ function TaskBoard() {
     }
   });
   const [newTask, setNewTask] = useState('');
+  const [newImportance, setNewImportance] = useState(1);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeTask, setActiveTask] = useState(null); // Add activeTask state
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -109,8 +110,9 @@ function TaskBoard() {
 
   const handleAddTask = () => {
     if (newTask.trim() !== '' && !isTaskDuplicate(newTask) && tasks.length < 8) {
-      setTasks([...tasks, { id: Date.now(), text: newTask, completed: false, timestamp: new Date() }]);
+      setTasks([...tasks, { id: Date.now(), text: newTask, completed: false, timestamp: new Date(), importance: newImportance }]);
       setNewTask('');
+      setNewImportance(1);
     } else if (isTaskDuplicate(newTask)) {
       alert('This task already exists.');
     } else if (tasks.length >= 8) {
@@ -166,21 +168,24 @@ function TaskBoard() {
           />
         </span>
         <Button label="Agregar Tarea" icon="pi pi-check" onClick={handleAddTask} className="p-button-success" aria-label="Add Task" />
+        <label htmlFor="importance">Importance:</label>
+        <input
+          type="number"
+          id="importance"
+          value={newImportance}
+          onChange={(e) => setNewImportance(parseInt(e.target.value, 10))}
+          min="1"
+          max="5"
+        />
       </div>
       <ul className="task-list">
         {tasks.map((task) => (
-          <li
+          <Task
             key={task.id}
-            className={`task ${task.completed ? 'completed' : ''} ${activeTask === task.id ? 'active' : ''}`}
-            onClick={() => handleTaskFocus(task.id)}
-          >
-            <Checkbox
-              checked={task.completed}
-              onChange={() => handleTaskComplete(task.id)}
-            />
-            <span>{task.text}</span>
-            <Button icon="pi pi-trash" className="p-button-danger" onClick={() => handleDeleteTask(task.id)} />
-          </li>
+            task={task}
+            onComplete={handleTaskComplete}
+            onDelete={handleDeleteTask}
+          />
         ))}
       </ul>
       {showConfirmation && (
