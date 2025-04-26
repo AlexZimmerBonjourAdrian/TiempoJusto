@@ -22,7 +22,7 @@ function TaskBoard() {
     }
   });
   const [newTask, setNewTask] = useState('');
-  const [newImportance, setNewImportance] = useState(1);
+  const [newImportance, setNewImportance] = useState('A');
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeTask, setActiveTask] = useState(null); // Add activeTask state
   const [showConfirmation, setShowConfirmation] = useState(false);
