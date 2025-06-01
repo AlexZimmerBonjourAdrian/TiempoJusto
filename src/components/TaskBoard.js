@@ -35,18 +35,18 @@ function TaskBoard() {
     }
   }, [tasks]);
 
-  useEffect(() => {
-    const now = new Date();
-    const filteredTasks = tasks.filter(task => {
-      const taskTime = new Date(task.timestamp);
-      return isAfter(addHours(taskTime, 24), now);
-    });
-    if (filteredTasks.length !== tasks.length) {
-      if (filteredTasks.length !== tasks.length) {
-        setTasks(filteredTasks);
-      }
-    }
-  }, [tasks]);
+  // useEffect(() => {
+  //   const now = new Date();
+  //   const filteredTasks = tasks.filter(task => {
+  //     const taskTime = new Date(task.timestamp);
+  //     return isAfter(addHours(taskTime, 24), now);
+  //   });
+  //   if (filteredTasks.length !== tasks.length) {
+  //     if (filteredTasks.length !== tasks.length) {
+  //       setTasks(filteredTasks);
+  //     }
+  //   }
+  // }, [tasks]);
 
   // useEffect(() => {
   //   const now = new Date();
