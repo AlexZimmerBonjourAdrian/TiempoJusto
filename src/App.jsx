@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import TaskBoard from './Component/TaskBoard.jsx'
@@ -7,9 +6,11 @@ import './App.css'
 import { Routes, Route } from 'react-router-dom';
 import Log from './Page/Log.jsx';
 
+import { useState } from 'react'
+
 function App() {
   const [count, setCount] = useState(0)
-
+  const [closedTasks, setClosedTasks] = useState([]);
   return (
     <>
       <NavBar />
@@ -23,8 +24,8 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <Routes>
-        <Route path="/" element={<TaskBoard />} />
-        <Route path="/log" element={<Log />} />
+        <Route path="/" element={<TaskBoard setClosedTasks={setClosedTasks} />} />
+        <Route path="/log" element={<Log closedTasks={closedTasks} />} />
       </Routes>
       <div className="card">
         <button onClick={() => setCount((count) => count + 1)}>

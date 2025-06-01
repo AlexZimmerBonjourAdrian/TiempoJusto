@@ -3,6 +3,10 @@ import '../Style/global.css';
 import { useState } from 'react';
 import useCookie from '../hooks/useCookie.js';
 import { useNavigate } from 'react-router-dom';
+import { InputText } from 'primereact/inputtext';
+import { Dropdown } from 'primereact/dropdown';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
 
 function TaskBoard({ setClosedTasks }) {
   const [tasks, setTasks] = useCookie('tasks', []);
@@ -38,33 +42,32 @@ function TaskBoard({ setClosedTasks }) {
       <h2>Task Board</h2>
       <div className="task-input">
         <label htmlFor="taskName">Task Name:</label>
-        <input
-          type="text"
+        <InputText
           id="taskName"
           value={newTaskName}
           onChange={(e) => setNewTaskName(e.target.value)}
           placeholder="Enter task name"
         />
         <label htmlFor="taskImportance">Importance:</label>
-        <select id="taskImportance" value={newTaskImportance} onChange={(e) => setNewTaskImportance(e.target.value)}>
-          <option value="A">A</option>
-          <option value="B">B</option>
-          <option value="C">C</option>
-        </select>
+        <Dropdown
+          id="taskImportance"
+          value={newTaskImportance}
+          options={['A', 'B', 'C']}
+          onChange={(e) => setNewTaskImportance(e.value)}
+          placeholder="Select an importance"
+        />
         <button onClick={handleAddTask}>Add Task</button>
       </div>
       {tasks.length === 0 ? (
         <p className="no-tasks">No tasks yet. Add some!</p>
       ) : (
-        tasks.map((task, index) => (
-          <Task
-            key={index}
-            name={task.name}
-            importance={task.importance}
-            isCompleted={task.isCompleted}
-            onDelete={() => handleDeleteTask(index)}
-          />
-        ))
+        <DataTable value={tasks} responsiveLayout="scroll">
+          <Column field="name" header="Name" />
+          <Column field="importance" header="Importance" />
+          <Column body={(rowData) => (
+            <button onClick={() => handleDeleteTask(tasks.findIndex(task => task === rowData))}>Delete</button>
+          )} header="Actions" />
+        </DataTable>
       )}
       <button onClick={handleClearAllTasks}>Clear All Tasks</button>
       <button onClick={handleViewLog}>View Log</button>
