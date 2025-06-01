@@ -2,13 +2,17 @@ import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import TaskBoard from './Component/TaskBoard.jsx'
+import NavBar from './Component/NavBar.jsx'
 import './App.css'
+import { Routes, Route } from 'react-router-dom';
+import Log from './Page/Log.jsx';
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
     <>
+      <NavBar />
       <div>
         <a href="https://vite.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />
@@ -18,7 +22,10 @@ function App() {
         </a>
       </div>
       <h1>Vite + React</h1>
-      <TaskBoard />
+      <Routes>
+        <Route path="/" element={<TaskBoard />} />
+        <Route path="/log" element={<Log />} />
+      </Routes>
       <div className="card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}

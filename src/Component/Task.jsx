@@ -1,34 +1,17 @@
 import { useState } from 'react';
 
-function Task({ name, importance, isCompleted }) {
+function Task({ name, importance, isCompleted, onDelete }) {
   const [isCompletedState, setIsCompletedState] = useState(isCompleted);
-  const [importanceState, setImportanceState] = useState(importance);
 
   const handleComplete = () => {
     setIsCompletedState(!isCompletedState);
   };
 
-  const handleImportanceChange = (event) => {
-    setImportanceState(event.target.value);
-  };
-
   return (
-    <div>
-      <h3>{name}</h3>
+    <div className="task-item" onClick={handleComplete}>
+      <h3 className={isCompletedState ? 'completed-task' : ''}>{name}</h3>
       <p>Importance: {importance}</p>
-      <label>
-        Completed:
-        <input type="checkbox" checked={isCompletedState} onChange={handleComplete} />
-      </label>
-      <br />
-      <label>
-        Importance:
-        <select value={importanceState} onChange={handleImportanceChange}>
-          <option value="A">A</option>
-          <option value="B">B</option>
-          <option value="C">C</option>
-        </select>
-      </label>
+      <button onClick={onDelete}>Delete</button>
     </div>
   );
 }
