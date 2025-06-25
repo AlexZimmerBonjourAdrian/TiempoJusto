@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    // Configuración para Netlify
+    output: 'standalone',
+    trailingSlash: true,
+
     sassOptions: {
         includePaths: ['./src/styles'],
     },
@@ -8,6 +12,7 @@ const nextConfig = {
     // Configuración de imágenes
     images: {
         domains: [],
+        unoptimized: true, // Para Netlify
     },
     // Configuración de webpack para PrimeReact
     webpack: (config) => {
