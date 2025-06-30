@@ -8,7 +8,6 @@ import ProjectBoard from '../features/projects/ProjectBoard';
 import HourCalculator from '../features/calculator/HourCalculator';
 import AnalyticsView from '../features/analytics/AnalyticsView';
 import PomodoroTimer from '../features/pomodoro/PomodoroTimer';
-import ScrumBoard from '../features/projects/ScrumBoard';
 import Donation from '../features/Donation';
 
 function MainView() {
@@ -24,8 +23,6 @@ function MainView() {
         return <ProjectBoard />;
       case 'calculator':
         return <HourCalculator />;
-      case 'scrum':
-        return <ScrumBoard />;
       case 'analytics':
         return <AnalyticsView />;
       case 'pomodoro':

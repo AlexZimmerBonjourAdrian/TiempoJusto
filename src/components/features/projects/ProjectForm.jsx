@@ -9,8 +9,11 @@ function ProjectForm({ project, onSubmit, onCancel }) {
         name: '',
         description: '',
         status: PROJECT_STATUSES.ACTIVE,
+        priority: 'medium',
         deadline: '',
-        estimatedHours: ''
+        estimatedHours: '',
+        budget: '',
+        team: []
     });
 
     useEffect(() => {
@@ -19,8 +22,11 @@ function ProjectForm({ project, onSubmit, onCancel }) {
                 name: project.name || '',
                 description: project.description || '',
                 status: project.status || PROJECT_STATUSES.ACTIVE,
+                priority: project.priority || 'medium',
                 deadline: project.deadline ? new Date(project.deadline).toISOString().split('T')[0] : '',
-                estimatedHours: project.estimatedHours?.toString() || ''
+                estimatedHours: project.estimatedHours?.toString() || '',
+                budget: project.budget?.toString() || '',
+                team: project.team || []
             });
         }
     }, [project]);
@@ -44,6 +50,7 @@ function ProjectForm({ project, onSubmit, onCancel }) {
         const projectData = {
             ...formData,
             estimatedHours: formData.estimatedHours ? parseFloat(formData.estimatedHours) : 0,
+            budget: formData.budget ? parseFloat(formData.budget) : 0,
             deadline: formData.deadline ? new Date(formData.deadline) : null
         };
 
@@ -144,6 +151,35 @@ function ProjectForm({ project, onSubmit, onCancel }) {
                             fontWeight: '500',
                             color: 'var(--color-text)'
                         }}>
+                            Prioridad
+                        </label>
+                        <select
+                            name="priority"
+                            value={formData.priority}
+                            onChange={handleInputChange}
+                            style={{
+                                width: '100%',
+                                padding: '10px',
+                                border: '1px solid var(--color-muted)',
+                                borderRadius: '4px',
+                                fontSize: '14px'
+                            }}
+                        >
+                            <option value="low">Baja</option>
+                            <option value="medium">Media</option>
+                            <option value="high">Alta</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+                    <div style={{ flex: 1 }}>
+                        <label style={{ 
+                            display: 'block', 
+                            marginBottom: '6px', 
+                            fontWeight: '500',
+                            color: 'var(--color-text)'
+                        }}>
                             Fecha de Vencimiento
                         </label>
                         <input
@@ -151,6 +187,33 @@ function ProjectForm({ project, onSubmit, onCancel }) {
                             name="deadline"
                             value={formData.deadline}
                             onChange={handleInputChange}
+                            style={{
+                                width: '100%',
+                                padding: '10px',
+                                border: '1px solid var(--color-muted)',
+                                borderRadius: '4px',
+                                fontSize: '14px'
+                            }}
+                        />
+                    </div>
+
+                    <div style={{ flex: 1 }}>
+                        <label style={{ 
+                            display: 'block', 
+                            marginBottom: '6px', 
+                            fontWeight: '500',
+                            color: 'var(--color-text)'
+                        }}>
+                            Horas Estimadas
+                        </label>
+                        <input
+                            type="number"
+                            name="estimatedHours"
+                            value={formData.estimatedHours}
+                            onChange={handleInputChange}
+                            placeholder="0"
+                            min="0"
+                            step="0.5"
                             style={{
                                 width: '100%',
                                 padding: '10px',
@@ -169,16 +232,16 @@ function ProjectForm({ project, onSubmit, onCancel }) {
                         fontWeight: '500',
                         color: 'var(--color-text)'
                     }}>
-                        Horas Estimadas
+                        Presupuesto (USD)
                     </label>
                     <input
                         type="number"
-                        name="estimatedHours"
-                        value={formData.estimatedHours}
+                        name="budget"
+                        value={formData.budget}
                         onChange={handleInputChange}
                         placeholder="0"
                         min="0"
-                        step="0.5"
+                        step="0.01"
                         style={{
                             width: '100%',
                             padding: '10px',
@@ -199,7 +262,7 @@ function ProjectForm({ project, onSubmit, onCancel }) {
                         onClick={onCancel}
                         style={{
                             padding: '10px 20px',
-                            backgroundColor: 'var(--color-muted)',
+                            backgroundColor: '#6c757d',
                             color: 'white',
                             border: 'none',
                             borderRadius: '4px',
@@ -230,14 +293,7 @@ function ProjectForm({ project, onSubmit, onCancel }) {
 }
 
 ProjectForm.propTypes = {
-    project: PropTypes.shape({
-        id: PropTypes.string,
-        name: PropTypes.string,
-        description: PropTypes.string,
-        status: PropTypes.string,
-        deadline: PropTypes.instanceOf(Date),
-        estimatedHours: PropTypes.number
-    }),
+    project: PropTypes.object,
     onSubmit: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired
 };

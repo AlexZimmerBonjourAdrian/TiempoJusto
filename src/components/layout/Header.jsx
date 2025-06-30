@@ -9,7 +9,6 @@ function Header({ activeTool, onToolChange }) {
     { id: 'tasks', name: 'Tareas', icon: '📋' },
     { id: 'projects', name: 'Proyectos', icon: '📁' },
     { id: 'calculator', name: 'Calculadora', icon: '🧮' },
-    { id: 'scrum', name: 'Scrum', icon: '🚀' },
     { id: 'analytics', name: 'Analytics', icon: '📊' },
     { id: 'pomodoro', name: 'Pomodoro', icon: '⏰' }
   ];

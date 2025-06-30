@@ -32,7 +32,7 @@ function HourCalculator() {
             Cookies.set('accuracyData', JSON.stringify(accuracyData), { expires: 182 });
         } catch (error) {
             console.error('Error saving calculator data:', error);
-        }
+            }
     }, [tasks, accuracyData]);
 
     const addTask = () => {
@@ -204,7 +204,7 @@ function HourCalculator() {
                             onChange={(e) => setNewTask(e.target.value)}
                             placeholder="Nombre de la tarea"
                             style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
-                        />
+                />
                     </div>
                     <div>
                         <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.9em' }}>Horas Estimadas</label>

@@ -15,7 +15,7 @@ function Home({ onToolChange }) {
     {
       id: 'projects',
       name: 'Gestión de Proyectos',
-      description: 'Planifica y organiza tus proyectos de manera eficiente. Divide grandes objetivos en tareas manejables.',
+      description: 'Planifica y organiza tus proyectos con metodología ágil. Sprints, Kanban, y seguimiento completo.',
       icon: '📁',
       color: '#2196F3'
     },
@@ -43,14 +43,6 @@ function Home({ onToolChange }) {
       icon: '🧮',
       color: '#FF9800',
       synergy: 'Sinergia con TaskBoard: Usa esta calculadora para estimar mejor las tareas que agregas a tu tablero diario.'
-    },
-    {
-      id: 'scrum',
-      name: 'Modo Scrum',
-      description: 'Implementa metodología Scrum para gestión ágil de proyectos. Sprints, story points y Kanban board.',
-      icon: '🚀',
-      color: '#E91E63',
-      synergy: 'Sinergia con Proyectos: Gestiona proyectos complejos con metodología ágil y sprints estructurados.'
     }
   ];
 
@@ -204,68 +196,57 @@ function Home({ onToolChange }) {
                 e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
               }}
             >
-              <div style={{ padding: '25px' }}>
+              <div style={{ padding: '20px' }}>
                 <div style={{ 
                   display: 'flex', 
                   alignItems: 'center', 
-                  marginBottom: '20px',
+                  marginBottom: '15px',
                   gap: '15px'
                 }}>
                   <div style={{
-                    width: '70px',
-                    height: '70px',
+                    width: '60px',
+                    height: '60px',
                     borderRadius: '50%',
                     background: tool.color,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '35px'
+                    fontSize: '30px'
                   }}>
                     {tool.icon}
                   </div>
-                  <div>
-                    <h3 style={{ 
-                      margin: 0, 
-                      color: '#333',
-                      fontSize: '1.5em',
-                      fontWeight: '600'
-                    }}>
-                      {tool.name}
-                    </h3>
-                    <span style={{
-                      padding: '4px 12px',
-                      background: tool.color,
-                      color: 'white',
-                      borderRadius: '12px',
-                      fontSize: '0.8em',
-                      fontWeight: 'bold'
-                    }}>
-                      HERRAMIENTA ADICIONAL
-                    </span>
-                  </div>
+                  <h3 style={{ 
+                    margin: 0, 
+                    color: '#333',
+                    fontSize: '1.4em',
+                    fontWeight: '600'
+                  }}>
+                    {tool.name}
+                  </h3>
                 </div>
                 <p style={{ 
                   color: '#666', 
                   lineHeight: '1.6',
-                  margin: '0 0 15px 0',
-                  fontSize: '1em'
+                  margin: 0,
+                  fontSize: '1em',
+                  marginBottom: '15px'
                 }}>
                   {tool.description}
                 </p>
-                <div style={{ 
-                  background: '#e3f2fd',
-                  border: '1px solid #bbdefb',
-                  borderRadius: '8px',
+                <div style={{
+                  background: 'rgba(255, 152, 0, 0.1)',
                   padding: '12px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 152, 0, 0.2)',
                   marginBottom: '15px'
                 }}>
                   <p style={{ 
                     margin: 0, 
                     fontSize: '0.9em', 
-                    color: '#1976d2',
-                    fontStyle: 'italic'
+                    color: '#FF9800',
+                    fontWeight: '500'
                   }}>
-                    💡 <strong>Sinergia:</strong> {tool.synergy}
+                    💡 {tool.synergy}
                   </p>
                 </div>
                 <div style={{ 
@@ -274,9 +255,9 @@ function Home({ onToolChange }) {
                   <span style={{
                     color: tool.color,
                     fontWeight: '600',
-                    fontSize: '1em'
+                    fontSize: '0.9em'
                   }}>
-                    → Explorar {tool.name}
+                    → Ir a {tool.name}
                   </span>
                 </div>
               </div>
@@ -285,22 +266,45 @@ function Home({ onToolChange }) {
         </div>
       </div>
 
-      {/* Consejo del Día */}
+      {/* Información adicional */}
       <div style={{ 
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        borderRadius: '12px',
+        borderRadius: '16px',
         padding: '30px',
         color: 'white',
         textAlign: 'center'
       }}>
-        <h2 style={{ marginBottom: '15px', fontSize: '1.8em' }}>
-          💡 Consejo del Día
-        </h2>
-        <p style={{ fontSize: '1.1em', lineHeight: '1.6', margin: 0 }}>
-          "La productividad no se trata de hacer más cosas, sino de hacer las cosas correctas. 
-          Comienza cada día identificando tus 3 tareas más importantes y enfócate en completarlas primero.
-          Usa las herramientas adicionales para mejorar tu precisión y gestión de proyectos complejos."
-        </p>
+        <h3 style={{ marginBottom: '15px', fontSize: '1.5em' }}>
+          🚀 ¿Por qué usar Tiempo Justo?
+        </h3>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+          gap: '20px',
+          marginTop: '20px'
+        }}>
+          <div>
+            <div style={{ fontSize: '2em', marginBottom: '10px' }}>🎯</div>
+            <h4 style={{ marginBottom: '8px' }}>Enfoque en Prioridades</h4>
+            <p style={{ fontSize: '0.9em', opacity: 0.9, margin: 0 }}>
+              Basado en las filosofías de Brian Tracy y Jordan Peterson para maximizar tu productividad.
+            </p>
+          </div>
+          <div>
+            <div style={{ fontSize: '2em', marginBottom: '10px' }}>🧠</div>
+            <h4 style={{ marginBottom: '8px' }}>Modo ADHD</h4>
+            <p style={{ fontSize: '0.9em', opacity: 0.9, margin: 0 }}>
+              Optimizado para personas con ADHD con tareas pequeñas y recompensas inmediatas.
+            </p>
+          </div>
+          <div>
+            <div style={{ fontSize: '2em', marginBottom: '10px' }}>📊</div>
+            <h4 style={{ marginBottom: '8px' }}>Analytics Avanzados</h4>
+            <p style={{ fontSize: '0.9em', opacity: 0.9, margin: 0 }}>
+              Seguimiento detallado de tu progreso con insights personalizados.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
