@@ -1,12 +1,31 @@
 import React, { useState } from 'react';
 import ADHDTaskBoard from './ADHDTaskBoard';
 import ADHDHourCalculator from './ADHDHourCalculator';
+import ADHDGamification from './ADHDGamification';
+import ADHDRoutines from './ADHDRoutines';
+import ADHDReminders from './ADHDReminders';
 
 function ADHDView() {
   const [focusMode, setFocusMode] = useState(false);
+  const [activeSection, setActiveSection] = useState('tasks'); // 'tasks', 'gamification', 'calculator', 'routines', 'reminders'
 
   const toggleFocusMode = () => {
     setFocusMode((prevMode) => !prevMode);
+  };
+
+  const renderActiveSection = () => {
+    switch (activeSection) {
+      case 'gamification':
+        return <ADHDGamification />;
+      case 'calculator':
+        return <ADHDHourCalculator />;
+      case 'routines':
+        return <ADHDRoutines />;
+      case 'reminders':
+        return <ADHDReminders />;
+      default:
+        return <ADHDTaskBoard />;
+    }
   };
 
   return (
@@ -16,6 +35,92 @@ function ADHDView() {
         <p style={{ textAlign: 'center', color: 'var(--color-muted)', marginBottom: 18 }}>
           Esta vista está diseñada para ayudarte a enfocarte y mantenerte organizado.
         </p>
+        
+        {/* Navigation Tabs */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '10px', 
+          marginBottom: '18px',
+          justifyContent: 'center',
+          flexWrap: 'wrap'
+        }}>
+          <button
+            onClick={() => setActiveSection('tasks')}
+            style={{
+              background: activeSection === 'tasks' ? 'var(--color-accent)' : 'var(--color-primary)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 'var(--radius)',
+              padding: '10px 16px',
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              transition: 'background 0.2s',
+            }}
+          >
+            📋 Tareas
+          </button>
+          <button
+            onClick={() => setActiveSection('gamification')}
+            style={{
+              background: activeSection === 'gamification' ? 'var(--color-accent)' : 'var(--color-primary)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 'var(--radius)',
+              padding: '10px 16px',
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              transition: 'background 0.2s',
+            }}
+          >
+            🎮 Gamificación
+          </button>
+          <button
+            onClick={() => setActiveSection('calculator')}
+            style={{
+              background: activeSection === 'calculator' ? 'var(--color-accent)' : 'var(--color-primary)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 'var(--radius)',
+              padding: '10px 16px',
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              transition: 'background 0.2s',
+            }}
+          >
+            🧮 Calculadora
+          </button>
+          <button
+            onClick={() => setActiveSection('routines')}
+            style={{
+              background: activeSection === 'routines' ? 'var(--color-accent)' : 'var(--color-primary)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 'var(--radius)',
+              padding: '10px 16px',
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              transition: 'background 0.2s',
+            }}
+          >
+            📅 Rutinas
+          </button>
+          <button
+            onClick={() => setActiveSection('reminders')}
+            style={{
+              background: activeSection === 'reminders' ? 'var(--color-accent)' : 'var(--color-primary)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 'var(--radius)',
+              padding: '10px 16px',
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              transition: 'background 0.2s',
+            }}
+          >
+            ⏰ Recordatorios
+          </button>
+        </div>
+
         <button
           onClick={toggleFocusMode}
           style={{
@@ -46,8 +151,9 @@ function ADHDView() {
           </div>
         )}
       </div>
-      <ADHDTaskBoard />
-      <ADHDHourCalculator />
+      
+      {/* Active Section Content */}
+      {renderActiveSection()}
     </div>
   );
 }
