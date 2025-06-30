@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import Cookies from 'js-cookie'
-import Header from '../components/layout/Header'
 import Footer from '../components/layout/Footer'
 import MainView from '../components/layout/MainView'
 import ADHDView from '../components/features/adhd/ADHDView'
@@ -82,9 +81,7 @@ export default function HomePage() {
     }
 
     return ( <
-        >
-        <
-        Header / > { hasADHD ? < ADHDView / > : < MainView / > } <
+        > { hasADHD ? < ADHDView / > : < MainView / > } <
         Footer hasADHD = { hasADHD }
         toggleADHDMode = { toggleADHDMode }
         /> <

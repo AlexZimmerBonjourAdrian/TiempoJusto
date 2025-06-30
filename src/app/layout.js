@@ -1,5 +1,6 @@
 import { Inter } from 'next/font/google'
 import '../styles/globals.css'
+import { ProductivityModeProvider } from '../hooks/useProductivityMode'
 
 // Importar estilos de PrimeReact
 import 'primereact/resources/themes/saga-blue/theme.css'
@@ -27,7 +28,10 @@ export default function RootLayout({ children }) {
     return ( <
         html lang = "es" >
         <
-        body className = { inter.className } > { children } <
+        body className = { inter.className } >
+        <
+        ProductivityModeProvider > { children } <
+        /ProductivityModeProvider> <
         /body> <
         /html>
     )

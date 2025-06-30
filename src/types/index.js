@@ -7,6 +7,20 @@ export const TaskShape = {
     importance: 'string'
 };
 
+// Project Types
+export const ProjectShape = {
+    id: 'string',
+    name: 'string',
+    description: 'string',
+    status: 'active' | 'completed' | 'paused',
+    createdAt: 'Date',
+    updatedAt: 'Date',
+    deadline: 'Date?',
+    estimatedHours: 'number',
+    actualHours: 'number',
+    tasks: 'Task[]'
+};
+
 // Log Types
 export const LogEntryShape = {
     date: 'string',

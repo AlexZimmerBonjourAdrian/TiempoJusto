@@ -5,6 +5,26 @@ export const APP_DESCRIPTION = 'Gestiona tus tareas diarias con propósito y cla
 // Task Management
 export const MAX_TASKS = 8;
 export const TASK_PRIORITIES = ['A', 'B', 'C', 'D'];
+
+// Project Management
+export const PROJECT_STATUSES = {
+    ACTIVE: 'active',
+    COMPLETED: 'completed',
+    PAUSED: 'paused'
+};
+
+export const PROJECT_STATUS_LABELS = {
+    active: 'Activo',
+    completed: 'Completado',
+    paused: 'Pausado'
+};
+
+export const PROJECT_STATUS_COLORS = {
+    active: '#4CAF50',
+    completed: '#2196F3',
+    paused: '#FF9800'
+};
+
 export const COOKIE_EXPIRY_DAYS = 182;
 
 // Colors
@@ -49,5 +69,6 @@ export const STORAGE_KEYS = {
     completedLog: 'completedLog',
     lastReset: 'lastReset',
     hasADHD: 'hasADHD',
-    taskLog: 'taskLog'
+    taskLog: 'taskLog',
+    projects: 'projects'
 };

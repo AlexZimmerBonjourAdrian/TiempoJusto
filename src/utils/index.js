@@ -108,6 +108,53 @@ export const taskUtils = {
     }
 };
 
+// Project Utilities
+export const projectUtils = {
+    generateId: () => {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    },
+
+    calculateProgress: (project) => {
+        if (!project.tasks || project.tasks.length === 0) return 0;
+        const completedTasks = project.tasks.filter(task => task.completed).length;
+        return (completedTasks / project.tasks.length) * 100;
+    },
+
+    getDaysUntilDeadline: (deadline) => {
+        if (!deadline) return null;
+        const today = new Date();
+        const deadlineDate = new Date(deadline);
+        const diffTime = deadlineDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays;
+    },
+
+    formatDate: (date) => {
+        return new Date(date).toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    },
+
+    sortProjects: (projects, sortBy = 'updatedAt') => {
+        return [...projects].sort((a, b) => {
+            switch (sortBy) {
+                case 'name':
+                    return a.name.localeCompare(b.name);
+                case 'deadline':
+                    if (!a.deadline) return 1;
+                    if (!b.deadline) return -1;
+                    return new Date(a.deadline) - new Date(b.deadline);
+                case 'progress':
+                    return projectUtils.calculateProgress(b) - projectUtils.calculateProgress(a);
+                default:
+                    return new Date(b.updatedAt) - new Date(a.updatedAt);
+            }
+        });
+    }
+};
+
 // Validation Utilities
 export const validationUtils = {
     isValidTime: (time) => {
