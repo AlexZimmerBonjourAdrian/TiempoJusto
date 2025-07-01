@@ -9,6 +9,7 @@ import HourCalculator from '../features/calculator/HourCalculator';
 import AnalyticsView from '../features/analytics/AnalyticsView';
 import PomodoroTimer from '../features/pomodoro/PomodoroTimer';
 import Donation from '../features/Donation';
+import DataManager from '../ui/DataManager';
 
 function MainView() {
   const [activeTool, setActiveTool] = useState('home');
@@ -27,6 +28,8 @@ function MainView() {
         return <AnalyticsView />;
       case 'pomodoro':
         return <PomodoroTimer />;
+      case 'data-manager':
+        return <DataManager />;
       default:
         return <Home onToolChange={setActiveTool} />;
     }

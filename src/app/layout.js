@@ -31,8 +31,8 @@ export default function RootLayout({ children }) {
         body className = { inter.className } >
         <
         ProductivityModeProvider > { children } <
-        /ProductivityModeProvider> <
-        /body> <
+        /ProductivityModeProvider> < /
+        body > <
         /html>
     )
 }

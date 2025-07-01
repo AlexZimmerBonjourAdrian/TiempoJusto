@@ -10,8 +10,12 @@ function Header({ activeTool, onToolChange }) {
     { id: 'projects', name: 'Proyectos', icon: '📁' },
     { id: 'calculator', name: 'Calculadora', icon: '🧮' },
     { id: 'analytics', name: 'Analytics', icon: '📊' },
-    { id: 'pomodoro', name: 'Pomodoro', icon: '⏰' }
+    { id: 'pomodoro', name: 'Pomodoro', icon: '⏰' },
+    { id: 'data-manager', name: 'Gestor de Datos', icon: '🗄️' }
   ];
+
+  // Si no se proporciona onToolChange, solo mostrar enlaces
+  const isStandalone = !onToolChange;
 
   return (
     <div>
@@ -21,29 +25,58 @@ function Header({ activeTool, onToolChange }) {
       
       <Card className="navigation-header" style={{ background: '#fff', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', borderRadius: 8, marginTop: 8 }}>
         <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
-          {tools.map((tool) => (
-            <button
-              key={tool.id}
-              onClick={() => onToolChange(tool.id)}
-              style={{
-                background: activeTool === tool.id ? 'var(--color-accent)' : '#f5f5f5',
-                color: activeTool === tool.id ? '#fff' : '#333',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: activeTool === tool.id ? '600' : '400',
-                transition: 'all 0.2s ease',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              <span>{tool.icon}</span>
-              <span>{tool.name}</span>
-            </button>
-          ))}
+          {tools.map((tool) => {
+            if (isStandalone || tool.link) {
+              return (
+                <a
+                  key={tool.id}
+                  href={tool.link || '/'}
+                  style={{
+                    background: isStandalone && tool.id === 'data-manager' ? 'var(--color-accent)' : '#f5f5f5',
+                    color: isStandalone && tool.id === 'data-manager' ? '#fff' : '#333',
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '20px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: isStandalone && tool.id === 'data-manager' ? '600' : '400',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    textDecoration: 'none'
+                  }}
+                >
+                  <span>{tool.icon}</span>
+                  <span>{tool.name}</span>
+                </a>
+              );
+            } else {
+              return (
+                <button
+                  key={tool.id}
+                  onClick={() => onToolChange(tool.id)}
+                  style={{
+                    background: activeTool === tool.id ? 'var(--color-accent)' : '#f5f5f5',
+                    color: activeTool === tool.id ? '#fff' : '#333',
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '20px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: activeTool === tool.id ? '600' : '400',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <span>{tool.icon}</span>
+                  <span>{tool.name}</span>
+                </button>
+              );
+            }
+          })}
         </div>
       </Card>
     </div>
