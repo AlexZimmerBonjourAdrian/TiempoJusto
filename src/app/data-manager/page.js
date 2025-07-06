@@ -16,8 +16,8 @@ export default function DataManagerPage() {
         <
         DataManager / >
         <
-        /div> <
-        /main> <
+        /div> < /
+        main > <
         /div>
     );
 }
