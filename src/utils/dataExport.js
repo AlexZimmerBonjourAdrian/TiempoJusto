@@ -124,7 +124,7 @@ export const validateImportedData = (data) => {
         dataSummary: {
             totalKeys: foundKeys.length,
             keys: foundKeys,
-            exportedAt: data._exportMetadata ? .exportedAt
+            exportedAt: data._exportMetadata ? data._exportMetadata.exportedAt : null
         }
     };
 };
