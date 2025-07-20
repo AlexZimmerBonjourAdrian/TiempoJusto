@@ -1,115 +1,187 @@
-# Tiempo Justo
+# 🚀 Cómete esos sapos: Productividad Inteligente
 
-Tiempo Justo es una aplicación web diseñada para calcular de manera sencilla las fechas y horas restantes para un evento o tarea específica. Este proyecto es un MVP (Producto Mínimo Viable) que se enfoca en ofrecer una interfaz intuitiva y funcional para gestionar el tiempo de manera eficiente.
+Una aplicación web moderna y eficiente para gestionar tu tiempo con propósito y claridad, enfocada en maximizar tu productividad personal y profesional.
 
-## Características principales
+## ✨ Características Principales
 
-- **Cálculo de tiempo restante:** Ingresa una fecha y hora objetivo, y la aplicación calculará cuántas horas y minutos faltan.
-- **Descuento de horas:** Permite restar horas específicas para ajustar el tiempo restante.
-- **Interfaz amigable:** Diseño simple y fácil de usar, ideal para usuarios que buscan una solución rápida.
+### 🎯 **Enfoque en Productividad**
+- **Gestión de Tareas Inteligente**: Sistema de priorización A-B-C-D con límite de 8 tareas para mantener el foco
+- **Gestión de Proyectos Ágil**: Metodología ágil con sprints, seguimiento de progreso y gestión de equipos
+- **Técnica Pomodoro Integrada**: Timer de productividad con sesiones personalizables
+- **Analytics Avanzados**: Seguimiento detallado de tu progreso y productividad
 
-## Tecnologías utilizadas
+### 💾 **Sistema de Guardado Mejorado**
+- **Guardado Automático**: Los datos se guardan automáticamente cada segundo
+- **Respaldo Inteligente**: Sistema de respaldo en localStorage si fallan las cookies
+- **Sincronización entre Pestañas**: Cambios sincronizados automáticamente
+- **Indicadores de Estado**: Sabrás siempre cuándo se están guardando tus datos
+- **Reintentos Automáticos**: Sistema robusto con reintentos en caso de errores
 
-- **React:** Biblioteca de JavaScript para construir la interfaz de usuario.
-- **CSS:** Para estilizar la aplicación y mejorar la experiencia del usuario.
+### 🧠 **Modos de Productividad**
+- **Modo ADHD**: Interfaz simplificada con gamificación y recordatorios
+- **Modo Focus**: Enfoque en tareas prioritarias con distracciones minimizadas
+- **Modo Minimal**: Interfaz limpia para máxima concentración
+- **Modo Default**: Experiencia completa con todas las herramientas
 
-## Cómo empezar
+## 🛠️ Tecnologías Utilizadas
 
-1. Clona este repositorio:
-   ```bash
-   git clone https://github.com/tu-usuario/tiempo-justo.git
-   ```
-2. Navega al directorio del proyecto:
-   ```bash
-   cd tiempo-justo
-   ```
-3. Instala las dependencias:
-   ```bash
-   npm install
-   ```
-4. Inicia el servidor de desarrollo:
-   ```bash
-   npm start
-   ```
+- **Frontend**: Next.js 14, React 18
+- **UI Components**: PrimeReact
+- **Estilos**: CSS Modules, CSS-in-JS
+- **Almacenamiento**: Cookies + localStorage (respaldo)
+- **Notificaciones**: Web Notifications API
+- **Despliegue**: Netlify
 
-## Próximos pasos
+## 🚀 Instalación y Uso
 
-- Agregar soporte para múltiples zonas horarias.
-- Implementar notificaciones para eventos próximos.
-- Mejorar el diseño visual con componentes adicionales.
+### Requisitos Previos
+- Node.js 18+ 
+- npm o yarn
 
-## Contribuciones
-
-¡Las contribuciones son bienvenidas! Si tienes ideas o mejoras, no dudes en abrir un issue o enviar un pull request.
-
-## Google Calendar Integration Setup
-
-To enable Google Calendar integration, you need to set the following environment variables:
-
--   `REACT_APP_GOOGLE_CLIENT_ID`: Your Google Client ID.
--   `REACT_APP_GOOGLE_API_KEY`: Your Google API Key.
-
-You can set these environment variables in your `.env` file or directly in your terminal. For example:
-
+### Instalación
 ```bash
-REACT_APP_GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID
-REACT_APP_GOOGLE_API_KEY=YOUR_GOOGLE_API_KEY
+# Clonar el repositorio
+git clone https://github.com/tu-usuario/tiempo-justo.git
+cd tiempo-justo
+
+# Instalar dependencias
+npm install
+
+# Ejecutar en desarrollo
+npm run dev
+
+# Construir para producción
+npm run build
 ```
 
-Remember to replace `YOUR_GOOGLE_CLIENT_ID` and `YOUR_GOOGLE_API_KEY` with your actual credentials.
-
-## Plan para Ampliación de Funcionalidades
-
-### 1. Notificaciones Locales
-**Objetivo:** Implementar recordatorios para eventos próximos.
-
-#### Pasos:
-1. **Investigar APIs de notificaciones:**
-   - Utilizar la API de Notificaciones del navegador para enviar recordatorios locales.
-   - Asegurarse de que los permisos de notificación sean solicitados al usuario.
-
-2. **Implementar lógica de notificaciones:**
-   - Crear un componente o función que calcule el tiempo restante para un evento.
-   - Configurar un temporizador (`setTimeout`) para enviar la notificación cuando el evento esté próximo.
-
-3. **Pruebas:**
-   - Verificar que las notificaciones funcionen en diferentes navegadores.
-   - Asegurarse de que las notificaciones sean claras y útiles.
-
-4. **Documentación:**
-   - Actualizar el README con instrucciones sobre cómo habilitar las notificaciones.
-
-### 2. Personalización Temporal
-**Objetivo:** Permitir configuraciones que se mantengan solo durante la sesión del usuario.
-
-#### Pasos:
-1. **Definir configuraciones personalizables:**
-   - Por ejemplo, colores de fondo, formato de hora (12h/24h), etc.
-
-2. **Implementar almacenamiento en memoria:**
-   - Utilizar el estado de React o `sessionStorage` para guardar las configuraciones temporalmente.
-
-3. **Crear una interfaz de configuración:**
-   - Agregar un modal o sección en la aplicación donde los usuarios puedan ajustar sus preferencias.
-
-4. **Pruebas:**
-   - Verificar que las configuraciones se apliquen correctamente durante la sesión.
-   - Asegurarse de que las configuraciones se restablezcan al cerrar la aplicación.
-
-5. **Documentación:**
-   - Actualizar el README con detalles sobre las opciones de personalización.
-
-### 3. Cronograma
-- **Semana 1:** Investigación y diseño de las funcionalidades.
-- **Semana 2:** Implementación de notificaciones locales.
-- **Semana 3:** Implementación de personalización temporal.
-- **Semana 4:** Pruebas y documentación.
-
-### 4. Recursos Necesarios
-- Acceso a documentación de la API de Notificaciones.
-- Herramientas de prueba en diferentes navegadores.
-
-### 5. Resultados Esperados
-- Los usuarios recibirán recordatorios oportunos para sus eventos.
-- Los usuarios podrán personalizar su experiencia durante cada sesión.
+### Variables de Entorno
+```env
+# Opcional: Configurar para notificaciones push
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=tu_vapid_public_key
 ```
+
+## 📱 Características por Sección
+
+### 🏠 **Inicio**
+- Dashboard personalizado con resumen de productividad
+- Acceso rápido a herramientas principales
+- Motivación diaria y citas inspiradoras
+
+### 📋 **Tareas**
+- Sistema de priorización A-B-C-D
+- Límite de 8 tareas para mantener el foco
+- Vista Kanban y lista
+- Cierre diario automático a medianoche
+- Gamificación con puntos (modo ADHD)
+
+### 📁 **Proyectos**
+- Gestión ágil con sprints
+- Seguimiento de progreso y velocidad
+- Gestión de equipos y presupuestos
+- Vista Kanban, lista y timeline
+- Métricas de proyecto en tiempo real
+
+### ⏰ **Pomodoro**
+- Timer personalizable (25/5, 50/10, etc.)
+- Sesiones largas y cortas
+- Estadísticas de sesiones
+- Integración con tareas
+
+### 📊 **Analytics**
+- Progreso diario, semanal y mensual
+- Gráficos de productividad
+- Análisis de tendencias
+- Citas motivacionales personalizadas
+
+### 💾 **Gestión de Datos**
+- Exportación/importación de datos
+- Respaldo automático
+- Validación de datos
+- Estadísticas de almacenamiento
+
+## 🎨 Personalización
+
+### Modos de Productividad
+```javascript
+// Configurar modo ADHD
+Cookies.set('hasADHD', true, { expires: 365 });
+
+// Configurar modo de productividad
+Cookies.set('productivityMode', 'focus', { expires: 365 });
+```
+
+### Configuración de Guardado
+```javascript
+// El sistema de guardado automático se configura automáticamente
+// pero puedes personalizar el comportamiento:
+
+const { saveData, loadData } = useAutoSave('miClave', misDatos, {
+  delay: 1000, // Delay en ms
+  maxRetries: 3, // Reintentos máximos
+  onSaveSuccess: () => console.log('Guardado exitoso'),
+  onSaveError: (error) => console.error('Error al guardar:', error)
+});
+```
+
+## 🔧 Desarrollo
+
+### Estructura del Proyecto
+```
+src/
+├── app/                 # Páginas de Next.js
+├── components/          # Componentes React
+│   ├── features/       # Características principales
+│   ├── layout/         # Componentes de layout
+│   └── ui/            # Componentes de UI
+├── hooks/              # Hooks personalizados
+├── utils/              # Utilidades
+├── constants/          # Constantes
+└── styles/            # Estilos globales
+```
+
+### Hooks Personalizados
+- `useAutoSave`: Guardado automático con respaldo
+- `useDataSync`: Sincronización entre pestañas
+- `useProductivityMode`: Gestión de modos de productividad
+
+### Sistema de Guardado
+El sistema utiliza un enfoque híbrido:
+1. **Cookies primarias**: Almacenamiento principal
+2. **localStorage de respaldo**: Si fallan las cookies
+3. **Sincronización automática**: Entre pestañas del navegador
+4. **Reintentos inteligentes**: En caso de errores de red
+
+## 🚀 Despliegue
+
+### Netlify
+```bash
+# El proyecto está configurado para Netlify
+# Solo necesitas conectar tu repositorio
+```
+
+### Variables de Entorno en Producción
+```env
+NEXT_PUBLIC_APP_URL=https://tu-app.netlify.app
+```
+
+## 🤝 Contribuir
+
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+
+## 🙏 Agradecimientos
+
+- **Brian Tracy**: Por la filosofía "Cómete esa rana"
+- **Jordan Peterson**: Por las citas motivacionales
+- **Comunidad de desarrolladores**: Por las herramientas y librerías utilizadas
+
+---
+
+**¡Construye tu productividad, un día a la vez! 🚀**

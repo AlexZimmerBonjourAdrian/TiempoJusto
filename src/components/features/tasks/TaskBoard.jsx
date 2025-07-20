@@ -1,23 +1,16 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import Cookies from 'js-cookie';
 import TaskCard from '../../ui/TaskCard';
 import KanbanBoard from '../../ui/KanbanBoard';
 import ProductivityModeSelector from '../../ui/ProductivityModeSelector';
+import SaveStatusIndicator from '../../ui/SaveStatusIndicator';
 import { requestNotificationPermission, showTaskboardClosureNotification, showMidnightReminder } from '../../../utils/notifications';
 import { useProductivityMode } from '../../../hooks/useProductivityMode';
+import { useAutoSave, useDataSync } from '../../../hooks/useAutoSave';
 
 function TaskBoard() {
-  const [tasks, setTasks] = useState(() => {
-    try {
-      const savedTasks = Cookies.get('tasks');
-      return savedTasks ? JSON.parse(savedTasks) : [];
-    } catch (error) {
-      console.error('Error reading tasks from cookies:', error);
-      return [];
-    }
-  });
+  const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState('');
   const [newImportance, setNewImportance] = useState('A');
   const [newTaskType, setNewTaskType] = useState('work');
@@ -26,25 +19,45 @@ function TaskBoard() {
   const [taskToDelete, setTaskToDelete] = useState(null);
   const [showClosureConfirmation, setShowClosureConfirmation] = useState(false);
   const [closureStep, setClosureStep] = useState(1);
-  const [isClosed, setIsClosed] = useState(() => {
-    try {
-      const savedClosed = Cookies.get('taskboardClosed');
-      return savedClosed ? JSON.parse(savedClosed) : false;
-    } catch (error) {
-      return false;
-    }
-  });
-  const [lastClosedDate, setLastClosedDate] = useState(() => {
-    try {
-      const savedDate = Cookies.get('lastClosedDate');
-      return savedDate || null;
-    } catch (error) {
-      return null;
-    }
-  });
+  const [isClosed, setIsClosed] = useState(false);
+  const [lastClosedDate, setLastClosedDate] = useState(null);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'kanban'
+  const [saveStatus, setSaveStatus] = useState('idle'); // 'idle', 'saving', 'saved', 'error'
 
   const { mode, settings } = useProductivityMode();
+
+  // Usar el nuevo sistema de guardado automático
+  const { loadData: loadTasks } = useAutoSave('tasks', tasks, {
+    onSaveSuccess: () => setSaveStatus('saved'),
+    onSaveError: () => setSaveStatus('error'),
+    onLoadSuccess: (loadedTasks) => {
+      setTasks(loadedTasks || []);
+      setSaveStatus('idle');
+    }
+  });
+
+  const { loadData: loadClosureState } = useAutoSave('taskboardState', {
+    isClosed,
+    lastClosedDate
+  }, {
+    onLoadSuccess: (state) => {
+      if (state) {
+        setIsClosed(state.isClosed || false);
+        setLastClosedDate(state.lastClosedDate || null);
+      }
+    }
+  });
+
+  // Sincronizar datos entre pestañas
+  useDataSync('tasks', tasks, (newTasks) => {
+    setTasks(newTasks);
+  });
+
+  // Cargar datos al montar el componente
+  useEffect(() => {
+    loadTasks();
+    loadClosureState();
+  }, []);
 
   // Request notification permissions on component mount
   useEffect(() => {
@@ -70,19 +83,6 @@ function TaskBoard() {
 
     return () => clearInterval(interval);
   }, [lastClosedDate]);
-
-  // Save tasks and closure state to cookies
-  useEffect(() => {
-    try {
-      Cookies.set('tasks', JSON.stringify(tasks), { expires: 182 });
-      Cookies.set('taskboardClosed', JSON.stringify(isClosed), { expires: 182 });
-      if (lastClosedDate) {
-        Cookies.set('lastClosedDate', lastClosedDate, { expires: 182 });
-      }
-    } catch (error) {
-      console.error('Error writing to cookies:', error);
-    }
-  }, [tasks, isClosed, lastClosedDate]);
 
   const handleInputChange = (event) => {
     setNewTask(event.target.value);
@@ -215,11 +215,12 @@ function TaskBoard() {
       motivationalMessage: getMotivationalMessage(productivityRate)
     };
 
+    // Guardar log diario usando el sistema de guardado automático
     try {
-      const existingLogs = Cookies.get('dailyLogs');
+      const existingLogs = localStorage.getItem('dailyLogs');
       const logs = existingLogs ? JSON.parse(existingLogs) : [];
       logs.push(dailyLog);
-      Cookies.set('dailyLogs', JSON.stringify(logs), { expires: 365 });
+      localStorage.setItem('dailyLogs', JSON.stringify(logs));
     } catch (error) {
       console.error('Error saving daily log:', error);
     }
@@ -359,6 +360,7 @@ function TaskBoard() {
           }}>
             {getStatusText()}
           </div>
+          <SaveStatusIndicator status={saveStatus} />
           <button
             onClick={() => setViewMode(viewMode === 'list' ? 'kanban' : 'list')}
             style={{

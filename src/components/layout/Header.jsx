@@ -8,10 +8,9 @@ function Header({ activeTool, onToolChange }) {
     { id: 'home', name: 'Inicio', icon: '🏠' },
     { id: 'tasks', name: 'Tareas', icon: '📋' },
     { id: 'projects', name: 'Proyectos', icon: '📁' },
-    { id: 'calculator', name: 'Calculadora', icon: '🧮' },
-    { id: 'analytics', name: 'Analytics', icon: '📊' },
     { id: 'pomodoro', name: 'Pomodoro', icon: '⏰' },
-    { id: 'data-manager', name: 'Gestor de Datos', icon: '🗄️' }
+    { id: 'analytics', name: 'Progreso', icon: '📊' },
+    { id: 'data-manager', name: 'Datos', icon: '💾' }
   ];
 
   // Si no se proporciona onToolChange, solo mostrar enlaces
@@ -20,7 +19,10 @@ function Header({ activeTool, onToolChange }) {
   return (
     <div>
       <Card className="app-header" style={{ background: 'var(--color-accent)', color: '#F3E5F5', textAlign: 'center', border: 'none', boxShadow: 'none', borderRadius: 8 }}>
-        <h1 className="app-title">Cómete esos sapos: Filosofías de Productividad</h1>
+        <h1 className="app-title">Cómete esos sapos: Productividad Inteligente</h1>
+        <p style={{ margin: '8px 0 0 0', fontSize: '16px', opacity: 0.9 }}>
+          Gestiona tu tiempo con propósito y eficiencia
+        </p>
       </Card>
       
       <Card className="navigation-header" style={{ background: '#fff', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', borderRadius: 8, marginTop: 8 }}>

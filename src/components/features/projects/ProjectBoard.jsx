@@ -1,35 +1,16 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import Cookies from 'js-cookie';
 import ProjectCard from './ProjectCard';
 import ProjectForm from './ProjectForm';
 import ProjectDetailView from './ProjectDetailView';
+import SaveStatusIndicator from '../../ui/SaveStatusIndicator';
 import { STORAGE_KEYS } from '../../../constants';
 import { projectUtils } from '../../../utils';
+import { useAutoSave, useDataSync } from '../../../hooks/useAutoSave';
 
 function ProjectBoard() {
-    const [projects, setProjects] = useState(() => {
-        try {
-            const savedProjects = Cookies.get(STORAGE_KEYS.projects);
-            return savedProjects ? JSON.parse(savedProjects).map(project => ({
-                ...project,
-                createdAt: new Date(project.createdAt),
-                updatedAt: new Date(project.updatedAt),
-                deadline: project.deadline ? new Date(project.deadline) : null,
-                sprints: project.sprints || [],
-                currentSprint: project.currentSprint || null,
-                tasks: project.tasks || [],
-                team: project.team || [],
-                budget: project.budget || 0,
-                actualCost: project.actualCost || 0
-            })) : [];
-        } catch (error) {
-            console.error('Error reading projects from cookies:', error);
-            return [];
-        }
-    });
-
+    const [projects, setProjects] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [editingProject, setEditingProject] = useState(null);
     const [selectedProject, setSelectedProject] = useState(null);
@@ -37,14 +18,41 @@ function ProjectBoard() {
     const [sortBy, setSortBy] = useState('updatedAt');
     const [filterStatus, setFilterStatus] = useState('all');
     const [filterPriority, setFilterPriority] = useState('all');
+    const [saveStatus, setSaveStatus] = useState('idle');
 
-    useEffect(() => {
-        try {
-            Cookies.set(STORAGE_KEYS.projects, JSON.stringify(projects), { expires: 182 });
-        } catch (error) {
-            console.error('Error writing projects to cookies:', error);
+    // Usar el nuevo sistema de guardado automático
+    const { loadData: loadProjects } = useAutoSave(STORAGE_KEYS.projects, projects, {
+        onSaveSuccess: () => setSaveStatus('saved'),
+        onSaveError: () => setSaveStatus('error'),
+        onLoadSuccess: (loadedProjects) => {
+            if (loadedProjects) {
+                const parsedProjects = loadedProjects.map(project => ({
+                    ...project,
+                    createdAt: new Date(project.createdAt),
+                    updatedAt: new Date(project.updatedAt),
+                    deadline: project.deadline ? new Date(project.deadline) : null,
+                    sprints: project.sprints || [],
+                    currentSprint: project.currentSprint || null,
+                    tasks: project.tasks || [],
+                    team: project.team || [],
+                    budget: project.budget || 0,
+                    actualCost: project.actualCost || 0
+                }));
+                setProjects(parsedProjects);
+            }
+            setSaveStatus('idle');
         }
-    }, [projects]);
+    });
+
+    // Sincronizar datos entre pestañas
+    useDataSync(STORAGE_KEYS.projects, projects, (newProjects) => {
+        setProjects(newProjects);
+    });
+
+    // Cargar datos al montar el componente
+    useEffect(() => {
+        loadProjects();
+    }, []);
 
     const handleCreateProject = (projectData) => {
         const newProject = {
@@ -155,25 +163,28 @@ function ProjectBoard() {
                         Gestiona tus proyectos con metodología ágil y seguimiento completo
                     </p>
                 </div>
-                <button
-                    onClick={() => setShowForm(true)}
-                    style={{
-                        padding: '12px 24px',
-                        backgroundColor: 'var(--color-accent)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px'
-                    }}
-                >
-                    <span>+</span>
-                    Nuevo Proyecto
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <SaveStatusIndicator status={saveStatus} />
+                    <button
+                        onClick={() => setShowForm(true)}
+                        style={{
+                            padding: '12px 24px',
+                            backgroundColor: 'var(--color-accent)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                        }}
+                    >
+                        <span>+</span>
+                        Nuevo Proyecto
+                    </button>
+                </div>
             </div>
 
             {/* Filtros y controles */}
@@ -415,6 +426,7 @@ function ProjectBoard() {
                     ))}
                 </div>
             )}
+            <SaveStatusIndicator status={saveStatus} />
         </div>
     );
 }
