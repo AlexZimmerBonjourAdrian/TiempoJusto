@@ -1,0 +1,14 @@
+{
+    "expo": {
+        "name": "TiempoJusto",
+        "slug": "tiempo-justo-mobile",
+        "version": "0.1.0",
+        "orientation": "portrait",
+        "platforms": ["android"],
+        "jsEngine": "hermes",
+        "assetBundlePatterns": ["**/*"],
+        "android": {
+            "package": "com.tiempojusto.app"
+        }
+    }
+}
