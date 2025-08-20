@@ -194,8 +194,6 @@ export default function TaskBoard({ tasks, setTasks, projects, projectIdToProjec
                 data={sortedTasks}
                 keyExtractor={(item) => String(item.id)}
                 contentContainerStyle={{ paddingVertical: 8 }}
-                numColumns={2}
-                columnWrapperStyle={styles.taskRow}
                 renderItem={({ item }) => {
                     const projectName = item.projectId ? projectIdToProject?.[item.projectId]?.name : null;
                     return (
@@ -208,14 +206,16 @@ export default function TaskBoard({ tasks, setTasks, projects, projectIdToProjec
                                     {item.priority || 'C'}
                                 </Text>
                             </View>
-                            <Text style={[styles.taskTitle, item.done && styles.taskTitleDone]} numberOfLines={3}>
-                                {item.title}
-                            </Text>
-                            {projectName && (
-                                <Text style={styles.taskProject} numberOfLines={1}>
-                                    {projectName}
+                            <View style={styles.taskContent}>
+                                <Text style={[styles.taskTitle, item.done && styles.taskTitleDone]} numberOfLines={3}>
+                                    {item.title}
                                 </Text>
-                            )}
+                                {projectName && (
+                                    <Text style={styles.taskProject} numberOfLines={1}>
+                                        {projectName}
+                                    </Text>
+                                )}
+                            </View>
                             <View style={styles.taskActions}>
                                 {item.projectId && (
                                     <Pressable 
@@ -400,60 +400,65 @@ const styles = StyleSheet.create({
         color: '#93c5fd',
         fontWeight: '700',
     },
-    taskRow: {
-        justifyContent: 'space-between',
-        marginBottom: 6,
-    },
+
     taskCard: {
-        width: '48%',
+        width: '100%',
         backgroundColor: 'rgba(255,255,255,0.06)',
         borderRadius: 8,
-        padding: 8,
+        padding: 10,
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.08)',
-        minHeight: 100,
+        marginBottom: 6,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
     },
     taskHeader: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 6,
+        gap: 8,
+        minWidth: 60,
     },
     checkbox: {
-        width: 14,
-        height: 14,
-        borderRadius: 3,
-        borderWidth: 1.5,
+        width: 16,
+        height: 16,
+        borderRadius: 4,
+        borderWidth: 2,
         borderColor: 'rgba(255,255,255,0.5)',
         alignItems: 'center',
         justifyContent: 'center',
     },
     checkboxInner: {
-        width: 6,
-        height: 6,
-        borderRadius: 1.5,
+        width: 8,
+        height: 8,
+        borderRadius: 2,
     },
     checkboxInnerChecked: { 
         backgroundColor: '#22c55e' 
     },
     taskPriority: { 
-        fontSize: 10, 
+        fontSize: 12, 
         fontWeight: '700',
-        paddingHorizontal: 3,
-        paddingVertical: 1,
-        borderRadius: 2,
+        paddingHorizontal: 4,
+        paddingVertical: 2,
+        borderRadius: 3,
         backgroundColor: 'rgba(255,255,255,0.1)',
+        minWidth: 20,
+        textAlign: 'center',
     },
     priorityA: { color: '#ef4444' },
     priorityB: { color: '#f97316' },
     priorityC: { color: '#eab308' },
     priorityD: { color: '#6b7280' },
+    taskContent: {
+        flex: 1,
+    },
     taskTitle: { 
         color: 'white', 
         fontWeight: '500',
-        fontSize: 12,
-        marginBottom: 4,
-        lineHeight: 16,
+        fontSize: 14,
+        marginBottom: 2,
+        lineHeight: 18,
     },
     taskTitleDone: { 
         textDecorationLine: 'line-through', 
@@ -461,20 +466,18 @@ const styles = StyleSheet.create({
     },
     taskProject: { 
         color: 'rgba(255,255,255,0.6)', 
-        fontSize: 9,
+        fontSize: 11,
         fontWeight: '500',
-        marginBottom: 6,
     },
     taskActions: {
         flexDirection: 'row',
-        gap: 4,
-        justifyContent: 'space-between',
-        marginTop: 'auto',
+        gap: 6,
+        alignItems: 'center',
     },
     actionButton: { 
-        paddingHorizontal: 6, 
-        paddingVertical: 2, 
-        borderRadius: 3, 
+        paddingHorizontal: 8, 
+        paddingVertical: 4, 
+        borderRadius: 4, 
         backgroundColor: 'rgba(59,130,246,0.2)',
         borderWidth: 1,
         borderColor: 'rgba(59,130,246,0.3)',
@@ -482,12 +485,12 @@ const styles = StyleSheet.create({
     actionButtonText: { 
         color: '#93c5fd', 
         fontWeight: '600',
-        fontSize: 9,
+        fontSize: 10,
     },
     deleteButton: { 
-        paddingHorizontal: 6, 
-        paddingVertical: 2, 
-        borderRadius: 3, 
+        paddingHorizontal: 8, 
+        paddingVertical: 4, 
+        borderRadius: 4, 
         backgroundColor: 'rgba(239,68,68,0.2)',
         borderWidth: 1,
         borderColor: 'rgba(239,68,68,0.3)',
@@ -495,7 +498,7 @@ const styles = StyleSheet.create({
     deleteButtonText: { 
         color: '#fecaca', 
         fontWeight: '700',
-        fontSize: 12,
+        fontSize: 14,
     },
     emptyContainer: {
         alignItems: 'center',
