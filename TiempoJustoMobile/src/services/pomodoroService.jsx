@@ -146,7 +146,7 @@ class PomodoroService {
                 callback({
                     ...this.getState(),
                     completed: true,
-                    completedMode: this.mode
+                    completedMode: String(this.mode || 'focus')
                 });
             } catch (error) {
                 console.error('Error en callback de completado del Pomodoro:', error);
@@ -177,18 +177,37 @@ class PomodoroService {
     // Guardar estado en AsyncStorage
     async saveState() {
         try {
+            // Crear un objeto de estado limpio sin referencias circulares
             const state = {
-                isRunning: this.isRunning,
-                mode: this.mode,
-                secondsLeft: this.secondsLeft,
-                totalSeconds: this.totalSeconds,
-                startTime: this.startTime,
-                pauseTime: this.pauseTime,
+                isRunning: Boolean(this.isRunning),
+                mode: String(this.mode || 'focus'),
+                secondsLeft: Number(this.secondsLeft || 0),
+                totalSeconds: Number(this.totalSeconds || 0),
+                startTime: this.startTime ? Number(this.startTime) : null,
+                pauseTime: this.pauseTime ? Number(this.pauseTime) : null,
                 timestamp: Date.now(),
             };
-            await AsyncStorage.setItem('TJ_POMODORO_STATE', JSON.stringify(state));
+            
+            // Validar que todos los valores sean serializables
+            const serializedState = JSON.stringify(state);
+            await AsyncStorage.setItem('TJ_POMODORO_STATE', serializedState);
         } catch (error) {
             console.error('Error guardando estado del Pomodoro:', error);
+            // En caso de error, intentar guardar un estado mínimo
+            try {
+                const minimalState = {
+                    isRunning: false,
+                    mode: 'focus',
+                    secondsLeft: 0,
+                    totalSeconds: 0,
+                    startTime: null,
+                    pauseTime: null,
+                    timestamp: Date.now(),
+                };
+                await AsyncStorage.setItem('TJ_POMODORO_STATE', JSON.stringify(minimalState));
+            } catch (fallbackError) {
+                console.error('Error guardando estado mínimo del Pomodoro:', fallbackError);
+            }
         }
     }
 
@@ -199,27 +218,37 @@ class PomodoroService {
             if (state) {
                 const parsedState = JSON.parse(state);
                 
-                // Solo restaurar si el estado es reciente (menos de 1 hora)
-                const isRecent = Date.now() - parsedState.timestamp < 60 * 60 * 1000;
-                
-                if (isRecent) {
-                    this.isRunning = parsedState.isRunning;
-                    this.mode = parsedState.mode;
-                    this.secondsLeft = parsedState.secondsLeft;
-                    this.totalSeconds = parsedState.totalSeconds;
-                    this.startTime = parsedState.startTime;
-                    this.pauseTime = parsedState.pauseTime;
+                // Validar que el estado tenga la estructura correcta
+                if (parsedState && typeof parsedState === 'object') {
+                    // Solo restaurar si el estado es reciente (menos de 1 hora)
+                    const isRecent = parsedState.timestamp && (Date.now() - parsedState.timestamp < 60 * 60 * 1000);
                     
-                    // Si estaba corriendo, sincronizar el tiempo
-                    if (this.isRunning && this.startTime) {
-                        this.syncTime();
+                    if (isRecent) {
+                        // Asignar valores con validación de tipos
+                        this.isRunning = Boolean(parsedState.isRunning);
+                        this.mode = String(parsedState.mode || 'focus');
+                        this.secondsLeft = Number(parsedState.secondsLeft || 0);
+                        this.totalSeconds = Number(parsedState.totalSeconds || 0);
+                        this.startTime = parsedState.startTime ? Number(parsedState.startTime) : null;
+                        this.pauseTime = parsedState.pauseTime ? Number(parsedState.pauseTime) : null;
+                        
+                        // Si estaba corriendo, sincronizar el tiempo
+                        if (this.isRunning && this.startTime) {
+                            this.syncTime();
+                        }
+                        
+                        this.notifyCallbacks();
                     }
-                    
-                    this.notifyCallbacks();
                 }
             }
         } catch (error) {
             console.error('Error cargando estado del Pomodoro:', error);
+            // En caso de error, limpiar el estado corrupto
+            try {
+                await AsyncStorage.removeItem('TJ_POMODORO_STATE');
+            } catch (cleanupError) {
+                console.error('Error limpiando estado corrupto del Pomodoro:', cleanupError);
+            }
         }
     }
 
@@ -231,11 +260,12 @@ class PomodoroService {
 
     // Notificar a todos los suscriptores
     notifyCallbacks() {
+        // Crear un objeto de estado limpio sin referencias circulares
         const state = {
-            isRunning: this.isRunning,
-            mode: this.mode,
-            secondsLeft: this.secondsLeft,
-            totalSeconds: this.totalSeconds,
+            isRunning: Boolean(this.isRunning),
+            mode: String(this.mode || 'focus'),
+            secondsLeft: Number(this.secondsLeft || 0),
+            totalSeconds: Number(this.totalSeconds || 0),
         };
         
         this.callbacks.forEach(callback => {
@@ -250,11 +280,21 @@ class PomodoroService {
     // Obtener estado actual
     getState() {
         return {
-            isRunning: this.isRunning,
-            mode: this.mode,
-            secondsLeft: this.secondsLeft,
-            totalSeconds: this.totalSeconds,
+            isRunning: Boolean(this.isRunning),
+            mode: String(this.mode || 'focus'),
+            secondsLeft: Number(this.secondsLeft || 0),
+            totalSeconds: Number(this.totalSeconds || 0),
         };
+    }
+
+    // Limpiar estado corrupto
+    async clearCorruptedState() {
+        try {
+            await AsyncStorage.removeItem('TJ_POMODORO_STATE');
+            console.log('Estado corrupto del Pomodoro limpiado');
+        } catch (error) {
+            console.error('Error limpiando estado corrupto del Pomodoro:', error);
+        }
     }
 
     // Limpiar recursos
