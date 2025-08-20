@@ -7,7 +7,7 @@ import TaskBoard from './src/components/TaskBoard';
 import PomodoroTimer from './src/components/PomodoroTimer';
 import ProjectBoard from './src/components/ProjectBoard';
 import AnalyticsBoard from './src/components/AnalyticsBoard';
-import MonthlyStats from './src/components/MonthlyStats';
+import ProductiPet from './src/components/ProductiPet';
 import DateTimeDisplay from './src/components/DateTimeDisplay';
 import MotivationalNotification from './src/components/MotivationalNotification';
 import { useMotivationalNotifications } from './src/hooks/useMotivationalNotifications';
@@ -149,12 +149,11 @@ function AppInner() {
                         onCloseBoard={() => setActiveTab('tareas')}
                     />
                 )}
-                {activeTab === 'mensual' && (
-                    <MonthlyStats
+                {activeTab === 'tamagotchi' && (
+                    <ProductiPet
                         tasks={tasks}
                         projects={projects}
-                        projectIdToProject={projectIdToProject}
-                        dailyLogs={dailyLogs}
+                        onActivity={() => setLastActivityAt(Date.now())}
                     />
                 )}
             </View>
@@ -185,10 +184,10 @@ function AppInner() {
                     onPress={() => setActiveTab('analiticas')} 
                 />
                 <TabButton 
-                    label="Mensual" 
-                    legend="Progreso mensual"
-                    isActive={activeTab === 'mensual'} 
-                    onPress={() => setActiveTab('mensual')} 
+                    label="Tamagotchi" 
+                    legend="Mascota virtual"
+                    isActive={activeTab === 'tamagotchi'} 
+                    onPress={() => setActiveTab('tamagotchi')} 
                 />
             </View>
 
