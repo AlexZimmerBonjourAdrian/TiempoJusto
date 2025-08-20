@@ -69,26 +69,150 @@ Una aplicación móvil de gestión de tareas y productividad inspirada en los m�
 
 - **React Native**: Framework principal
 - **Expo**: Plataforma de desarrollo
+- **EAS Build**: Sistema de builds en la nube
 - **AsyncStorage**: Persistencia de datos local
 - **React Native Safe Area**: Manejo de áreas seguras
 - **Animated API**: Animaciones nativas
+- **Expo Dev Client**: Cliente de desarrollo para testing
 
 ## 📱 Estructura de Archivos
 
 ```
-src/
-├── components/
-│   ├── TaskBoard.jsx          # Tablero principal de tareas
-│   ├── AnalyticsBoard.jsx     # Panel de estadísticas diarias
-│   ├── MonthlyStats.jsx       # Panel de estadísticas mensuales
-│   ├── MotivationalNotification.jsx # Notificaciones
-│   ├── DateTimeDisplay.jsx    # Reloj en tiempo real
-│   ├── PomodoroTimer.jsx      # Temporizador
-│   └── ProjectBoard.jsx       # Gestión de proyectos
-├── hooks/
-│   └── useMotivationalNotifications.jsx # Lógica de notificaciones
-└── storage/
-    └── index.jsx              # Persistencia de datos
+TiempoJustoMobile/
+├── app.json                 # Configuración de Expo y EAS
+├── eas.json                 # Configuración de builds EAS
+├── package.json             # Dependencias y scripts
+├── src/
+│   ├── components/
+│   │   ├── TaskBoard.jsx          # Tablero principal de tareas
+│   │   ├── AnalyticsBoard.jsx     # Panel de estadísticas diarias
+│   │   ├── MonthlyStats.jsx       # Panel de estadísticas mensuales
+│   │   ├── MotivationalNotification.jsx # Notificaciones
+│   │   ├── DateTimeDisplay.jsx    # Reloj en tiempo real
+│   │   ├── PomodoroTimer.jsx      # Temporizador
+│   │   └── ProjectBoard.jsx       # Gestión de proyectos
+│   ├── hooks/
+│   │   └── useMotivationalNotifications.jsx # Lógica de notificaciones
+│   └── storage/
+│       └── index.jsx              # Persistencia de datos
+└── assets/                  # Iconos y recursos
+```
+
+## 🚀 Configuración de Builds y Despliegue
+
+### 📦 Instalación de Herramientas de Build
+
+```bash
+# Instalar EAS CLI globalmente
+npm install -g eas-cli
+
+# Iniciar sesión en Expo
+eas login
+
+# Configurar EAS Build para el proyecto
+eas build:configure
+```
+
+### 🔧 Scripts de Build Disponibles
+
+```bash
+# Desarrollo local
+npm start                    # Iniciar servidor de desarrollo
+npm run android             # Ejecutar en emulador/dispositivo Android
+
+# Builds con EAS
+npm run build:dev           # Build de desarrollo (con expo-dev-client)
+npm run build:preview       # Build de preview (APK para testing)
+npm run build:prod          # Build de producción (APK optimizado)
+npm run build:all           # Build para todas las plataformas
+```
+
+### 📱 Creación de APKs
+
+#### Build de Desarrollo
+```bash
+npm run build:dev
+```
+- **Propósito**: Testing y desarrollo
+- **Características**: Incluye expo-dev-client para debugging
+- **Tamaño**: ~137MB
+- **Uso**: Para desarrollo y testing interno
+
+#### Build de Producción
+```bash
+npm run build:prod
+```
+- **Propósito**: Versión final para distribución
+- **Características**: Optimizado, sin herramientas de desarrollo
+- **Tamaño**: ~62MB
+- **Uso**: Para distribución a usuarios finales
+
+### 📥 Descarga de APKs
+
+Los APKs se pueden descargar desde:
+- **Dashboard de Expo**: https://expo.dev/accounts/alexzimmer2/projects/tiempo-justo-mobile
+- **Comando directo**: `eas build:list` para ver builds disponibles
+- **Descarga automática**: Los builds se descargan automáticamente al completarse
+
+### 🔐 Configuración de Credenciales
+
+El proyecto está configurado con:
+- **Keystore remoto**: Generado automáticamente por EAS
+- **Project ID**: `8da8dceb-16a5-40da-83cb-3af3b97e0c12`
+- **Package Name**: `com.tiempojusto.app`
+
+### 📋 Archivos de Configuración
+
+#### `eas.json`
+```json
+{
+  "cli": {
+    "version": ">= 16.17.4",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "android": {
+        "buildType": "apk"
+      }
+    }
+  }
+}
+```
+
+#### `app.json`
+```json
+{
+  "expo": {
+    "name": "TiempoJusto",
+    "slug": "tiempo-justo-mobile",
+    "version": "0.1.0",
+    "platforms": ["android"],
+    "android": {
+      "package": "com.tiempojusto.app",
+      "versionCode": 1
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8da8dceb-16a5-40da-83cb-3af3b97e0c12"
+      }
+    }
+  }
+}
 ```
 
 ## 🎯 Filosofía de Productividad
@@ -106,20 +230,59 @@ src/
 
 ## 🚀 Instalación y Uso
 
-1. **Instalar dependencias**:
+### Requisitos Previos
+- Node.js (v18 o superior)
+- npm o yarn
+- Cuenta de Expo (gratuita)
+- EAS CLI instalado
+
+### Pasos de Instalación
+
+1. **Clonar el repositorio**:
+   ```bash
+   git clone <repository-url>
+   cd TiempoJustoMobile
+   ```
+
+2. **Instalar dependencias**:
    ```bash
    npm install
    ```
 
-2. **Ejecutar en desarrollo**:
+3. **Configurar EAS Build**:
    ```bash
-   npx expo start
+   npm install -g eas-cli
+   eas login
+   eas build:configure
    ```
 
-3. **Construir para producción**:
+4. **Ejecutar en desarrollo**:
    ```bash
-   npx expo build:android
+   npm start
    ```
+
+### 🏗️ Proceso de Build Completo
+
+1. **Desarrollo**:
+   ```bash
+   npm run build:dev
+   ```
+
+2. **Testing**:
+   ```bash
+   npm run build:preview
+   ```
+
+3. **Producción**:
+   ```bash
+   npm run build:prod
+   ```
+
+4. **Instalación en dispositivo**:
+   - Descargar APK desde el dashboard de Expo
+   - Transferir a dispositivo Android
+   - Habilitar "Fuentes desconocidas" en configuración
+   - Instalar APK
 
 ## 📈 Métricas de Productividad
 
@@ -158,7 +321,44 @@ La aplicación calcula un **Score de Productividad** basado en:
 - [ ] Exportación de datos
 - [ ] Gráficos interactivos
 - [ ] Metas y objetivos mensuales
+- [ ] Builds automáticos con GitHub Actions
+- [ ] Distribución en Google Play Store
+
+## 🛠️ Solución de Problemas
+
+### Problemas Comunes de Build
+
+1. **Error de Git**: Si no tienes Git instalado, usa:
+   ```bash
+   $env:EAS_NO_VCS=1; eas build:configure
+   ```
+
+2. **Error de credenciales**: Verifica tu login con:
+   ```bash
+   eas login
+   ```
+
+3. **Build fallido**: Revisa los logs en:
+   https://expo.dev/accounts/alexzimmer2/projects/tiempo-justo-mobile
+
+### Comandos Útiles
+
+```bash
+# Ver builds disponibles
+eas build:list
+
+# Ver logs de un build específico
+eas build:view
+
+# Limpiar cache
+npm start -- --clear
+
+# Verificar configuración
+eas build:configure
+```
 
 ---
 
 **TiempoJusto** - Transforma tu tiempo en logros significativos ⏰✨
+
+*Configurado con EAS Build para builds profesionales y distribución eficiente.*

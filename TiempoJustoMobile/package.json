@@ -6,7 +6,11 @@
   "scripts": {
     "start": "expo start --clear",
     "android": "expo run:android",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "build:dev": "eas build --platform android --profile development",
+    "build:preview": "eas build --platform android --profile preview",
+    "build:prod": "eas build --platform android --profile production",
+    "build:all": "eas build --platform all --profile production"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.1.2",
@@ -14,7 +18,8 @@
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
     "react-native": "0.79.5",
-    "react-native-safe-area-context": "5.4.0"
+    "react-native-safe-area-context": "5.4.0",
+    "expo-dev-client": "~5.2.4"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
