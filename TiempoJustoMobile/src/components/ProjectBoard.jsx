@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-export default function ProjectBoard({ projects, setProjects, tasks }) {
+export default function ProjectBoard({ projects, setProjects, tasks, onCompleteProject, onActivity }) {
     const [newName, setNewName] = useState('');
 
     const projectIdToTaskCount = useMemo(() => {
@@ -19,10 +19,12 @@ export default function ProjectBoard({ projects, setProjects, tasks }) {
         const project = { id: String(Date.now()), name };
         setProjects((prev) => [...(prev || []), project]);
         setNewName('');
+        onActivity && onActivity();
     }
 
     function removeProject(id) {
         setProjects((prev) => prev.filter((p) => p.id !== id));
+        onActivity && onActivity();
     }
 
     return (
@@ -50,7 +52,19 @@ export default function ProjectBoard({ projects, setProjects, tasks }) {
                         <View style={{ flex: 1 }}>
                             <Text style={styles.title}>{item.name}</Text>
                             <Text style={styles.subtitle}>{projectIdToTaskCount[item.id] || 0} tareas</Text>
+                            {item.status === 'completed' && (
+                                <Text style={styles.milestone}>🏁 Hito registrado • {item.completedAt ? new Date(item.completedAt).toLocaleDateString('es-ES') : ''}</Text>
+                            )}
                         </View>
+                        {item.status === 'completed' ? (
+                            <View style={styles.completedBadge}>
+                                <Text style={styles.completedBadgeText}>Completado</Text>
+                            </View>
+                        ) : (
+                            <Pressable onPress={() => { onCompleteProject && onCompleteProject(item.id); onActivity && onActivity(); }} style={styles.completeButton}>
+                                <Text style={styles.completeButtonText}>Completar</Text>
+                            </Pressable>
+                        )}
                         <Pressable onPress={() => removeProject(item.id)} style={styles.deleteButton}>
                             <Text style={styles.deleteButtonText}>Eliminar</Text>
                         </Pressable>
@@ -93,6 +107,11 @@ const styles = StyleSheet.create({
         },
         title: { color: 'white', fontWeight: '700' },
         subtitle: { color: 'rgba(255,255,255,0.6)', marginTop: 2 },
+        milestone: { color: '#a7f3d0', fontSize: 12, marginTop: 2 },
+        completeButton: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, backgroundColor: 'rgba(34,197,94,0.25)' },
+        completeButtonText: { color: '#a7f3d0', fontWeight: '700' },
+        completedBadge: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, backgroundColor: 'rgba(34,197,94,0.4)' },
+        completedBadgeText: { color: '#ecfdf5', fontWeight: '700' },
         deleteButton: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, backgroundColor: 'rgba(239,68,68,0.2)' },
         deleteButtonText: { color: '#fecaca', fontWeight: '700' },
         emptyText: { color: 'rgba(255,255,255,0.6)', marginTop: 20, textAlign: 'center' },
