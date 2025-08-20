@@ -1,9 +1,18 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import React, { useMemo, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Animated } from 'react-native';
 
 export default function MonthlyStats({ tasks, projects, projectIdToProject, dailyLogs }) {
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [fadeAnim] = useState(new Animated.Value(0));
+
+    useEffect(() => {
+        Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+        }).start();
+    }, []);
 
     const monthlyStats = useMemo(() => {
         const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
@@ -249,182 +258,199 @@ export default function MonthlyStats({ tasks, projects, projectIdToProject, dail
     const productivityLevel = getProductivityLevel(monthlyStats.productivityScore);
 
     return (
-        <ScrollView style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.title}>Progreso Mensual</Text>
-                <Text style={styles.subtitle}>
-                    {months[selectedMonth]} {selectedYear}
-                </Text>
-            </View>
-
-            {/* Selectores de mes y año */}
-            <View style={styles.selectors}>
-                <View style={styles.selector}>
-                    <Text style={styles.selectorLabel}>Mes:</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        {months.map((month, index) => (
-                            <Pressable
-                                key={month}
-                                onPress={() => setSelectedMonth(index)}
-                                style={[styles.selectorButton, selectedMonth === index && styles.selectorButtonActive]}
-                            >
-                                <Text style={[styles.selectorButtonText, selectedMonth === index && styles.selectorButtonTextActive]}>
-                                    {month}
-                                </Text>
-                            </Pressable>
-                        ))}
-                    </ScrollView>
-                </View>
-
-                <View style={styles.selector}>
-                    <Text style={styles.selectorLabel}>Año:</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        {years.map((year) => (
-                            <Pressable
-                                key={year}
-                                onPress={() => setSelectedYear(year)}
-                                style={[styles.selectorButton, selectedYear === year && styles.selectorButtonActive]}
-                            >
-                                <Text style={[styles.selectorButtonText, selectedYear === year && styles.selectorButtonTextActive]}>
-                                    {year}
-                                </Text>
-                            </Pressable>
-                        ))}
-                    </ScrollView>
-                </View>
-            </View>
-
-            {/* Estadísticas principales */}
-            <View style={styles.mainStats}>
-                <View style={styles.statCard}>
-                    <Text style={styles.statNumber}>{monthlyStats.totalTasks}</Text>
-                    <Text style={styles.statLabel}>Total Tareas</Text>
-                </View>
-                <View style={styles.statCard}>
-                    <Text style={styles.statNumber}>{monthlyStats.completedTasks}</Text>
-                    <Text style={styles.statLabel}>Completadas</Text>
-                </View>
-                <View style={styles.statCard}>
-                    <Text style={styles.statNumber}>{monthlyStats.completionRate}%</Text>
-                    <Text style={styles.statLabel}>Tasa de Éxito</Text>
-                </View>
-                <View style={styles.statCard}>
-                    <Text style={[styles.statNumber, { color: productivityLevel.color }]}>
-                        {monthlyStats.productivityScore}
+        <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+            <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+                <View style={styles.header}>
+                    <Text style={styles.title}>Progreso Mensual</Text>
+                    <Text style={styles.subtitle}>
+                        {months[selectedMonth]} {selectedYear}
                     </Text>
-                    <Text style={styles.statLabel}>{productivityLevel.level}</Text>
                 </View>
-            </View>
 
-            {/* Progreso diario (últimos 7 días) */}
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Últimos 7 Días</Text>
-                <View style={styles.dailyProgress}>
-                    {monthlyStats.dailyProgress.map((day, index) => (
-                        <View key={index} style={styles.dayCard}>
-                            <Text style={styles.dayLabel}>{day.date}</Text>
-                            <View style={styles.progressBar}>
-                                <View 
-                                    style={[
-                                        styles.progressFill, 
-                                        { 
-                                            width: `${day.rate}%`,
-                                            backgroundColor: getProgressColor(day.rate)
-                                        }
-                                    ]} 
-                                />
-                            </View>
-                            <Text style={styles.dayStats}>
-                                {day.completed}/{day.total}
-                            </Text>
-                        </View>
-                    ))}
+                {/* Selectores de mes y año */}
+                <View style={styles.selectors}>
+                    <View style={styles.selector}>
+                        <Text style={styles.selectorLabel}>Mes:</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                            {months.map((month, index) => (
+                                <Pressable
+                                    key={month}
+                                    onPress={() => setSelectedMonth(index)}
+                                    style={[styles.selectorButton, selectedMonth === index && styles.selectorButtonActive]}
+                                >
+                                    <Text style={[styles.selectorButtonText, selectedMonth === index && styles.selectorButtonTextActive]}>
+                                        {month}
+                                    </Text>
+                                </Pressable>
+                            ))}
+                        </ScrollView>
+                    </View>
+
+                    <View style={styles.selector}>
+                        <Text style={styles.selectorLabel}>Año:</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                            {years.map((year) => (
+                                <Pressable
+                                    key={year}
+                                    onPress={() => setSelectedYear(year)}
+                                    style={[styles.selectorButton, selectedYear === year && styles.selectorButtonActive]}
+                                >
+                                    <Text style={[styles.selectorButtonText, selectedYear === year && styles.selectorButtonTextActive]}>
+                                        {year}
+                                    </Text>
+                                </Pressable>
+                            ))}
+                        </ScrollView>
+                    </View>
                 </View>
-            </View>
 
-            {/* Progreso semanal */}
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Progreso Semanal</Text>
-                <View style={styles.weeklyProgress}>
-                    {monthlyStats.weeklyProgress.map((week, index) => (
-                        <View key={index} style={styles.weekCard}>
-                            <Text style={styles.weekLabel}>Semana {week.week}</Text>
-                            <Text style={styles.weekStats}>
-                                {week.completed}/{week.total} tareas
-                            </Text>
-                            <Text style={[styles.weekRate, { color: getProgressColor(week.rate) }]}>
-                                {Math.round(week.rate)}%
-                            </Text>
-                        </View>
-                    ))}
-                </View>
-            </View>
-
-            {/* Desglose por prioridad */}
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Prioridades del Mes</Text>
-                <View style={styles.priorityGrid}>
-                    {Object.entries(monthlyStats.priorityBreakdown).map(([priority, count]) => (
-                        <View key={priority} style={styles.priorityCard}>
-                            <Text style={[styles.priorityLetter, styles[`priority${priority}`]]}>
-                                {priority}
-                            </Text>
-                            <Text style={styles.priorityCount}>{count}</Text>
-                        </View>
-                    ))}
-                </View>
-            </View>
-
-            {/* Información adicional */}
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Resumen</Text>
-                <View style={styles.summaryCard}>
-                    <Text style={styles.summaryText}>
-                        Promedio diario: {monthlyStats.averageDailyTasks} tareas
-                    </Text>
-                    {monthlyStats.bestDay && (
-                        <Text style={styles.summaryText}>
-                            Mejor día: {monthlyStats.bestDay}
+                {/* Estadísticas principales */}
+                <View style={styles.mainStats}>
+                    <View style={styles.statCard}>
+                        <Text style={styles.statNumber}>{monthlyStats.totalTasks}</Text>
+                        <Text style={styles.statLabel}>Total Tareas</Text>
+                    </View>
+                    <View style={styles.statCard}>
+                        <Text style={styles.statNumber}>{monthlyStats.completedTasks}</Text>
+                        <Text style={styles.statLabel}>Completadas</Text>
+                    </View>
+                    <View style={styles.statCard}>
+                        <Text style={styles.statNumber}>{monthlyStats.completionRate}%</Text>
+                        <Text style={styles.statLabel}>Tasa de Éxito</Text>
+                    </View>
+                    <View style={styles.statCard}>
+                        <Text style={[styles.statNumber, { color: productivityLevel.color }]}>
+                            {monthlyStats.productivityScore}
                         </Text>
-                    )}
-                    <Text style={styles.summaryText}>
-                        Nivel: {productivityLevel.level}
-                    </Text>
+                        <Text style={styles.statLabel}>{productivityLevel.level}</Text>
+                    </View>
                 </View>
-            </View>
-        </ScrollView>
+
+                {/* Progreso diario (últimos 7 días) */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Últimos 7 Días</Text>
+                    <View style={styles.dailyProgress}>
+                        {monthlyStats.dailyProgress.map((day, index) => (
+                            <View key={index} style={styles.dayCard}>
+                                <Text style={styles.dayLabel}>{day.date}</Text>
+                                <View style={styles.progressBar}>
+                                    <View 
+                                        style={[
+                                            styles.progressFill, 
+                                            { 
+                                                width: `${day.rate}%`,
+                                                backgroundColor: getProgressColor(day.rate)
+                                            }
+                                        ]} 
+                                    />
+                                </View>
+                                <Text style={styles.dayStats}>
+                                    {day.completed}/{day.total}
+                                </Text>
+                            </View>
+                        ))}
+                    </View>
+                </View>
+
+                {/* Progreso semanal */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Progreso Semanal</Text>
+                    <View style={styles.weeklyProgress}>
+                        {monthlyStats.weeklyProgress.map((week, index) => (
+                            <View key={index} style={styles.weekCard}>
+                                <Text style={styles.weekLabel}>Semana {week.week}</Text>
+                                <Text style={styles.weekStats}>
+                                    {week.completed}/{week.total} tareas
+                                </Text>
+                                <Text style={[styles.weekRate, { color: getProgressColor(week.rate) }]}>
+                                    {Math.round(week.rate)}%
+                                </Text>
+                            </View>
+                        ))}
+                    </View>
+                </View>
+
+                {/* Desglose por prioridad */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Prioridades del Mes</Text>
+                    <View style={styles.priorityGrid}>
+                        {Object.entries(monthlyStats.priorityBreakdown).map(([priority, count]) => (
+                            <View key={priority} style={styles.priorityCard}>
+                                <Text style={[styles.priorityLetter, styles[`priority${priority}`]]}>
+                                    {priority}
+                                </Text>
+                                <Text style={styles.priorityCount}>{count}</Text>
+                            </View>
+                        ))}
+                    </View>
+                </View>
+
+                {/* Información adicional */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Resumen</Text>
+                    <View style={styles.summaryCard}>
+                        <Text style={styles.summaryText}>
+                            Promedio diario: {monthlyStats.averageDailyTasks} tareas
+                        </Text>
+                        {monthlyStats.bestDay && (
+                            <Text style={styles.summaryText}>
+                                Mejor día: {monthlyStats.bestDay}
+                            </Text>
+                        )}
+                        <Text style={styles.summaryText}>
+                            Nivel: {productivityLevel.level}
+                        </Text>
+                    </View>
+                </View>
+            </ScrollView>
+        </Animated.View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        alignItems: 'center',
+    },
+    scrollView: {
+        flex: 1,
+        width: '100%',
+    },
+    scrollContent: {
         padding: 16,
+        alignItems: 'center',
     },
     header: {
-        marginBottom: 20,
+        width: '100%',
+        marginBottom: 24,
+        alignItems: 'center',
     },
     title: {
         fontSize: 24,
         fontWeight: '700',
         color: 'white',
-        marginBottom: 4,
+        marginBottom: 8,
+        textAlign: 'center',
     },
     subtitle: {
         fontSize: 16,
         color: 'rgba(255,255,255,0.7)',
+        textAlign: 'center',
     },
     selectors: {
-        marginBottom: 20,
+        marginBottom: 24,
+        width: '100%',
     },
     selector: {
-        marginBottom: 12,
+        marginBottom: 16,
+        alignItems: 'center',
     },
     selectorLabel: {
         fontSize: 14,
         fontWeight: '600',
         color: 'white',
-        marginBottom: 8,
+        marginBottom: 12,
+        textAlign: 'center',
     },
     selectorButton: {
         paddingHorizontal: 16,
@@ -432,9 +458,12 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         backgroundColor: 'rgba(255,255,255,0.08)',
         marginRight: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
     },
     selectorButtonActive: {
         backgroundColor: '#22c55e',
+        borderColor: 'rgba(34,197,94,0.3)',
     },
     selectorButtonText: {
         color: 'rgba(255,255,255,0.8)',
@@ -449,42 +478,53 @@ const styles = StyleSheet.create({
         flexWrap: 'wrap',
         gap: 12,
         marginBottom: 24,
+        width: '100%',
+        justifyContent: 'center',
     },
     statCard: {
         flex: 1,
         minWidth: '45%',
         backgroundColor: 'rgba(255,255,255,0.08)',
-        borderRadius: 12,
-        padding: 16,
+        borderRadius: 16,
+        padding: 20,
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
     },
     statNumber: {
-        fontSize: 24,
+        fontSize: 28,
         fontWeight: '700',
         color: '#22c55e',
-        marginBottom: 4,
+        marginBottom: 8,
     },
     statLabel: {
-        fontSize: 12,
+        fontSize: 14,
         color: 'rgba(255,255,255,0.7)',
         textAlign: 'center',
+        fontWeight: '500',
     },
     section: {
         marginBottom: 24,
+        width: '100%',
+        alignItems: 'center',
     },
     sectionTitle: {
         fontSize: 18,
         fontWeight: '600',
         color: 'white',
-        marginBottom: 12,
+        marginBottom: 16,
+        textAlign: 'center',
     },
     dailyProgress: {
-        gap: 8,
+        gap: 12,
+        width: '100%',
     },
     dayCard: {
         backgroundColor: 'rgba(255,255,255,0.08)',
-        borderRadius: 12,
-        padding: 12,
+        borderRadius: 16,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
     },
     dayLabel: {
         fontSize: 14,
@@ -509,15 +549,19 @@ const styles = StyleSheet.create({
     weeklyProgress: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 8,
+        gap: 12,
+        width: '100%',
+        justifyContent: 'center',
     },
     weekCard: {
         flex: 1,
         minWidth: '45%',
         backgroundColor: 'rgba(255,255,255,0.08)',
-        borderRadius: 12,
-        padding: 12,
+        borderRadius: 16,
+        padding: 16,
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
     },
     weekLabel: {
         fontSize: 14,
@@ -537,16 +581,20 @@ const styles = StyleSheet.create({
     priorityGrid: {
         flexDirection: 'row',
         gap: 12,
+        width: '100%',
+        justifyContent: 'center',
     },
     priorityCard: {
         flex: 1,
         backgroundColor: 'rgba(255,255,255,0.08)',
-        borderRadius: 12,
-        padding: 16,
+        borderRadius: 16,
+        padding: 20,
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
     },
     priorityLetter: {
-        fontSize: 20,
+        fontSize: 24,
         fontWeight: '700',
         marginBottom: 8,
     },
@@ -555,21 +603,23 @@ const styles = StyleSheet.create({
     priorityC: { color: '#eab308' },
     priorityD: { color: '#6b7280' },
     priorityCount: {
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: '600',
         color: 'white',
     },
     summaryCard: {
         backgroundColor: 'rgba(34,197,94,0.1)',
-        borderRadius: 12,
-        padding: 16,
-        borderLeftWidth: 4,
-        borderLeftColor: '#22c55e',
+        borderRadius: 16,
+        padding: 20,
+        borderWidth: 1,
+        borderColor: 'rgba(34,197,94,0.3)',
+        width: '100%',
     },
     summaryText: {
         fontSize: 14,
         color: 'white',
         marginBottom: 8,
         lineHeight: 20,
+        textAlign: 'center',
     },
 });

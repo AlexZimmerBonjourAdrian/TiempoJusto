@@ -1,9 +1,18 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import React, { useMemo, useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Animated } from 'react-native';
 
 export default function AnalyticsBoard({ tasks, projects, projectIdToProject, onCloseBoard }) {
     const today = new Date();
     const todayString = today.toISOString().split('T')[0];
+    const [fadeAnim] = useState(new Animated.Value(0));
+
+    useEffect(() => {
+        Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+        }).start();
+    }, []);
 
     const analytics = useMemo(() => {
         if (!tasks || tasks.length === 0) {
@@ -69,97 +78,111 @@ export default function AnalyticsBoard({ tasks, projects, projectIdToProject, on
         };
     }, [tasks, projects, projectIdToProject, todayString]);
 
-    // Panel minimalista: sin mensajes ni citas, solo métricas funcionales
-
     return (
-        <ScrollView style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.title}>Análisis del Día</Text>
-                <Text style={styles.date}>{today.toLocaleDateString('es-ES', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                })}</Text>
-            </View>
+        <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+            <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+                <View style={styles.header}>
+                    <Text style={styles.title}>Análisis del Día</Text>
+                    <Text style={styles.date}>{today.toLocaleDateString('es-ES', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                    })}</Text>
+                </View>
 
-            <View style={styles.statsGrid}>
-                <View style={styles.statCard}>
-                    <Text style={styles.statNumber}>{analytics.totalTasks}</Text>
-                    <Text style={styles.statLabel}>Total Tareas</Text>
+                <View style={styles.statsGrid}>
+                    <View style={styles.statCard}>
+                        <Text style={styles.statNumber}>{analytics.totalTasks}</Text>
+                        <Text style={styles.statLabel}>Total Tareas</Text>
+                    </View>
+                    <View style={styles.statCard}>
+                        <Text style={styles.statNumber}>{analytics.completedTasks}</Text>
+                        <Text style={styles.statLabel}>Completadas</Text>
+                    </View>
+                    <View style={styles.statCard}>
+                        <Text style={styles.statNumber}>{analytics.completionRate}%</Text>
+                        <Text style={styles.statLabel}>Tasa de Éxito</Text>
+                    </View>
+                    <View style={styles.statCard}>
+                        <Text style={styles.statNumber}>{analytics.productivityScore}</Text>
+                        <Text style={styles.statLabel}>Score Productividad</Text>
+                    </View>
                 </View>
-                <View style={styles.statCard}>
-                    <Text style={styles.statNumber}>{analytics.completedTasks}</Text>
-                    <Text style={styles.statLabel}>Completadas</Text>
-                </View>
-                <View style={styles.statCard}>
-                    <Text style={styles.statNumber}>{analytics.completionRate}%</Text>
-                    <Text style={styles.statLabel}>Tasa de Éxito</Text>
-                </View>
-                <View style={styles.statCard}>
-                    <Text style={styles.statNumber}>{analytics.productivityScore}</Text>
-                    <Text style={styles.statLabel}>Score Productividad</Text>
-                </View>
-            </View>
 
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Desglose por Prioridad</Text>
-                <View style={styles.priorityGrid}>
-                    {Object.entries(analytics.priorityBreakdown).map(([priority, count]) => (
-                        <View key={priority} style={styles.priorityCard}>
-                            <Text style={[styles.priorityLetter, styles[`priority${priority}`]]}>
-                                {priority}
-                            </Text>
-                            <Text style={styles.priorityCount}>{count}</Text>
-                        </View>
-                    ))}
-                </View>
-            </View>
-
-            {Object.keys(analytics.projectBreakdown).length > 0 && (
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Proyectos</Text>
-                    {Object.entries(analytics.projectBreakdown).map(([projectName, data]) => (
-                        <View key={projectName} style={styles.projectCard}>
-                            <Text style={styles.projectName}>{projectName}</Text>
-                            <Text style={styles.projectStats}>
-                                {data.completed}/{data.total} completadas
-                            </Text>
-                        </View>
-                    ))}
+                    <Text style={styles.sectionTitle}>Desglose por Prioridad</Text>
+                    <View style={styles.priorityGrid}>
+                        {Object.entries(analytics.priorityBreakdown).map(([priority, count]) => (
+                            <View key={priority} style={styles.priorityCard}>
+                                <Text style={[styles.priorityLetter, styles[`priority${priority}`]]}>
+                                    {priority}
+                                </Text>
+                                <Text style={styles.priorityCount}>{count}</Text>
+                            </View>
+                        ))}
+                    </View>
                 </View>
-            )}
 
-            <Pressable onPress={onCloseBoard} style={styles.closeButton}>
-                <Text style={styles.closeButtonText}>Cerrar Tablero</Text>
-            </Pressable>
-        </ScrollView>
+                {Object.keys(analytics.projectBreakdown).length > 0 && (
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Proyectos</Text>
+                        {Object.entries(analytics.projectBreakdown).map(([projectName, data]) => (
+                            <View key={projectName} style={styles.projectCard}>
+                                <Text style={styles.projectName}>{projectName}</Text>
+                                <Text style={styles.projectStats}>
+                                    {data.completed}/{data.total} completadas
+                                </Text>
+                            </View>
+                        ))}
+                    </View>
+                )}
+
+                <Pressable onPress={onCloseBoard} style={styles.closeButton}>
+                    <Text style={styles.closeButtonText}>Cerrar Tablero</Text>
+                </Pressable>
+            </ScrollView>
+        </Animated.View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 16,
+        alignItems: 'center',
+    },
+    scrollView: {
+        flex: 1,
+        width: '100%',
+    },
+    scrollContent: {
+        padding: 12,
+        alignItems: 'center',
     },
     header: {
-        marginBottom: 20,
+        width: '100%',
+        marginBottom: 16,
+        alignItems: 'center',
     },
     title: {
-        fontSize: 24,
+        fontSize: 20,
         fontWeight: '700',
         color: 'white',
-        marginBottom: 4,
+        marginBottom: 6,
+        textAlign: 'center',
     },
     date: {
-        fontSize: 14,
+        fontSize: 12,
         color: 'rgba(255,255,255,0.7)',
+        textAlign: 'center',
     },
     statsGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 12,
-        marginBottom: 24,
+        gap: 8,
+        marginBottom: 16,
+        width: '100%',
+        justifyContent: 'center',
     },
     statCard: {
         flex: 1,
@@ -168,30 +191,38 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         padding: 16,
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
     },
     statNumber: {
-        fontSize: 28,
+        fontSize: 24,
         fontWeight: '700',
         color: 'white',
-        marginBottom: 4,
+        marginBottom: 6,
     },
     statLabel: {
         fontSize: 12,
         color: 'rgba(255,255,255,0.7)',
         textAlign: 'center',
+        fontWeight: '500',
     },
     section: {
-        marginBottom: 24,
+        marginBottom: 16,
+        width: '100%',
+        alignItems: 'center',
     },
     sectionTitle: {
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: '600',
         color: 'white',
         marginBottom: 12,
+        textAlign: 'center',
     },
     priorityGrid: {
         flexDirection: 'row',
-        gap: 12,
+        gap: 8,
+        width: '100%',
+        justifyContent: 'center',
     },
     priorityCard: {
         flex: 1,
@@ -199,50 +230,56 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         padding: 16,
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
     },
     priorityLetter: {
-        fontSize: 24,
+        fontSize: 20,
         fontWeight: '700',
-        marginBottom: 8,
+        marginBottom: 6,
     },
     priorityA: { color: '#ef4444' },
     priorityB: { color: '#f97316' },
     priorityC: { color: '#eab308' },
     priorityD: { color: '#6b7280' },
     priorityCount: {
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: '600',
         color: 'white',
     },
     projectCard: {
         backgroundColor: 'rgba(255,255,255,0.08)',
         borderRadius: 12,
-        padding: 16,
+        padding: 12,
         marginBottom: 8,
+        width: '100%',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
     },
     projectName: {
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: '600',
         color: 'white',
-        marginBottom: 4,
+        marginBottom: 2,
     },
     projectStats: {
-        fontSize: 14,
+        fontSize: 12,
         color: 'rgba(255,255,255,0.7)',
     },
-    // Eliminados estilos de mensajes/citas para un panel más minimalista
     closeButton: {
         backgroundColor: '#ef4444',
-        paddingVertical: 16,
+        paddingVertical: 12,
         paddingHorizontal: 24,
         borderRadius: 12,
         alignItems: 'center',
-        marginTop: 20,
-        marginBottom: 40,
+        marginTop: 16,
+        marginBottom: 32,
+        borderWidth: 1,
+        borderColor: 'rgba(239,68,68,0.3)',
     },
     closeButtonText: {
         color: 'white',
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: '700',
     },
 });

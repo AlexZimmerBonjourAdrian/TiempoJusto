@@ -109,7 +109,7 @@ function AppInner() {
             <StatusBar style="auto" />
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>TiempoJusto</Text>
-                <Text style={styles.headerSubtitle}>Modo local • Android • Expo</Text>
+                <Text style={styles.headerSubtitle}>Gestión de Productividad Personal</Text>
                 <DateTimeDisplay />
             </View>
 
@@ -136,6 +136,7 @@ function AppInner() {
                         projects={projects}
                         setProjects={setProjects}
                         tasks={tasks}
+                        setTasks={setTasks}
                         onCompleteProject={completeProjectAndRegisterMilestone}
                         onActivity={() => setLastActivityAt(Date.now())}
                     />
@@ -159,11 +160,36 @@ function AppInner() {
             </View>
 
             <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom + 5, 17) }]}>
-                <TabButton label="Tareas" isActive={activeTab === 'tareas'} onPress={() => setActiveTab('tareas')} />
-                <TabButton label="Pomodoro" isActive={activeTab === 'pomodoro'} onPress={() => setActiveTab('pomodoro')} />
-                <TabButton label="Proyectos" isActive={activeTab === 'proyectos'} onPress={() => setActiveTab('proyectos')} />
-                <TabButton label="Analíticas" isActive={activeTab === 'analiticas'} onPress={() => setActiveTab('analiticas')} />
-                <TabButton label="Mensual" isActive={activeTab === 'mensual'} onPress={() => setActiveTab('mensual')} />
+                <TabButton 
+                    label="Tareas" 
+                    legend="Organizar tareas"
+                    isActive={activeTab === 'tareas'} 
+                    onPress={() => setActiveTab('tareas')} 
+                />
+                <TabButton 
+                    label="Pomodoro" 
+                    legend="Técnica de tiempo"
+                    isActive={activeTab === 'pomodoro'} 
+                    onPress={() => setActiveTab('pomodoro')} 
+                />
+                <TabButton 
+                    label="Proyectos" 
+                    legend="Gestión de proyectos"
+                    isActive={activeTab === 'proyectos'} 
+                    onPress={() => setActiveTab('proyectos')} 
+                />
+                <TabButton 
+                    label="Analíticas" 
+                    legend="Estadísticas diarias"
+                    isActive={activeTab === 'analiticas'} 
+                    onPress={() => setActiveTab('analiticas')} 
+                />
+                <TabButton 
+                    label="Mensual" 
+                    legend="Progreso mensual"
+                    isActive={activeTab === 'mensual'} 
+                    onPress={() => setActiveTab('mensual')} 
+                />
             </View>
 
             <MotivationalNotification
@@ -183,10 +209,11 @@ export default function App() {
     );
 }
 
-function TabButton({ label, isActive, onPress }) {
+function TabButton({ label, legend, isActive, onPress }) {
     return (
         <Pressable onPress={onPress} style={[styles.tabButton, isActive && styles.tabButtonActive]}>
             <Text style={[styles.tabButtonText, isActive && styles.tabButtonTextActive]}>{label}</Text>
+            <Text style={[styles.tabButtonLegend, isActive && styles.tabButtonLegendActive]}>{legend}</Text>
         </Pressable>
     );
 }
@@ -202,31 +229,39 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         borderBottomWidth: StyleSheet.hairlineWidth,
         borderBottomColor: 'rgba(255,255,255,0.08)',
+        alignItems: 'center',
     },
     headerTitle: {
         color: 'white',
         fontSize: 20,
         fontWeight: '700',
+        marginBottom: 2,
+        textAlign: 'center',
     },
     headerSubtitle: {
         color: 'rgba(255,255,255,0.7)',
-        marginTop: 2,
+        marginBottom: 6,
         fontSize: 12,
+        textAlign: 'center',
     },
     content: {
         flex: 1,
-        padding: 16,
+        padding: 12,
     },
     tabBar: {
         flexDirection: 'row',
         borderTopWidth: StyleSheet.hairlineWidth,
         borderTopColor: 'rgba(255,255,255,0.08)',
-        backgroundColor: 'rgba(15,23,42,0.98)'
+        backgroundColor: 'rgba(15,23,42,0.98)',
+        paddingHorizontal: 4,
     },
     tabButton: {
         flex: 1,
-        paddingVertical: 12,
+        paddingVertical: 8,
+        paddingHorizontal: 4,
         alignItems: 'center',
+        borderRadius: 6,
+        marginHorizontal: 2,
     },
     tabButtonActive: {
         backgroundColor: 'rgba(255,255,255,0.06)',
@@ -234,8 +269,20 @@ const styles = StyleSheet.create({
     tabButtonText: {
         color: 'rgba(255,255,255,0.8)',
         fontWeight: '600',
+        fontSize: 11,
+        marginBottom: 1,
     },
     tabButtonTextActive: {
         color: 'white',
+        fontWeight: '700',
+    },
+    tabButtonLegend: {
+        color: 'rgba(255,255,255,0.5)',
+        fontSize: 8,
+        textAlign: 'center',
+        lineHeight: 10,
+    },
+    tabButtonLegendActive: {
+        color: 'rgba(255,255,255,0.7)',
     },
 });

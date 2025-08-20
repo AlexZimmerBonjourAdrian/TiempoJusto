@@ -39,68 +39,68 @@ export default function MotivationalNotification({ visible, onClose, type = 'gen
         const notifications = {
             productivity: [
                 {
-                    title: "🎯 Enfoque en lo Importante",
+                    title: "Enfoque en lo Importante",
                     message: "La clave del éxito es hacer las cosas más importantes primero. - Brian Tracy",
                     author: "Brian Tracy"
                 },
                 {
-                    title: "⚡ Toma Acción",
+                    title: "Toma Acción",
                     message: "La acción es la diferencia fundamental entre el éxito y el fracaso. - Jordan Peterson",
                     author: "Jordan Peterson"
                 },
                 {
-                    title: "🕐 Valor del Tiempo",
+                    title: "Valor del Tiempo",
                     message: "El tiempo es tu recurso más valioso. Inviértelo sabiamente. - Brian Tracy",
                     author: "Brian Tracy"
                 }
             ],
             motivation: [
                 {
-                    title: "💪 Responsabilidad",
+                    title: "Responsabilidad",
                     message: "La responsabilidad es el precio de la grandeza. - Winston Churchill",
                     author: "Winston Churchill"
                 },
                 {
-                    title: "🌟 Transformación",
+                    title: "Transformación",
                     message: "No eres lo que eres, eres lo que puedes llegar a ser. - Carl Jung",
                     author: "Carl Jung"
                 },
                 {
-                    title: "🎯 Propósito",
+                    title: "Propósito",
                     message: "Encuentra tu propósito y persíguelo con pasión. - Jordan Peterson",
                     author: "Jordan Peterson"
                 }
             ],
             discipline: [
                 {
-                    title: "🏋️ Disciplina",
+                    title: "Disciplina",
                     message: "La disciplina es el puente entre las metas y los logros. - Jim Rohn",
                     author: "Jim Rohn"
                 },
                 {
-                    title: "🔄 Hábitos",
+                    title: "Hábitos",
                     message: "Los hábitos son las pequeñas decisiones que tomas cada día. - Brian Tracy",
                     author: "Brian Tracy"
                 },
                 {
-                    title: "🧠 Mente Consciente",
+                    title: "Mente Consciente",
                     message: "La mente inconsciente es el tesoro de la sabiduría. - Carl Jung",
                     author: "Carl Jung"
                 }
             ],
             general: [
                 {
-                    title: "🚀 Excelencia",
+                    title: "Excelencia",
                     message: "La excelencia no es una habilidad, es una actitud. - Ralph Marston",
                     author: "Ralph Marston"
                 },
                 {
-                    title: "💎 Valor",
+                    title: "Valor",
                     message: "Tu valor no está en lo que tienes, sino en lo que eres. - Jordan Peterson",
                     author: "Jordan Peterson"
                 },
                 {
-                    title: "🎯 Metas",
+                    title: "Metas",
                     message: "Establece metas claras y trabaja hacia ellas cada día. - Brian Tracy",
                     author: "Brian Tracy"
                 }
@@ -143,30 +143,30 @@ const styles = StyleSheet.create({
         zIndex: 1000,
     },
     notification: {
-        backgroundColor: 'rgba(15,23,42,0.9)',
-        borderRadius: 10,
-        paddingVertical: 10,
-        paddingHorizontal: 12,
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: 'rgba(255,255,255,0.15)',
+        backgroundColor: 'rgba(15,23,42,0.95)',
+        borderRadius: 12,
+        paddingVertical: 16,
+        paddingHorizontal: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
             height: 4,
         },
         shadowOpacity: 0.3,
-        shadowRadius: 6,
-        elevation: 6,
+        shadowRadius: 8,
+        elevation: 8,
     },
     title: {
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: '700',
-        color: 'rgba(255,255,255,0.85)',
-        marginBottom: 2,
+        color: 'rgba(255,255,255,0.9)',
+        marginBottom: 4,
     },
     message: {
         fontSize: 13,
-        color: 'rgba(255,255,255,0.9)',
+        color: 'rgba(255,255,255,0.8)',
         lineHeight: 18,
     },
 });
