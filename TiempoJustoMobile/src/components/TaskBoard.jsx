@@ -193,29 +193,26 @@ export default function TaskBoard({ tasks, setTasks, projects, projectIdToProjec
             <FlatList
                 data={sortedTasks}
                 keyExtractor={(item) => String(item.id)}
-                contentContainerStyle={{ paddingVertical: 8 }}
+                style={{ width: '100%' }}
+                contentContainerStyle={{ width: '100%' }}
                 renderItem={({ item }) => {
                     const projectName = item.projectId ? projectIdToProject?.[item.projectId]?.name : null;
                     return (
                         <View style={styles.taskCard}>
-                            <View style={styles.taskHeader}>
-                                <Pressable onPress={() => toggleTask(item.id)} style={styles.checkbox}>
-                                    <View style={[styles.checkboxInner, item.done && styles.checkboxInnerChecked]} />
-                                </Pressable>
-                                <Text style={[styles.taskPriority, styles[`priority${item.priority || 'C'}`]]}>
-                                    {item.priority || 'C'}
+                            <Pressable onPress={() => toggleTask(item.id)} style={styles.checkbox}>
+                                <View style={[styles.checkboxInner, item.done && styles.checkboxInnerChecked]} />
+                            </Pressable>
+                            <Text style={[styles.taskPriority, styles[`priority${item.priority || 'C'}`]]}>
+                                {item.priority || 'C'}
+                            </Text>
+                            <Text style={[styles.taskTitle, item.done && styles.taskTitleDone]} numberOfLines={2}>
+                                {item.title}
+                            </Text>
+                            {projectName && (
+                                <Text style={styles.taskProject}>
+                                    {projectName}
                                 </Text>
-                            </View>
-                            <View style={styles.taskContent}>
-                                <Text style={[styles.taskTitle, item.done && styles.taskTitleDone]} numberOfLines={3}>
-                                    {item.title}
-                                </Text>
-                                {projectName && (
-                                    <Text style={styles.taskProject} numberOfLines={1}>
-                                        {projectName}
-                                    </Text>
-                                )}
-                            </View>
+                            )}
                             <View style={styles.taskActions}>
                                 {item.projectId && (
                                     <Pressable 
@@ -255,6 +252,7 @@ const styles = StyleSheet.create({
     container: { 
         flex: 1,
         alignItems: 'center',
+        width: '100%',
     },
     header: {
         width: '100%',
@@ -400,105 +398,104 @@ const styles = StyleSheet.create({
         color: '#93c5fd',
         fontWeight: '700',
     },
-
     taskCard: {
         width: '100%',
-        backgroundColor: 'rgba(255,255,255,0.06)',
-        borderRadius: 8,
-        padding: 10,
+        backgroundColor: 'rgba(255,255,255,0.08)',
+        padding: 12,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.08)',
-        marginBottom: 6,
+        borderColor: 'rgba(255,255,255,0.12)',
+        marginBottom: 1,
         flexDirection: 'row',
         alignItems: 'center',
         gap: 10,
-    },
-    taskHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        minWidth: 60,
+        minHeight: 60,
     },
     checkbox: {
-        width: 16,
-        height: 16,
+        width: 18,
+        height: 18,
         borderRadius: 4,
         borderWidth: 2,
-        borderColor: 'rgba(255,255,255,0.5)',
+        borderColor: 'rgba(255,255,255,0.6)',
         alignItems: 'center',
         justifyContent: 'center',
     },
     checkboxInner: {
-        width: 8,
-        height: 8,
+        width: 10,
+        height: 10,
         borderRadius: 2,
     },
     checkboxInnerChecked: { 
         backgroundColor: '#22c55e' 
     },
     taskPriority: { 
-        fontSize: 12, 
+        fontSize: 14, 
         fontWeight: '700',
-        paddingHorizontal: 4,
-        paddingVertical: 2,
-        borderRadius: 3,
-        backgroundColor: 'rgba(255,255,255,0.1)',
-        minWidth: 20,
+        paddingHorizontal: 6,
+        paddingVertical: 3,
+        borderRadius: 4,
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        minWidth: 24,
         textAlign: 'center',
     },
     priorityA: { color: '#ef4444' },
     priorityB: { color: '#f97316' },
     priorityC: { color: '#eab308' },
     priorityD: { color: '#6b7280' },
-    taskContent: {
-        flex: 1,
-    },
     taskTitle: { 
         color: 'white', 
         fontWeight: '500',
-        fontSize: 14,
-        marginBottom: 2,
-        lineHeight: 18,
+        fontSize: 15,
+        flex: 1,
+        lineHeight: 20,
     },
     taskTitleDone: { 
         textDecorationLine: 'line-through', 
         color: 'rgba(255,255,255,0.6)' 
     },
     taskProject: { 
-        color: 'rgba(255,255,255,0.6)', 
-        fontSize: 11,
+        color: 'rgba(255,255,255,0.7)', 
+        fontSize: 12,
         fontWeight: '500',
+        backgroundColor: 'rgba(59,130,246,0.2)',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 10,
+        marginLeft: 8,
     },
     taskActions: {
         flexDirection: 'row',
-        gap: 6,
+        gap: 8,
         alignItems: 'center',
     },
     actionButton: { 
-        paddingHorizontal: 8, 
-        paddingVertical: 4, 
-        borderRadius: 4, 
-        backgroundColor: 'rgba(59,130,246,0.2)',
+        paddingHorizontal: 10, 
+        paddingVertical: 6, 
+        borderRadius: 6, 
+        backgroundColor: 'rgba(59,130,246,0.25)',
         borderWidth: 1,
-        borderColor: 'rgba(59,130,246,0.3)',
+        borderColor: 'rgba(59,130,246,0.4)',
+        minWidth: 50,
+        alignItems: 'center',
     },
     actionButtonText: { 
         color: '#93c5fd', 
         fontWeight: '600',
-        fontSize: 10,
+        fontSize: 11,
     },
     deleteButton: { 
-        paddingHorizontal: 8, 
-        paddingVertical: 4, 
-        borderRadius: 4, 
-        backgroundColor: 'rgba(239,68,68,0.2)',
+        paddingHorizontal: 10, 
+        paddingVertical: 6, 
+        borderRadius: 6, 
+        backgroundColor: 'rgba(239,68,68,0.25)',
         borderWidth: 1,
-        borderColor: 'rgba(239,68,68,0.3)',
+        borderColor: 'rgba(239,68,68,0.4)',
+        minWidth: 40,
+        alignItems: 'center',
     },
     deleteButtonText: { 
         color: '#fecaca', 
         fontWeight: '700',
-        fontSize: 14,
+        fontSize: 16,
     },
     emptyContainer: {
         alignItems: 'center',
