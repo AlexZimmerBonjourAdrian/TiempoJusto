@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, StatusBar as RNStatusBar, Pressable } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -7,13 +7,20 @@ import TaskBoard from './src/components/TaskBoard';
 import PomodoroTimer from './src/components/PomodoroTimer';
 import ProjectBoard from './src/components/ProjectBoard';
 import AnalyticsBoard from './src/components/AnalyticsBoard';
-import ProductiPet from './src/components/ProductiPet';
+import SplashScreen from './src/components/SplashScreen';
+import backgroundService from './src/services/backgroundService';
+
 import DateTimeDisplay from './src/components/DateTimeDisplay';
 import MotivationalNotification from './src/components/MotivationalNotification';
+import PomodoroNotification from './src/components/PomodoroNotification';
 import { useMotivationalNotifications } from './src/hooks/useMotivationalNotifications';
+import { useBackgroundNotifications } from './src/hooks/useBackgroundNotifications';
+import { usePomodoroService } from './src/hooks/usePomodoroService';
 
 function AppInner() {
+    const [showSplash, setShowSplash] = useState(true);
     const [activeTab, setActiveTab] = useState('tareas');
+    const [pomodoroNotification, setPomodoroNotification] = useState({ visible: false, mode: null });
 
     const [tasks, setTasks] = useAsyncStorageState('TJ_TASKS', []);
     const [projects, setProjects] = useAsyncStorageState('TJ_PROJECTS', []);
@@ -37,6 +44,48 @@ function AppInner() {
         lastActivityAt,
         { minIntervalMs: 2 * 60 * 60 * 1000, idleThresholdMs: 4 * 60 * 60 * 1000, autoHideMs: 6000 }
     );
+
+    // Configurar notificaciones en segundo plano
+    useBackgroundNotifications(tasks, lastActivityAt);
+
+    // Configurar servicio de Pomodoro
+    const pomodoroState = usePomodoroService(pomodoroSettings);
+
+    // Manejar notificación de completado del Pomodoro
+    useEffect(() => {
+        if (pomodoroState.completed) {
+            setPomodoroNotification({
+                visible: true,
+                mode: pomodoroState.completedMode
+            });
+        }
+    }, [pomodoroState.completed, pomodoroState.completedMode]);
+
+    // Configurar servicio de segundo plano
+    useEffect(() => {
+        // Inicializar servicio de segundo plano
+        backgroundService.updateActivityTime();
+        
+        // Verificar si la app estuvo inactiva
+        const checkInactivity = async () => {
+            const inactivity = await backgroundService.checkInactivityPeriod();
+            if (inactivity.isInactive) {
+                console.log('App estuvo inactiva por', Math.round(inactivity.inactiveTime / (1000 * 60 * 60)), 'horas');
+            }
+        };
+        
+        checkInactivity();
+        
+        // Cleanup al desmontar
+        return () => {
+            backgroundService.cleanup();
+        };
+    }, []);
+
+    const handleSplashComplete = () => {
+        setShowSplash(false);
+        backgroundService.updateActivityTime();
+    };
 
     function archiveTodayAndClean() {
         const today = new Date();
@@ -104,6 +153,12 @@ function AppInner() {
     }
 
     const insets = useSafeAreaInsets();
+    
+    // Mostrar pantalla de inicio si showSplash es true
+    if (showSplash) {
+        return <SplashScreen onComplete={handleSplashComplete} />;
+    }
+    
     return (
         <View style={[styles.container, { paddingTop: Math.max(insets.top, RNStatusBar.currentHeight || 12) }]}>
             <StatusBar style="auto" />
@@ -149,13 +204,7 @@ function AppInner() {
                         onCloseBoard={() => setActiveTab('tareas')}
                     />
                 )}
-                {activeTab === 'tamagotchi' && (
-                    <ProductiPet
-                        tasks={tasks}
-                        projects={projects}
-                        onActivity={() => setLastActivityAt(Date.now())}
-                    />
-                )}
+
             </View>
 
             <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom + 5, 17) }]}>
@@ -170,6 +219,7 @@ function AppInner() {
                     legend="Técnica de tiempo"
                     isActive={activeTab === 'pomodoro'} 
                     onPress={() => setActiveTab('pomodoro')} 
+                    isRunning={pomodoroState.isRunning}
                 />
                 <TabButton 
                     label="Proyectos" 
@@ -183,18 +233,18 @@ function AppInner() {
                     isActive={activeTab === 'analiticas'} 
                     onPress={() => setActiveTab('analiticas')} 
                 />
-                <TabButton 
-                    label="Tamagotchi" 
-                    legend="Mascota virtual"
-                    isActive={activeTab === 'tamagotchi'} 
-                    onPress={() => setActiveTab('tamagotchi')} 
-                />
+
             </View>
 
             <MotivationalNotification
                 visible={showNotification}
                 onClose={closeNotification}
                 type={notificationType}
+            />
+            <PomodoroNotification
+                visible={pomodoroNotification.visible}
+                mode={pomodoroNotification.mode}
+                onClose={() => setPomodoroNotification({ visible: false, mode: null })}
             />
         </View>
     );
@@ -208,11 +258,12 @@ export default function App() {
     );
 }
 
-function TabButton({ label, legend, isActive, onPress }) {
+function TabButton({ label, legend, isActive, onPress, isRunning }) {
     return (
         <Pressable onPress={onPress} style={[styles.tabButton, isActive && styles.tabButtonActive]}>
             <Text style={[styles.tabButtonText, isActive && styles.tabButtonTextActive]}>{label}</Text>
             <Text style={[styles.tabButtonLegend, isActive && styles.tabButtonLegendActive]}>{legend}</Text>
+            {isRunning && <View style={styles.runningIndicator} />}
         </Pressable>
     );
 }
@@ -283,5 +334,16 @@ const styles = StyleSheet.create({
     },
     tabButtonLegendActive: {
         color: 'rgba(255,255,255,0.7)',
+    },
+    runningIndicator: {
+        position: 'absolute',
+        top: 4,
+        right: 4,
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#ef4444',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.3)',
     },
 });

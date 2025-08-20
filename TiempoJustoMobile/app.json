@@ -13,7 +13,12 @@
     ],
     "android": {
       "package": "com.tiempojusto.app",
-      "versionCode": 1
+      "versionCode": 1,
+      "permissions": [
+        "WAKE_LOCK",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ]
     },
     "extra": {
       "eas": {

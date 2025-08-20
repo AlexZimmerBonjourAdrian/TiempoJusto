@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { usePomodoroService } from '../hooks/usePomodoroService';
 
 function secondsToMMSS(totalSeconds) {
     const m = Math.floor(totalSeconds / 60)
@@ -12,59 +13,35 @@ function secondsToMMSS(totalSeconds) {
 }
 
 export default function PomodoroTimer({ settings, onChangeSettings }) {
-    const [mode, setMode] = useState('focus'); // 'focus' | 'break'
-    const initialSeconds = useMemo(() => {
-        return (mode === 'focus' ? settings.focusMinutes : settings.shortBreakMinutes) * 60;
-    }, [mode, settings]);
+    const {
+        isRunning,
+        mode,
+        secondsLeft,
+        totalSeconds,
+        start,
+        pause,
+        resume,
+        reset,
+        switchMode,
+        toggle
+    } = usePomodoroService(settings);
 
-    const [secondsLeft, setSecondsLeft] = useState(initialSeconds);
-    const [isRunning, setIsRunning] = useState(false);
-    const intervalRef = useRef(null);
-
-    useEffect(() => {
-        setSecondsLeft(initialSeconds);
-    }, [initialSeconds]);
-
-    useEffect(() => {
-        if (!isRunning) return;
-        intervalRef.current = setInterval(() => {
-            setSecondsLeft((prev) => {
-                const next = prev - 1;
-                if (next <= 0) {
-                    clearInterval(intervalRef.current);
-                    return 0;
-                }
-                return next;
-            });
-        }, 1000);
-        return () => clearInterval(intervalRef.current);
-    }, [isRunning]);
-
-    function toggle() {
-        setIsRunning((v) => !v);
-    }
-
-    function reset() {
-        setIsRunning(false);
-        setSecondsLeft(initialSeconds);
-    }
-
-    function switchMode(nextMode) {
-        setIsRunning(false);
-        setMode(nextMode);
-    }
+    // Función para cambiar modo
+    const handleSwitchMode = (nextMode) => {
+        switchMode(nextMode);
+    };
 
     return (
         <View style={styles.container}>
             <View style={styles.modeRow}>
                 <Pressable
-                    onPress={() => switchMode('focus')}
+                    onPress={() => handleSwitchMode('focus')}
                     style={[styles.modeBtn, mode === 'focus' && styles.modeBtnActive]}
                 >
                     <Text style={[styles.modeBtnText, mode === 'focus' && styles.modeBtnTextActive]}>Enfoque</Text>
                 </Pressable>
                 <Pressable
-                    onPress={() => switchMode('break')}
+                    onPress={() => handleSwitchMode('break')}
                     style={[styles.modeBtn, mode === 'break' && styles.modeBtnActive]}
                 >
                     <Text style={[styles.modeBtnText, mode === 'break' && styles.modeBtnTextActive]}>Descanso</Text>
