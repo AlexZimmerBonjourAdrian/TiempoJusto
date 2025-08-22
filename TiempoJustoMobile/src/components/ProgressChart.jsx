@@ -4,34 +4,35 @@ import { LineChart, BarChart } from 'react-native-chart-kit';
 
 const screenWidth = Dimensions.get('window').width;
 
-const ProgressChart = ({ tasks, timeRange = 'month' }) => {
+const ProgressChart = ({ tasks, projects, timeRange = 'month' }) => {
     // Calcular datos de progreso
     const chartData = useMemo(() => {
         const now = new Date();
         const data = [];
         
         if (timeRange === 'month') {
-            // Últimos 30 días
-            for (let i = 29; i >= 0; i--) {
-                const date = new Date(now);
-                date.setDate(date.getDate() - i);
+            // Últimos 30 días o hasta el fin del mes actual
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const startDay = Math.max(1, now.getDate() - 29);
+            
+            for (let day = startDay; day <= daysInMonth; day++) {
+                const date = new Date(currentYear, currentMonth, day);
                 const dateStr = date.toISOString().split('T')[0];
                 
                 // Contar tareas completadas en este día
                 const completedTasks = tasks.filter(task => {
                     if (!task.done) return false;
                     
-                    // Si la tarea tiene completedAt, usar esa fecha
                     if (task.completedAt) {
                         return task.completedAt.startsWith(dateStr);
                     }
                     
-                    // Si no tiene completedAt pero tiene createdAt, usar createdAt
                     if (task.createdAt) {
                         return task.createdAt.startsWith(dateStr);
                     }
                     
-                    // Fallback: asumir que se completó hoy
                     return dateStr === now.toISOString().split('T')[0];
                 }).length;
                 
@@ -50,17 +51,14 @@ const ProgressChart = ({ tasks, timeRange = 'month' }) => {
                 const completedTasks = tasks.filter(task => {
                     if (!task.done) return false;
                     
-                    // Si la tarea tiene completedAt, usar esa fecha
                     if (task.completedAt) {
                         return task.completedAt.startsWith(dateStr);
                     }
                     
-                    // Si no tiene completedAt pero tiene createdAt, usar createdAt
                     if (task.createdAt) {
                         return task.createdAt.startsWith(dateStr);
                     }
                     
-                    // Fallback: asumir que se completó hoy
                     return dateStr === now.toISOString().split('T')[0];
                 }).length;
                 
@@ -74,13 +72,76 @@ const ProgressChart = ({ tasks, timeRange = 'month' }) => {
         return data;
     }, [tasks, timeRange]);
 
+    // Calcular estadísticas de eficiencia
+    const efficiencyStats = useMemo(() => {
+        const totalTasks = tasks.length;
+        const completedTasks = tasks.filter(task => task.done).length;
+        const efficiencyPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+        
+        // Calcular eficiencia por prioridad
+        const priorityEfficiency = {
+            A: { total: 0, completed: 0, percentage: 0 },
+            B: { total: 0, completed: 0, percentage: 0 },
+            C: { total: 0, completed: 0, percentage: 0 },
+            D: { total: 0, completed: 0, percentage: 0 }
+        };
+        
+        tasks.forEach(task => {
+            const priority = task.priority || 'C';
+            priorityEfficiency[priority].total++;
+            if (task.done) {
+                priorityEfficiency[priority].completed++;
+            }
+        });
+        
+        // Calcular porcentajes
+        Object.keys(priorityEfficiency).forEach(priority => {
+            const { total, completed } = priorityEfficiency[priority];
+            priorityEfficiency[priority].percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+        });
+        
+        return {
+            totalTasks,
+            completedTasks,
+            efficiencyPercentage,
+            priorityEfficiency
+        };
+    }, [tasks]);
+
+    // Calcular estadísticas de proyectos
+    const projectStats = useMemo(() => {
+        const activeProjects = projects.filter(project => !project.completedAt);
+        const completedProjects = projects.filter(project => project.completedAt);
+        
+        // Calcular tiempo promedio de completado de proyectos
+        const projectCompletionTimes = completedProjects.map(project => {
+            if (project.createdAt && project.completedAt) {
+                const start = new Date(project.createdAt);
+                const end = new Date(project.completedAt);
+                return Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+            }
+            return 0;
+        }).filter(days => days > 0);
+        
+        const avgCompletionDays = projectCompletionTimes.length > 0 
+            ? Math.round(projectCompletionTimes.reduce((sum, days) => sum + days, 0) / projectCompletionTimes.length)
+            : 0;
+        
+        return {
+            activeProjects: activeProjects.length,
+            completedProjects: completedProjects.length,
+            totalProjects: projects.length,
+            avgCompletionDays
+        };
+    }, [projects]);
+
     // Preparar datos para la gráfica
     const chartConfig = {
         backgroundColor: '#1a1a1a',
         backgroundGradientFrom: '#1a1a1a',
         backgroundGradientTo: '#1a1a1a',
         decimalPlaces: 0,
-        color: (opacity = 1) => `rgba(126, 211, 33, ${opacity})`, // Color verde de TiempoJusto
+        color: (opacity = 1) => `rgba(126, 211, 33, ${opacity})`,
         labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
         style: {
             borderRadius: 16,
@@ -120,13 +181,21 @@ const ProgressChart = ({ tasks, timeRange = 'month' }) => {
 
     return (
         <View style={styles.container}>
-            {/* Título y estadísticas */}
             <View style={styles.header}>
                 <Text style={styles.title}>Progreso de Tareas</Text>
+                
+                <View style={styles.efficiencyContainer}>
+                    <Text style={styles.efficiencyLabel}>Eficiencia General</Text>
+                    <Text style={styles.efficiencyPercentage}>{efficiencyStats.efficiencyPercentage}%</Text>
+                    <Text style={styles.efficiencyDetails}>
+                        {efficiencyStats.completedTasks} de {efficiencyStats.totalTasks} tareas completadas
+                    </Text>
+                </View>
+
                 <View style={styles.statsContainer}>
                     <View style={styles.statItem}>
                         <Text style={styles.statValue}>{totalCompleted}</Text>
-                        <Text style={styles.statLabel}>Total Completadas</Text>
+                        <Text style={styles.statLabel}>Completadas</Text>
                     </View>
                     <View style={styles.statItem}>
                         <Text style={styles.statValue}>{averageCompleted}</Text>
@@ -139,7 +208,49 @@ const ProgressChart = ({ tasks, timeRange = 'month' }) => {
                 </View>
             </View>
 
-            {/* Gráfica de barras */}
+            <View style={styles.priorityEfficiencyContainer}>
+                <Text style={styles.sectionTitle}>Eficiencia por Prioridad</Text>
+                <View style={styles.priorityBars}>
+                    {Object.entries(efficiencyStats.priorityEfficiency).map(([priority, stats]) => (
+                        <View key={priority} style={styles.priorityBar}>
+                            <View style={styles.priorityHeader}>
+                                <Text style={styles.priorityLabel}>Prioridad {priority}</Text>
+                                <Text style={styles.priorityPercentage}>{stats.percentage}%</Text>
+                            </View>
+                            <View style={styles.progressBar}>
+                                <View 
+                                    style={[
+                                        styles.progressFill, 
+                                        { width: `${stats.percentage}%` }
+                                    ]} 
+                                />
+                            </View>
+                            <Text style={styles.priorityDetails}>
+                                {stats.completed} de {stats.total} completadas
+                            </Text>
+                        </View>
+                    ))}
+                </View>
+            </View>
+
+            <View style={styles.projectStatsContainer}>
+                <Text style={styles.sectionTitle}>Proyectos</Text>
+                <View style={styles.projectStats}>
+                    <View style={styles.projectStat}>
+                        <Text style={styles.projectStatValue}>{projectStats.activeProjects}</Text>
+                        <Text style={styles.projectStatLabel}>Activos</Text>
+                    </View>
+                    <View style={styles.projectStat}>
+                        <Text style={styles.projectStatValue}>{projectStats.completedProjects}</Text>
+                        <Text style={styles.projectStatLabel}>Completados</Text>
+                    </View>
+                    <View style={styles.projectStat}>
+                        <Text style={styles.projectStatValue}>{projectStats.avgCompletionDays}</Text>
+                        <Text style={styles.projectStatLabel}>Días Promedio</Text>
+                    </View>
+                </View>
+            </View>
+
             <View style={styles.chartContainer}>
                 <BarChart
                     data={barData}
@@ -159,11 +270,10 @@ const ProgressChart = ({ tasks, timeRange = 'month' }) => {
                 />
             </View>
 
-            {/* Información adicional */}
             <View style={styles.infoContainer}>
                 <Text style={styles.infoText}>
                     {timeRange === 'month' 
-                        ? 'Últimos 30 días'
+                        ? 'Progreso del mes actual'
                         : 'Últimos 7 días'
                     }
                 </Text>
@@ -193,6 +303,29 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         textAlign: 'center',
     },
+    efficiencyContainer: {
+        alignItems: 'center',
+        marginBottom: 15,
+        padding: 15,
+        backgroundColor: 'rgba(126, 211, 33, 0.1)',
+        borderRadius: 12,
+    },
+    efficiencyLabel: {
+        fontSize: 14,
+        color: '#CCCCCC',
+        marginBottom: 5,
+    },
+    efficiencyPercentage: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: '#7ED321',
+        marginBottom: 5,
+    },
+    efficiencyDetails: {
+        fontSize: 12,
+        color: '#999999',
+        textAlign: 'center',
+    },
     statsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
@@ -210,6 +343,73 @@ const styles = StyleSheet.create({
     },
     statLabel: {
         fontSize: 12,
+        color: '#CCCCCC',
+        textAlign: 'center',
+    },
+    priorityEfficiencyContainer: {
+        marginBottom: 20,
+    },
+    sectionTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#FFFFFF',
+        marginBottom: 12,
+    },
+    priorityBars: {
+        gap: 10,
+    },
+    priorityBar: {
+        marginBottom: 8,
+    },
+    priorityHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 4,
+    },
+    priorityLabel: {
+        fontSize: 12,
+        color: '#CCCCCC',
+    },
+    priorityPercentage: {
+        fontSize: 12,
+        color: '#7ED321',
+        fontWeight: 'bold',
+    },
+    progressBar: {
+        height: 6,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 3,
+        overflow: 'hidden',
+        marginBottom: 2,
+    },
+    progressFill: {
+        height: '100%',
+        backgroundColor: '#7ED321',
+        borderRadius: 3,
+    },
+    priorityDetails: {
+        fontSize: 10,
+        color: '#999999',
+    },
+    projectStatsContainer: {
+        marginBottom: 20,
+    },
+    projectStats: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+    },
+    projectStat: {
+        alignItems: 'center',
+        flex: 1,
+    },
+    projectStatValue: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#7ED321',
+        marginBottom: 4,
+    },
+    projectStatLabel: {
+        fontSize: 11,
         color: '#CCCCCC',
         textAlign: 'center',
     },

@@ -4,7 +4,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 const TimeRangeSelector = ({ selectedRange, onRangeChange }) => {
     const ranges = [
         { key: 'week', label: 'Últimos 7 días' },
-        { key: 'month', label: 'Últimos 30 días' }
+        { key: 'month', label: 'Mes actual' }
     ];
 
     return (

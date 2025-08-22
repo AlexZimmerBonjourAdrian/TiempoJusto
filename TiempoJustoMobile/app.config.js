@@ -2,7 +2,7 @@ export default {
   expo: {
     name: "TiempoJusto",
     slug: "tiempo-justo-mobile",
-    version: "0.1.0",
+    version: "1.0.0",
     orientation: "portrait",
     platforms: ["android"],
     jsEngine: "hermes",
@@ -10,7 +10,7 @@ export default {
     icon: "./assets/icons/icon-1024.png",
     android: {
       package: "com.tiempojusto.app",
-      versionCode: 1,
+      versionCode: 2,
       permissions: [
         "WAKE_LOCK",
         "RECEIVE_BOOT_COMPLETED",

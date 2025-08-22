@@ -4,6 +4,7 @@ import { useAppContext } from '../context/AppContext';
 import TaskItem from './optimized/TaskItem';
 import ProgressChart from './ProgressChart';
 import TimeRangeSelector from './TimeRangeSelector';
+import ProjectHistory from './ProjectHistory';
 
 // Componente memoizado para el input de nueva tarea
 const NewTaskInput = React.memo(({ 
@@ -350,15 +351,17 @@ export default function TaskBoard() {
             </View>
 
             <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-                {/* Gráfica de Progreso */}
                 <TimeRangeSelector
                     selectedRange={timeRange}
                     onRangeChange={setTimeRange}
                 />
                 <ProgressChart
                     tasks={tasks || []}
+                    projects={projects || []}
                     timeRange={timeRange}
                 />
+
+                <ProjectHistory projects={projects || []} />
 
                 <View style={styles.inputSection}>
                     <NewTaskInput
@@ -388,7 +391,6 @@ export default function TaskBoard() {
                     clearFilter={clearFilter}
                 />
 
-                {/* Lista de Tareas */}
                 <View style={styles.taskListContainer}>
                     {sortedTasks.length > 0 ? (
                         sortedTasks.map((task) => (
