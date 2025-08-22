@@ -1,44 +1,50 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, ScrollView } from 'react-native';
 import { LineChart, BarChart } from 'react-native-chart-kit';
 
 const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
 
 const ProgressChart = ({ tasks, projects, timeRange = 'month' }) => {
-    // Calcular datos de progreso
+    // Calcular datos de progreso mejorado
     const chartData = useMemo(() => {
         const now = new Date();
         const data = [];
         
         if (timeRange === 'month') {
-            // Últimos 30 días o hasta el fin del mes actual
+            // Mes actual completo
             const currentMonth = now.getMonth();
             const currentYear = now.getFullYear();
             const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-            const startDay = Math.max(1, now.getDate() - 29);
             
-            for (let day = startDay; day <= daysInMonth; day++) {
+            for (let day = 1; day <= daysInMonth; day++) {
                 const date = new Date(currentYear, currentMonth, day);
                 const dateStr = date.toISOString().split('T')[0];
                 
+                // Contar tareas creadas en este día
+                const dayTasks = tasks.filter(task => {
+                    if (!task.createdAt) return false;
+                    return task.createdAt.startsWith(dateStr);
+                });
+                
                 // Contar tareas completadas en este día
-                const completedTasks = tasks.filter(task => {
+                const completedTasks = dayTasks.filter(task => {
                     if (!task.done) return false;
                     
+                    // Si tiene completedAt, usar esa fecha
                     if (task.completedAt) {
                         return task.completedAt.startsWith(dateStr);
                     }
                     
-                    if (task.createdAt) {
-                        return task.createdAt.startsWith(dateStr);
-                    }
-                    
-                    return dateStr === now.toISOString().split('T')[0];
-                }).length;
+                    // Si no tiene completedAt pero está done, usar createdAt
+                    return task.createdAt.startsWith(dateStr);
+                });
                 
                 data.push({
                     date: dateStr,
-                    completed: completedTasks
+                    total: dayTasks.length,
+                    completed: completedTasks.length,
+                    completionRate: dayTasks.length > 0 ? Math.round((completedTasks.length / dayTasks.length) * 100) : 0
                 });
             }
         } else if (timeRange === 'week') {
@@ -48,23 +54,30 @@ const ProgressChart = ({ tasks, projects, timeRange = 'month' }) => {
                 date.setDate(date.getDate() - i);
                 const dateStr = date.toISOString().split('T')[0];
                 
-                const completedTasks = tasks.filter(task => {
+                // Contar tareas creadas en este día
+                const dayTasks = tasks.filter(task => {
+                    if (!task.createdAt) return false;
+                    return task.createdAt.startsWith(dateStr);
+                });
+                
+                // Contar tareas completadas en este día
+                const completedTasks = dayTasks.filter(task => {
                     if (!task.done) return false;
                     
+                    // Si tiene completedAt, usar esa fecha
                     if (task.completedAt) {
                         return task.completedAt.startsWith(dateStr);
                     }
                     
-                    if (task.createdAt) {
-                        return task.createdAt.startsWith(dateStr);
-                    }
-                    
-                    return dateStr === now.toISOString().split('T')[0];
-                }).length;
+                    // Si no tiene completedAt pero está done, usar createdAt
+                    return task.createdAt.startsWith(dateStr);
+                });
                 
                 data.push({
                     date: dateStr,
-                    completed: completedTasks
+                    total: dayTasks.length,
+                    completed: completedTasks.length,
+                    completionRate: dayTasks.length > 0 ? Math.round((completedTasks.length / dayTasks.length) * 100) : 0
                 });
             }
         }
@@ -72,10 +85,27 @@ const ProgressChart = ({ tasks, projects, timeRange = 'month' }) => {
         return data;
     }, [tasks, timeRange]);
 
-    // Calcular estadísticas de eficiencia
+    // Calcular estadísticas de eficiencia mejoradas
     const efficiencyStats = useMemo(() => {
-        const totalTasks = tasks.length;
-        const completedTasks = tasks.filter(task => task.done).length;
+        // Filtrar tareas por rango de tiempo
+        const now = new Date();
+        let startDate;
+        
+        if (timeRange === 'month') {
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        } else {
+            startDate = new Date(now);
+            startDate.setDate(startDate.getDate() - 6);
+        }
+        
+        const rangeTasks = tasks.filter(task => {
+            if (!task.createdAt) return false;
+            const taskDate = new Date(task.createdAt);
+            return taskDate >= startDate;
+        });
+        
+        const totalTasks = rangeTasks.length;
+        const completedTasks = rangeTasks.filter(task => task.done).length;
         const efficiencyPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
         
         // Calcular eficiencia por prioridad
@@ -86,7 +116,7 @@ const ProgressChart = ({ tasks, projects, timeRange = 'month' }) => {
             D: { total: 0, completed: 0, percentage: 0 }
         };
         
-        tasks.forEach(task => {
+        rangeTasks.forEach(task => {
             const priority = task.priority || 'C';
             priorityEfficiency[priority].total++;
             if (task.done) {
@@ -106,40 +136,71 @@ const ProgressChart = ({ tasks, projects, timeRange = 'month' }) => {
             efficiencyPercentage,
             priorityEfficiency
         };
-    }, [tasks]);
+    }, [tasks, timeRange]);
 
     // Calcular estadísticas de proyectos
     const projectStats = useMemo(() => {
-        const activeProjects = projects.filter(project => !project.completedAt);
-        const completedProjects = projects.filter(project => project.completedAt);
+        const now = new Date();
+        let startDate;
         
-        // Calcular tiempo promedio de completado de proyectos
-        const projectCompletionTimes = completedProjects.map(project => {
-            if (project.createdAt && project.completedAt) {
-                const start = new Date(project.createdAt);
-                const end = new Date(project.completedAt);
-                return Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        if (timeRange === 'month') {
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        } else {
+            startDate = new Date(now);
+            startDate.setDate(startDate.getDate() - 6);
+        }
+        
+        const rangeTasks = tasks.filter(task => {
+            if (!task.createdAt) return false;
+            const taskDate = new Date(task.createdAt);
+            return taskDate >= startDate;
+        });
+        
+        const projectBreakdown = {};
+        
+        rangeTasks.forEach(task => {
+            if (task.projectId) {
+                if (!projectBreakdown[task.projectId]) {
+                    projectBreakdown[task.projectId] = { total: 0, completed: 0 };
+                }
+                projectBreakdown[task.projectId].total++;
+                if (task.done) {
+                    projectBreakdown[task.projectId].completed++;
+                }
             }
-            return 0;
-        }).filter(days => days > 0);
+        });
         
-        const avgCompletionDays = projectCompletionTimes.length > 0 
-            ? Math.round(projectCompletionTimes.reduce((sum, days) => sum + days, 0) / projectCompletionTimes.length)
+        const activeProjects = Object.keys(projectBreakdown).length;
+        const completedProjects = Object.values(projectBreakdown).filter(stats => stats.completed === stats.total).length;
+        
+        // Calcular días promedio de completación
+        const completionDays = [];
+        rangeTasks.forEach(task => {
+            if (task.done && task.createdAt && task.completedAt) {
+                const created = new Date(task.createdAt);
+                const completed = new Date(task.completedAt);
+                const daysDiff = Math.ceil((completed - created) / (1000 * 60 * 60 * 24));
+                completionDays.push(daysDiff);
+            }
+        });
+        
+        const avgCompletionDays = completionDays.length > 0 
+            ? Math.round(completionDays.reduce((sum, days) => sum + days, 0) / completionDays.length)
             : 0;
         
         return {
-            activeProjects: activeProjects.length,
-            completedProjects: completedProjects.length,
-            totalProjects: projects.length,
-            avgCompletionDays
+            activeProjects,
+            completedProjects,
+            avgCompletionDays,
+            projectBreakdown
         };
-    }, [projects]);
+    }, [tasks, timeRange]);
 
-    // Preparar datos para la gráfica
+    // Configuración del gráfico mejorada
     const chartConfig = {
-        backgroundColor: '#1a1a1a',
-        backgroundGradientFrom: '#1a1a1a',
-        backgroundGradientTo: '#1a1a1a',
+        backgroundColor: '#1e293b',
+        backgroundGradientFrom: '#1e293b',
+        backgroundGradientTo: '#1e293b',
         decimalPlaces: 0,
         color: (opacity = 1) => `rgba(126, 211, 33, ${opacity})`,
         labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
@@ -151,36 +212,55 @@ const ProgressChart = ({ tasks, projects, timeRange = 'month' }) => {
             strokeWidth: '2',
             stroke: '#7ED321',
         },
+        propsForBackgroundLines: {
+            strokeDasharray: '', // Líneas sólidas
+            stroke: 'rgba(255, 255, 255, 0.1)',
+            strokeWidth: 1,
+        },
     };
 
-    // Calcular estadísticas
+    // Calcular estadísticas mejoradas
     const totalCompleted = useMemo(() => {
         return chartData.reduce((sum, item) => sum + item.completed, 0);
     }, [chartData]);
 
+    const totalTasks = useMemo(() => {
+        return chartData.reduce((sum, item) => sum + item.total, 0);
+    }, [chartData]);
+
     const averageCompleted = useMemo(() => {
-        return chartData.length > 0 ? Math.round(totalCompleted / chartData.length) : 0;
+        const activeDays = chartData.filter(item => item.total > 0).length;
+        return activeDays > 0 ? Math.round(totalCompleted / activeDays) : 0;
     }, [totalCompleted, chartData]);
 
     const maxCompleted = useMemo(() => {
-        return Math.max(...chartData.map(item => item.completed));
+        return Math.max(...chartData.map(item => item.completed), 0);
     }, [chartData]);
 
-    // Preparar datos para BarChart
+    // Preparar datos para BarChart con mejor formato
     const barData = {
         labels: chartData.map(item => {
             const date = new Date(item.date);
-            return timeRange === 'month' 
-                ? `${date.getDate()}/${date.getMonth() + 1}`
-                : date.toLocaleDateString('es-ES', { weekday: 'short' });
+            if (timeRange === 'month') {
+                // Para mes: mostrar solo el día
+                return `${date.getDate()}`;
+            } else {
+                // Para semana: mostrar día de la semana abreviado
+                return date.toLocaleDateString('es-ES', { weekday: 'short' }).toUpperCase();
+            }
         }),
         datasets: [{
-            data: chartData.map(item => item.completed)
+            data: chartData.map(item => item.completed),
+            color: (opacity = 1) => `rgba(126, 211, 33, ${opacity})`,
+            strokeWidth: 2,
         }]
     };
 
+    // Verificar si hay datos para mostrar
+    const hasData = totalTasks > 0 || totalCompleted > 0;
+
     return (
-        <View style={styles.container}>
+        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
             <View style={styles.header}>
                 <Text style={styles.title}>Progreso de Tareas</Text>
                 
@@ -198,6 +278,10 @@ const ProgressChart = ({ tasks, projects, timeRange = 'month' }) => {
                         <Text style={styles.statLabel}>Completadas</Text>
                     </View>
                     <View style={styles.statItem}>
+                        <Text style={styles.statValue}>{totalTasks}</Text>
+                        <Text style={styles.statLabel}>Total</Text>
+                    </View>
+                    <View style={styles.statItem}>
                         <Text style={styles.statValue}>{averageCompleted}</Text>
                         <Text style={styles.statLabel}>Promedio/Día</Text>
                     </View>
@@ -206,6 +290,42 @@ const ProgressChart = ({ tasks, projects, timeRange = 'month' }) => {
                         <Text style={styles.statLabel}>Máximo/Día</Text>
                     </View>
                 </View>
+            </View>
+
+            <View style={styles.chartContainer}>
+                {hasData ? (
+                    <>
+                        <Text style={styles.chartTitle}>
+                            {timeRange === 'month' ? 'Progreso Mensual' : 'Progreso Semanal'}
+                        </Text>
+                        <BarChart
+                            data={barData}
+                            width={Math.min(screenWidth - 40, 350)}
+                            height={Math.min(screenHeight * 0.3, 220)}
+                            chartConfig={chartConfig}
+                            verticalLabelRotation={0}
+                            showBarTops={true}
+                            showValuesOnTopOfBars={true}
+                            fromZero={true}
+                            withInnerLines={true}
+                            withVerticalLabels={true}
+                            withHorizontalLabels={true}
+                            withDots={false}
+                            segments={4}
+                            style={styles.chart}
+                        />
+                    </>
+                ) : (
+                    <View style={styles.emptyChartContainer}>
+                        <Text style={styles.emptyChartTitle}>No hay datos para mostrar</Text>
+                        <Text style={styles.emptyChartSubtitle}>
+                            {timeRange === 'month' 
+                                ? 'Comienza a crear tareas este mes para ver tu progreso'
+                                : 'Comienza a crear tareas esta semana para ver tu progreso'
+                            }
+                        </Text>
+                    </View>
+                )}
             </View>
 
             <View style={styles.priorityEfficiencyContainer}>
@@ -249,39 +369,35 @@ const ProgressChart = ({ tasks, projects, timeRange = 'month' }) => {
                         <Text style={styles.projectStatLabel}>Días Promedio</Text>
                     </View>
                 </View>
+                
+                {Object.keys(projectStats.projectBreakdown).length > 0 && (
+                    <View style={styles.projectBreakdown}>
+                        {Object.entries(projectStats.projectBreakdown).map(([projectId, stats]) => {
+                            const project = projects.find(p => p.id === projectId);
+                            const projectName = project ? project.name : 'Proyecto desconocido';
+                            const completionRate = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+                            
+                            return (
+                                <View key={projectId} style={styles.projectItem}>
+                                    <Text style={styles.projectName}>{projectName}</Text>
+                                    <Text style={styles.projectStatsText}>
+                                        {stats.completed}/{stats.total} completadas ({completionRate}%)
+                                    </Text>
+                                    <View style={styles.progressBar}>
+                                        <View 
+                                            style={[
+                                                styles.progressFill, 
+                                                { width: `${completionRate}%` }
+                                            ]} 
+                                        />
+                                    </View>
+                                </View>
+                            );
+                        })}
+                    </View>
+                )}
             </View>
-
-            <View style={styles.chartContainer}>
-                <BarChart
-                    data={barData}
-                    width={screenWidth - 40}
-                    height={220}
-                    yAxisLabel=""
-                    chartConfig={chartConfig}
-                    style={styles.chart}
-                    showValuesOnTopOfBars={true}
-                    fromZero={true}
-                    withInnerLines={false}
-                    withVerticalLabels={true}
-                    withHorizontalLabels={true}
-                    withDots={false}
-                    withShadow={false}
-                    withScrollableDot={false}
-                />
-            </View>
-
-            <View style={styles.infoContainer}>
-                <Text style={styles.infoText}>
-                    {timeRange === 'month' 
-                        ? 'Progreso del mes actual'
-                        : 'Últimos 7 días'
-                    }
-                </Text>
-                <Text style={styles.infoSubtext}>
-                    Tareas completadas por día
-                </Text>
-            </View>
-        </View>
+        </ScrollView>
     );
 };
 
@@ -292,6 +408,7 @@ const styles = StyleSheet.create({
         padding: 20,
         margin: 20,
         marginTop: 10,
+        maxHeight: screenHeight * 0.8,
     },
     header: {
         marginBottom: 20,
@@ -345,6 +462,43 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#CCCCCC',
         textAlign: 'center',
+    },
+    chartContainer: {
+        alignItems: 'center',
+        marginBottom: 20,
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        borderRadius: 12,
+        padding: 16,
+    },
+    chartTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#FFFFFF',
+        marginBottom: 12,
+        textAlign: 'center',
+    },
+    chart: {
+        marginVertical: 8,
+        borderRadius: 16,
+    },
+    emptyChartContainer: {
+        alignItems: 'center',
+        padding: 40,
+        minHeight: 200,
+        justifyContent: 'center',
+    },
+    emptyChartTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#FFFFFF',
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    emptyChartSubtitle: {
+        fontSize: 14,
+        color: '#999999',
+        textAlign: 'center',
+        lineHeight: 20,
     },
     priorityEfficiencyContainer: {
         marginBottom: 20,
@@ -413,26 +567,21 @@ const styles = StyleSheet.create({
         color: '#CCCCCC',
         textAlign: 'center',
     },
-    chartContainer: {
-        alignItems: 'center',
-        marginBottom: 15,
+    projectBreakdown: {
+        marginTop: 10,
     },
-    chart: {
-        marginVertical: 8,
-        borderRadius: 16,
+    projectItem: {
+        marginBottom: 8,
     },
-    infoContainer: {
-        alignItems: 'center',
-    },
-    infoText: {
+    projectName: {
         fontSize: 14,
         color: '#FFFFFF',
-        fontWeight: '500',
-        marginBottom: 4,
+        marginBottom: 2,
     },
-    infoSubtext: {
+    projectStatsText: {
         fontSize: 12,
         color: '#999999',
+        marginBottom: 4,
     },
 });
 

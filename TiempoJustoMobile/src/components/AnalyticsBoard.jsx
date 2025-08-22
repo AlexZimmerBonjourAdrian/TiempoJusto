@@ -1,7 +1,10 @@
-import React, { useMemo, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Animated } from 'react-native';
+import React, { useMemo, useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Animated, TextInput, FlatList } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import { useTaskStats } from '../hooks/useOptimizedComponents';
+import TimeRangeSelector from './TimeRangeSelector';
+import ProgressChart from './ProgressChart';
+import TaskItem from './optimized/TaskItem';
 
 // Componente de gráfica de barras simple
 const MonthlyProgressChart = ({ data }) => {
@@ -34,12 +37,51 @@ const MonthlyProgressChart = ({ data }) => {
     );
 };
 
+// Componente para agregar nuevas tareas
+const NewTaskInput = React.memo(({ newTitle, setNewTitle, isSubmitting, onSubmit }) => (
+    <View style={styles.inputRow}>
+        <TextInput
+            style={[styles.titleInput, isSubmitting && styles.titleInputDisabled]}
+            placeholder="Nueva tarea..."
+            placeholderTextColor="rgba(255,255,255,0.5)"
+            value={newTitle}
+            onChangeText={setNewTitle}
+            onSubmitEditing={onSubmit}
+            editable={!isSubmitting}
+            maxLength={200}
+        />
+        <Pressable 
+            style={[styles.addButton, isSubmitting && styles.addButtonDisabled]} 
+            onPress={onSubmit}
+            disabled={isSubmitting}
+        >
+            <Text style={styles.addButtonText}>
+                {isSubmitting ? '...' : '+'}
+            </Text>
+        </Pressable>
+    </View>
+));
+
 export default function AnalyticsBoard() {
     const today = new Date();
     const todayString = today.toISOString().split('T')[0];
     const [fadeAnim] = useState(new Animated.Value(0));
+    const [newTitle, setNewTitle] = useState('');
+    const [selectedProjectId, setSelectedProjectId] = useState(null);
+    const [selectedPriority, setSelectedPriority] = useState('C');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [timeRange, setTimeRange] = useState('month');
 
-    const { tasks, projects, projectIdToProject, setActiveTab, dailyLogs } = useAppContext();
+    const { 
+        tasks, 
+        projects, 
+        projectIdToProject, 
+        setActiveTab, 
+        dailyLogs,
+        addTask,
+        toggleTask,
+        removeTask
+    } = useAppContext();
     
     const todayTasks = useMemo(() => {
         return tasks.filter(task => {
@@ -50,7 +92,44 @@ export default function AnalyticsBoard() {
 
     const taskStats = useTaskStats(todayTasks);
 
-    // Datos para la gráfica mensual
+    // Filtrar tareas por rango de tiempo
+    const filteredTasks = useMemo(() => {
+        if (!tasks) return [];
+        
+        const now = new Date();
+        let startDate;
+        
+        if (timeRange === 'month') {
+            // Mes actual
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        } else {
+            // Últimos 7 días
+            startDate = new Date(now);
+            startDate.setDate(startDate.getDate() - 6);
+        }
+        
+        return tasks.filter(task => {
+            const taskDate = task.createdAt ? new Date(task.createdAt) : new Date();
+            return taskDate >= startDate;
+        });
+    }, [tasks, timeRange]);
+
+    // Ordenar tareas
+    const sortedTasks = useMemo(() => {
+        if (!Array.isArray(filteredTasks)) return [];
+        
+        return [...filteredTasks].sort((a, b) => {
+            // Primero por completadas
+            if (a.done !== b.done) return Number(a.done) - Number(b.done);
+            // Luego por prioridad (A, B, C, D)
+            const priorityOrder = { A: 0, B: 1, C: 2, D: 3 };
+            const aPriority = priorityOrder[a.priority || 'C'];
+            const bPriority = priorityOrder[b.priority || 'C'];
+            return aPriority - bPriority;
+        });
+    }, [filteredTasks]);
+
+    // Datos para la gráfica mensual mejorada
     const monthlyData = useMemo(() => {
         const currentMonth = today.getMonth();
         const currentYear = today.getFullYear();
@@ -69,20 +148,28 @@ export default function AnalyticsBoard() {
             const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const logEntry = monthLogs.find(log => log.date === dateString);
             
+            // Contar tareas del día específico
+            const dayTasks = tasks.filter(task => {
+                const taskDate = task.createdAt ? new Date(task.createdAt).toISOString().split('T')[0] : null;
+                return taskDate === dateString;
+            });
+            
+            const completedTasks = dayTasks.filter(task => task.done);
+            
             monthProgress.push({
                 day: day,
                 date: dateString,
-                completionRate: logEntry ? logEntry.completionRate : 0,
-                totalTasks: logEntry ? logEntry.totalTasks : 0,
-                completedTasks: logEntry ? logEntry.completedTasks : 0,
+                completionRate: logEntry ? logEntry.completionRate : (dayTasks.length > 0 ? Math.round((completedTasks.length / dayTasks.length) * 100) : 0),
+                totalTasks: logEntry ? logEntry.totalTasks : dayTasks.length,
+                completedTasks: logEntry ? logEntry.completedTasks : completedTasks.length,
                 productivityScore: logEntry ? logEntry.productivityScore : 0
             });
         }
 
         return monthProgress;
-    }, [dailyLogs, today]);
+    }, [dailyLogs, today, tasks]);
 
-    // Estadísticas del mes
+    // Estadísticas del mes mejoradas
     const monthlyStats = useMemo(() => {
         const completedDays = monthlyData.filter(day => day.completionRate > 0);
         const totalDays = monthlyData.length;
@@ -106,6 +193,48 @@ export default function AnalyticsBoard() {
             consistencyRate: totalDays > 0 ? Math.round((activeDays / totalDays) * 100) : 0
         };
     }, [monthlyData]);
+
+    // Manejar agregar nueva tarea
+    const handleAddTask = useCallback(async () => {
+        if (!newTitle.trim() || isSubmitting) return;
+        
+        setIsSubmitting(true);
+        try {
+            await addTask({
+                title: newTitle.trim(),
+                projectId: selectedProjectId,
+                priority: selectedPriority
+            });
+            setNewTitle('');
+            setSelectedProjectId(null);
+            setSelectedPriority('C');
+        } catch (error) {
+            console.error('Error al agregar tarea:', error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    }, [newTitle, selectedProjectId, selectedPriority, isSubmitting, addTask]);
+
+    // Manejar toggle de tarea
+    const handleToggleTask = useCallback((taskId) => {
+        toggleTask(taskId);
+    }, [toggleTask]);
+
+    // Manejar eliminar tarea
+    const handleRemoveTask = useCallback((taskId) => {
+        removeTask(taskId);
+    }, [removeTask]);
+
+    // Renderizar tarea
+    const renderTask = useCallback(({ item }) => (
+        <TaskItem
+            task={item}
+            projectName={item.projectId ? projectIdToProject[item.projectId]?.name : null}
+            onToggle={handleToggleTask}
+            onRemove={handleRemoveTask}
+            onMoveToDaily={() => {}}
+        />
+    ), [projectIdToProject, handleToggleTask, handleRemoveTask]);
 
     useEffect(() => {
         Animated.timing(fadeAnim, {
@@ -180,63 +309,117 @@ export default function AnalyticsBoard() {
 
     return (
         <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-            <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-                <View style={styles.header}>
-                    <Text style={styles.title}>Análisis del Día</Text>
+            <View style={styles.header}>
+                <Text style={styles.title}>Análisis y Tareas</Text>
+                <Pressable style={styles.closeButton} onPress={handleCloseBoard}>
+                    <Text style={styles.closeButtonText}>Cerrar</Text>
+                </Pressable>
+            </View>
+
+            <ScrollView 
+                style={styles.scrollView} 
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+            >
+                <TimeRangeSelector
+                    selectedRange={timeRange}
+                    onRangeChange={setTimeRange}
+                />
+                
+                <ProgressChart
+                    tasks={tasks || []}
+                    projects={projects || []}
+                    timeRange={timeRange}
+                />
+
+                {/* Sección de estadísticas generales */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Estadísticas Generales</Text>
+                    <Text style={styles.sectionSubtitle}>
+                        {timeRange === 'month' 
+                            ? today.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+                            : 'Últimos 7 días'
+                        }
+                    </Text>
+                    
+                    <View style={styles.statsGrid}>
+                        <View style={styles.statCard}>
+                            <Text style={styles.statNumber}>{analytics.totalTasks}</Text>
+                            <Text style={styles.statLabel}>Total Tareas</Text>
+                        </View>
+                        <View style={styles.statCard}>
+                            <Text style={styles.statNumber}>{analytics.completedTasks}</Text>
+                            <Text style={styles.statLabel}>Completadas</Text>
+                        </View>
+                        <View style={styles.statCard}>
+                            <Text style={styles.statNumber}>{analytics.completionRate}%</Text>
+                            <Text style={styles.statLabel}>Tasa de Éxito</Text>
+                        </View>
+                        <View style={styles.statCard}>
+                            <Text style={styles.statNumber}>{analytics.productivityScore}</Text>
+                            <Text style={styles.statLabel}>Puntuación</Text>
+                        </View>
+                    </View>
+                </View>
+
+                {/* Sección de gestión de tareas */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Gestión de Tareas</Text>
+                    
+                    <View style={styles.inputSection}>
+                        <NewTaskInput
+                            newTitle={newTitle}
+                            setNewTitle={setNewTitle}
+                            isSubmitting={isSubmitting}
+                            onSubmit={handleAddTask}
+                        />
+                    </View>
+
+                    <View style={styles.taskListContainer}>
+                        {sortedTasks.length > 0 ? (
+                            <FlatList
+                                data={sortedTasks}
+                                renderItem={renderTask}
+                                keyExtractor={(item) => item.id}
+                                contentContainerStyle={styles.taskListContent}
+                            />
+                        ) : (
+                            <View style={styles.emptyContainer}>
+                                <Text style={styles.emptyText}>
+                                    No hay tareas en el rango seleccionado
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+                </View>
+
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Análisis del Día</Text>
                     <Text style={styles.date}>{today.toLocaleDateString('es-ES', { 
                         weekday: 'long', 
                         year: 'numeric', 
                         month: 'long', 
                         day: 'numeric' 
                     })}</Text>
-                </View>
 
-                <View style={styles.statsGrid}>
-                    <View style={styles.statCard}>
-                        <Text style={styles.statNumber}>{analytics.totalTasks}</Text>
-                        <Text style={styles.statLabel}>Total Tareas</Text>
-                    </View>
-                    <View style={styles.statCard}>
-                        <Text style={styles.statNumber}>{analytics.completedTasks}</Text>
-                        <Text style={styles.statLabel}>Completadas</Text>
-                    </View>
-                    <View style={styles.statCard}>
-                        <Text style={styles.statNumber}>{analytics.completionRate}%</Text>
-                        <Text style={styles.statLabel}>Tasa de Éxito</Text>
-                    </View>
-                    <View style={styles.statCard}>
-                        <Text style={styles.statNumber}>{analytics.productivityScore}</Text>
-                        <Text style={styles.statLabel}>Puntuación</Text>
-                    </View>
-                </View>
-
-                {/* Nueva sección de progreso mensual */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Progreso Mensual</Text>
-                    <Text style={styles.sectionSubtitle}>
-                        {today.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
-                    </Text>
-                    
-                    <View style={styles.monthlyStatsGrid}>
-                        <View style={styles.monthlyStatCard}>
-                            <Text style={styles.monthlyStatNumber}>{monthlyStats.activeDays}</Text>
-                            <Text style={styles.monthlyStatLabel}>Días Activos</Text>
+                    <View style={styles.statsGrid}>
+                        <View style={styles.statCard}>
+                            <Text style={styles.statNumber}>{analytics.totalTasks}</Text>
+                            <Text style={styles.statLabel}>Total Tareas</Text>
                         </View>
-                        <View style={styles.monthlyStatCard}>
-                            <Text style={styles.monthlyStatNumber}>{monthlyStats.avgCompletionRate}%</Text>
-                            <Text style={styles.monthlyStatLabel}>Promedio</Text>
+                        <View style={styles.statCard}>
+                            <Text style={styles.statNumber}>{analytics.completedTasks}</Text>
+                            <Text style={styles.statLabel}>Completadas</Text>
                         </View>
-                        <View style={styles.monthlyStatCard}>
-                            <Text style={styles.monthlyStatNumber}>{monthlyStats.consistencyRate}%</Text>
-                            <Text style={styles.monthlyStatLabel}>Consistencia</Text>
+                        <View style={styles.statCard}>
+                            <Text style={styles.statNumber}>{analytics.completionRate}%</Text>
+                            <Text style={styles.statLabel}>Tasa de Éxito</Text>
                         </View>
-                        <View style={styles.monthlyStatCard}>
-                            <Text style={styles.monthlyStatNumber}>{monthlyStats.totalProductivityScore}</Text>
-                            <Text style={styles.monthlyStatLabel}>Score Total</Text>
+                        <View style={styles.statCard}>
+                            <Text style={styles.statNumber}>{analytics.productivityScore}</Text>
+                            <Text style={styles.statLabel}>Puntuación</Text>
                         </View>
                     </View>
-
-                    <MonthlyProgressChart data={monthlyData} />
                 </View>
 
                 <View style={styles.section}>
@@ -286,10 +469,6 @@ export default function AnalyticsBoard() {
                         </Text>
                     </View>
                 </View>
-
-                <Pressable style={styles.closeButton} onPress={handleCloseBoard}>
-                    <Text style={styles.closeButtonText}>Cerrar Análisis</Text>
-                </Pressable>
             </ScrollView>
         </Animated.View>
     );
@@ -298,55 +477,43 @@ export default function AnalyticsBoard() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#1a1a1a',
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
+        paddingHorizontal: 16,
+        paddingTop: 8,
+    },
+    title: {
+        color: 'white',
+        fontSize: 20,
+        fontWeight: '700',
+    },
+    closeButton: {
+        padding: 8,
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        borderRadius: 8,
+    },
+    closeButtonText: {
+        fontSize: 16,
+        color: 'white',
+        fontWeight: '600',
     },
     scrollView: {
         flex: 1,
     },
     scrollContent: {
         padding: 16,
-    },
-    header: {
-        alignItems: 'center',
-        marginBottom: 24,
-    },
-    title: {
-        color: 'white',
-        fontSize: 24,
-        fontWeight: '700',
-        marginBottom: 8,
-    },
-    date: {
-        color: 'rgba(255,255,255,0.7)',
-        fontSize: 14,
-        textAlign: 'center',
-    },
-    statsGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 12,
-        marginBottom: 24,
-    },
-    statCard: {
-        flex: 1,
-        minWidth: '45%',
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        borderRadius: 12,
-        padding: 16,
-        alignItems: 'center',
-    },
-    statNumber: {
-        color: 'white',
-        fontSize: 28,
-        fontWeight: '700',
-        marginBottom: 4,
-    },
-    statLabel: {
-        color: 'rgba(255,255,255,0.7)',
-        fontSize: 12,
-        textAlign: 'center',
+        paddingBottom: 32,
     },
     section: {
         marginBottom: 24,
+        backgroundColor: 'rgba(255, 255, 255, 0.02)',
+        borderRadius: 12,
+        padding: 16,
     },
     sectionTitle: {
         color: 'white',
@@ -358,6 +525,40 @@ const styles = StyleSheet.create({
         color: 'rgba(255,255,255,0.6)',
         fontSize: 14,
         marginBottom: 16,
+    },
+    date: {
+        color: 'rgba(255,255,255,0.7)',
+        fontSize: 14,
+        textAlign: 'center',
+        marginBottom: 16,
+    },
+    statsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+        marginBottom: 24,
+    },
+    statCard: {
+        flex: 1,
+        minWidth: '45%',
+        backgroundColor: 'rgba(126, 211, 33, 0.1)',
+        borderRadius: 12,
+        padding: 16,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(126, 211, 33, 0.2)',
+    },
+    statNumber: {
+        color: '#7ED321',
+        fontSize: 28,
+        fontWeight: '700',
+        marginBottom: 4,
+    },
+    statLabel: {
+        color: 'rgba(255,255,255,0.8)',
+        fontSize: 12,
+        textAlign: 'center',
+        fontWeight: '500',
     },
     monthlyStatsGrid: {
         flexDirection: 'row',
@@ -426,6 +627,57 @@ const styles = StyleSheet.create({
         fontSize: 8,
         fontWeight: '600',
     },
+    inputSection: {
+        marginBottom: 16,
+    },
+    inputRow: {
+        flexDirection: 'row',
+        marginBottom: 12,
+    },
+    titleInput: {
+        flex: 1,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        color: 'white',
+        fontSize: 16,
+        marginRight: 8,
+    },
+    titleInputDisabled: {
+        opacity: 0.5,
+    },
+    addButton: {
+        backgroundColor: '#10b981',
+        borderRadius: 8,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    addButtonDisabled: {
+        opacity: 0.5,
+    },
+    addButtonText: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: '600',
+    },
+    taskListContainer: {
+        marginTop: 8,
+    },
+    taskListContent: {
+        paddingBottom: 20, // Add some padding at the bottom for the last item
+    },
+    emptyContainer: {
+        padding: 20,
+        alignItems: 'center',
+    },
+    emptyText: {
+        color: 'rgba(255,255,255,0.6)',
+        fontSize: 14,
+        textAlign: 'center',
+    },
     priorityGrid: {
         flexDirection: 'row',
         gap: 8,
@@ -433,18 +685,20 @@ const styles = StyleSheet.create({
     priorityItem: {
         flex: 1,
         backgroundColor: 'rgba(255,255,255,0.05)',
-        borderRadius: 8,
-        padding: 12,
+        borderRadius: 12,
+        padding: 16,
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
     },
     priorityLabel: {
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: '700',
-        marginBottom: 4,
+        marginBottom: 6,
     },
     priorityCount: {
-        color: 'rgba(255,255,255,0.8)',
-        fontSize: 14,
+        color: 'rgba(255,255,255,0.9)',
+        fontSize: 16,
         fontWeight: '600',
     },
     priorityA: { color: '#ef4444' },
@@ -453,57 +707,51 @@ const styles = StyleSheet.create({
     priorityD: { color: '#6b7280' },
     projectItem: {
         backgroundColor: 'rgba(255,255,255,0.05)',
-        borderRadius: 8,
-        padding: 12,
-        marginBottom: 8,
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
     },
     projectName: {
         color: 'white',
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: '600',
-        marginBottom: 4,
+        marginBottom: 6,
     },
     projectStats: {
-        color: 'rgba(255,255,255,0.7)',
-        fontSize: 12,
-        marginBottom: 8,
+        color: 'rgba(255,255,255,0.8)',
+        fontSize: 14,
+        marginBottom: 10,
+        fontWeight: '500',
     },
     progressBar: {
-        height: 4,
+        height: 6,
         backgroundColor: 'rgba(255,255,255,0.1)',
-        borderRadius: 2,
+        borderRadius: 3,
         overflow: 'hidden',
     },
     progressFill: {
         height: '100%',
-        backgroundColor: '#10b981',
+        backgroundColor: '#7ED321',
+        borderRadius: 3,
     },
     timeCard: {
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        borderRadius: 8,
+        backgroundColor: 'rgba(126, 211, 33, 0.1)',
+        borderRadius: 12,
         padding: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(126, 211, 33, 0.2)',
     },
     timeEstimate: {
-        color: 'white',
-        fontSize: 16,
+        color: '#7ED321',
+        fontSize: 18,
         fontWeight: '600',
-        marginBottom: 4,
+        marginBottom: 6,
     },
     timeNote: {
-        color: 'rgba(255,255,255,0.6)',
-        fontSize: 12,
-    },
-    closeButton: {
-        backgroundColor: '#10b981',
-        borderRadius: 8,
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-        alignItems: 'center',
-        marginTop: 16,
-    },
-    closeButtonText: {
-        color: 'white',
-        fontSize: 16,
-        fontWeight: '600',
+        color: 'rgba(255,255,255,0.7)',
+        fontSize: 14,
+        fontWeight: '500',
     },
 });

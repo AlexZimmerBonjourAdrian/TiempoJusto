@@ -2,8 +2,6 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View, Alert, Animated, ScrollView } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import TaskItem from './optimized/TaskItem';
-import ProgressChart from './ProgressChart';
-import TimeRangeSelector from './TimeRangeSelector';
 import ProjectHistory from './ProjectHistory';
 
 // Componente memoizado para el input de nueva tarea
@@ -44,32 +42,43 @@ const ProjectSelector = React.memo(({
 }) => (
     <View style={styles.selectContainer}>
         <Text style={styles.selectLabel}>Proyecto:</Text>
-        <View style={styles.selectWrapper}>
-            <Text style={styles.selectText}>
-                {selectedProjectId 
-                    ? projects.find(p => p.id === selectedProjectId)?.name 
-                    : 'Sin proyecto'
-                }
-            </Text>
-            <Text style={styles.selectArrow}>▼</Text>
-        </View>
-        <View style={styles.selectDropdown}>
-            <Pressable 
-                style={styles.selectOption}
+        <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.projectScroll}
+        >
+            <Pressable
+                style={[
+                    styles.projectOption,
+                    !selectedProjectId && styles.projectOptionActive
+                ]}
                 onPress={() => setSelectedProjectId(null)}
             >
-                <Text style={styles.selectOptionText}>Sin proyecto</Text>
+                <Text style={[
+                    styles.projectOptionText,
+                    !selectedProjectId && styles.projectOptionTextActive
+                ]}>
+                    Sin proyecto
+                </Text>
             </Pressable>
             {projects.map(project => (
-                <Pressable 
+                <Pressable
                     key={project.id}
-                    style={styles.selectOption}
+                    style={[
+                        styles.projectOption,
+                        selectedProjectId === project.id && styles.projectOptionActive
+                    ]}
                     onPress={() => setSelectedProjectId(project.id)}
                 >
-                    <Text style={styles.selectOptionText}>{project.name}</Text>
+                    <Text style={[
+                        styles.projectOptionText,
+                        selectedProjectId === project.id && styles.projectOptionTextActive
+                    ]}>
+                        {project.name}
+                    </Text>
                 </Pressable>
             ))}
-        </View>
+        </ScrollView>
     </View>
 ));
 
@@ -77,30 +86,40 @@ const ProjectSelector = React.memo(({
 const PrioritySelector = React.memo(({ 
     selectedPriority, 
     setSelectedPriority 
-}) => (
-    <View style={styles.selectContainer}>
-        <Text style={styles.selectLabel}>Prioridad:</Text>
-        <View style={styles.priorityButtons}>
-            {['A', 'B', 'C', 'D'].map(priority => (
-                <Pressable
-                    key={priority}
-                    style={[
-                        styles.priorityButton,
-                        selectedPriority === priority && styles.priorityButtonActive
-                    ]}
-                    onPress={() => setSelectedPriority(priority)}
-                >
-                    <Text style={[
-                        styles.priorityButtonText,
-                        selectedPriority === priority && styles.priorityButtonTextActive
-                    ]}>
-                        {priority}
-                    </Text>
-                </Pressable>
-            ))}
+}) => {
+    const priorities = [
+        { key: 'A', label: 'A', color: '#ef4444' },
+        { key: 'B', label: 'B', color: '#f97316' },
+        { key: 'C', label: 'C', color: '#eab308' },
+        { key: 'D', label: 'D', color: '#6b7280' }
+    ];
+
+    return (
+        <View style={styles.selectContainer}>
+            <Text style={styles.selectLabel}>Prioridad:</Text>
+            <View style={styles.priorityContainer}>
+                {priorities.map(priority => (
+                    <Pressable
+                        key={priority.key}
+                        style={[
+                            styles.priorityOption,
+                            selectedPriority === priority.key && styles.priorityOptionActive
+                        ]}
+                        onPress={() => setSelectedPriority(priority.key)}
+                    >
+                        <Text style={[
+                            styles.priorityOptionText,
+                            { color: priority.color },
+                            selectedPriority === priority.key && styles.priorityOptionTextActive
+                        ]}>
+                            {priority.label}
+                        </Text>
+                    </Pressable>
+                ))}
+            </View>
         </View>
-    </View>
-));
+    );
+});
 
 // Componente memoizado para filtros
 const FilterSection = React.memo(({ 
@@ -111,39 +130,43 @@ const FilterSection = React.memo(({
 }) => (
     <View style={styles.filterSection}>
         <Text style={styles.filterLabel}>Filtrar por proyecto:</Text>
-        <View style={styles.filterButtons}>
-            <Pressable 
+        <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterScroll}
+        >
+            <Pressable
                 style={[
-                    styles.filterButton,
-                    filterProjectId === null && styles.filterButtonActive
+                    styles.filterOption,
+                    filterProjectId === null && styles.filterOptionActive
                 ]}
                 onPress={clearFilter}
             >
                 <Text style={[
-                    styles.filterButtonText,
-                    filterProjectId === null && styles.filterButtonTextActive
+                    styles.filterOptionText,
+                    filterProjectId === null && styles.filterOptionTextActive
                 ]}>
-                    Todos
+                    Todas
                 </Text>
             </Pressable>
             {projects.map(project => (
                 <Pressable
                     key={project.id}
                     style={[
-                        styles.filterButton,
-                        filterProjectId === project.id && styles.filterButtonActive
+                        styles.filterOption,
+                        filterProjectId === project.id && styles.filterOptionActive
                     ]}
                     onPress={() => setFilterProjectId(project.id)}
                 >
                     <Text style={[
-                        styles.filterButtonText,
-                        filterProjectId === project.id && styles.filterButtonTextActive
+                        styles.filterOptionText,
+                        filterProjectId === project.id && styles.filterOptionTextActive
                     ]}>
                         {project.name}
                     </Text>
                 </Pressable>
             ))}
-        </View>
+        </ScrollView>
     </View>
 ));
 
@@ -151,13 +174,10 @@ const FilterSection = React.memo(({
 const EmptyList = React.memo(({ filterProjectId }) => (
     <View style={styles.emptyContainer}>
         <Text style={styles.emptyText}>
-            {filterProjectId 
-                ? 'No hay tareas en este proyecto'
-                : 'No hay tareas pendientes'
+            {filterProjectId !== null 
+                ? 'No hay tareas para este proyecto'
+                : '¡Agrega tu primera tarea para comenzar!'
             }
-        </Text>
-        <Text style={styles.emptySubtext}>
-            ¡Agrega tu primera tarea para comenzar!
         </Text>
     </View>
 ));
@@ -169,7 +189,6 @@ export default function TaskBoard() {
     const [filterProjectId, setFilterProjectId] = useState(null);
     const [fadeAnim] = useState(new Animated.Value(0));
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [timeRange, setTimeRange] = useState('month');
 
     const { 
         projects, 
@@ -183,18 +202,31 @@ export default function TaskBoard() {
         storageError
     } = useAppContext();
 
-    // Filtrar y ordenar tareas
-    const filteredTasks = useMemo(() => {
+    // Filtrar tareas del día actual
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0];
+    
+    const todayTasks = useMemo(() => {
         if (!tasks) return [];
         
-        let filtered = tasks;
+        return tasks.filter(task => {
+            const taskDate = task.createdAt ? new Date(task.createdAt).toISOString().split('T')[0] : todayString;
+            return taskDate === todayString;
+        });
+    }, [tasks, todayString]);
+
+    // Filtrar y ordenar tareas
+    const filteredTasks = useMemo(() => {
+        if (!todayTasks) return [];
+        
+        let filtered = todayTasks;
         
         if (filterProjectId !== null) {
             filtered = filtered.filter(task => task.projectId === filterProjectId);
         }
         
         return filtered;
-    }, [tasks, filterProjectId]);
+    }, [todayTasks, filterProjectId]);
 
     const sortedTasks = useMemo(() => {
         if (!Array.isArray(filteredTasks)) return [];
@@ -221,116 +253,69 @@ export default function TaskBoard() {
         />
     ), [projectIdToProject, toggleTask, removeTask, moveToDailyBoard]);
 
-    // Memoizar keyExtractor
-    const keyExtractor = useCallback((item) => item.id, []);
+    // Función para mover tarea al tablero diario
+    const moveToDailyBoard = useCallback((taskId) => {
+        // Esta funcionalidad se puede implementar si es necesaria
+        console.log('Mover tarea al tablero diario:', taskId);
+    }, []);
 
-    // Memoizar ListEmptyComponent
-    const ListEmptyComponent = useMemo(() => (
-        <EmptyList filterProjectId={filterProjectId} />
-    ), [filterProjectId]);
+    // Manejar agregar nueva tarea
+    const handleAddTask = useCallback(async () => {
+        if (!newTitle.trim() || isSubmitting) return;
+        
+        setIsSubmitting(true);
+        try {
+            await addTask({
+                title: newTitle.trim(),
+                projectId: selectedProjectId,
+                priority: selectedPriority
+            });
+            setNewTitle('');
+            setSelectedProjectId(null);
+            setSelectedPriority('C');
+        } catch (error) {
+            console.error('Error al agregar tarea:', error);
+            Alert.alert('Error', 'No se pudo agregar la tarea');
+        } finally {
+            setIsSubmitting(false);
+        }
+    }, [newTitle, selectedProjectId, selectedPriority, isSubmitting, addTask]);
 
+    // Manejar toggle de tarea
+    const handleToggleTask = useCallback((taskId) => {
+        toggleTask(taskId);
+    }, [toggleTask]);
+
+    // Manejar eliminar tarea
+    const handleRemoveTask = useCallback((taskId) => {
+        Alert.alert(
+            'Eliminar Tarea',
+            '¿Estás seguro de que quieres eliminar esta tarea?',
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                { text: 'Eliminar', style: 'destructive', onPress: () => removeTask(taskId) }
+            ]
+        );
+    }, [removeTask]);
+
+    // Limpiar filtro
+    const clearFilter = useCallback(() => {
+        setFilterProjectId(null);
+    }, []);
+
+    // Manejar cerrar tablero
+    const handleCloseBoard = useCallback(() => {
+        // Esta funcionalidad se puede implementar si es necesaria
+        console.log('Cerrar tablero de tareas');
+    }, []);
+
+    // Animación de entrada
     useEffect(() => {
         Animated.timing(fadeAnim, {
             toValue: 1,
             duration: 300,
             useNativeDriver: true,
         }).start();
-    }, []);
-
-    // Mostrar errores de storage
-    useEffect(() => {
-        if (storageError) {
-            Alert.alert(
-                'Error de Almacenamiento',
-                'Hubo un problema al cargar los datos. Algunas funciones pueden no estar disponibles.',
-                [{ text: 'OK' }]
-            );
-        }
-    }, [storageError]);
-
-    // Función memoizada para agregar tarea
-    const handleAddTask = useCallback(async () => {
-        const title = newTitle.trim();
-        if (!title) {
-            Alert.alert('Error', 'El título de la tarea es requerido');
-            return;
-        }
-        
-        if (isSubmitting) return;
-        
-        const taskData = {
-            title,
-            done: false,
-            projectId: selectedProjectId || null,
-            priority: selectedPriority,
-        };
-        
-        setIsSubmitting(true);
-        
-        try {
-            addTask(taskData);
-            setNewTitle('');
-        } catch (error) {
-            Alert.alert('Error', 'No se pudo crear la tarea. Inténtalo de nuevo.');
-            console.error('Error adding task:', error);
-        } finally {
-            setIsSubmitting(false);
-        }
-    }, [newTitle, selectedProjectId, selectedPriority, isSubmitting, addTask]);
-
-    // Función memoizada para toggle de tarea
-    const handleToggleTask = useCallback(async (id) => {
-        try {
-            toggleTask(id);
-        } catch (error) {
-            Alert.alert('Error', 'No se pudo actualizar la tarea. Inténtalo de nuevo.');
-            console.error('Error toggling task:', error);
-        }
-    }, [toggleTask]);
-
-    // Función memoizada para remover tarea
-    const handleRemoveTask = useCallback(async (id) => {
-        Alert.alert(
-            "Eliminar Tarea",
-            "¿Estás seguro de que quieres eliminar esta tarea?",
-            [
-                { text: "Cancelar", style: "cancel" },
-                { 
-                    text: "Eliminar", 
-                    style: "destructive",
-                    onPress: async () => {
-                        try {
-                            removeTask(id);
-                        } catch (error) {
-                            Alert.alert('Error', 'No se pudo eliminar la tarea. Inténtalo de nuevo.');
-                            console.error('Error removing task:', error);
-                        }
-                    }
-                }
-            ]
-        );
-    }, [removeTask]);
-
-    // Función memoizada para mover a daily board
-    const moveToDailyBoard = useCallback((id) => {
-        console.log('Move to daily board:', id);
-    }, []);
-
-    // Función memoizada para cerrar board
-    const handleCloseBoard = useCallback(() => {
-        Alert.alert(
-            "Cerrar Tablero",
-            "¿Estás seguro de que quieres cerrar el tablero? Se mostrarán las estadísticas del día.",
-            [
-                { text: "Cancelar", style: "cancel" },
-                { text: "Cerrar", onPress: archiveToday }
-            ]
-        );
-    }, [archiveToday]);
-
-    // Función memoizada para limpiar filtro
-    const clearFilter = useCallback(() => {
-        setFilterProjectId(null);
     }, []);
 
     if (isLoading) {
@@ -341,26 +326,27 @@ export default function TaskBoard() {
         );
     }
 
+    if (storageError) {
+        return (
+            <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>Error al cargar datos: {storageError}</Text>
+            </View>
+        );
+    }
+
     return (
         <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
             <View style={styles.header}>
-                <Text style={styles.title}>Tablero de Tareas</Text>
-                <Pressable style={styles.closeButton} onPress={handleCloseBoard}>
-                    <Text style={styles.closeButtonText}>Cerrar</Text>
-                </Pressable>
+                <Text style={styles.title}>Tareas del Día</Text>
+                <Text style={styles.date}>{today.toLocaleDateString('es-ES', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                })}</Text>
             </View>
 
             <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-                <TimeRangeSelector
-                    selectedRange={timeRange}
-                    onRangeChange={setTimeRange}
-                />
-                <ProgressChart
-                    tasks={tasks || []}
-                    projects={projects || []}
-                    timeRange={timeRange}
-                />
-
                 <ProjectHistory projects={projects || []} />
 
                 <View style={styles.inputSection}>
@@ -425,6 +411,17 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 16,
     },
+    errorContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    errorText: {
+        color: 'red',
+        fontSize: 16,
+        textAlign: 'center',
+    },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -436,12 +433,9 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: '700',
     },
-    closeButton: {
-        padding: 8,
-    },
-    closeButtonText: {
-        fontSize: 16,
-        color: 'white',
+    date: {
+        color: 'rgba(255,255,255,0.7)',
+        fontSize: 14,
     },
     inputSection: {
         marginBottom: 16,
@@ -491,61 +485,48 @@ const styles = StyleSheet.create({
         fontSize: 12,
         marginBottom: 4,
     },
-    selectWrapper: {
-        backgroundColor: 'rgba(255,255,255,0.1)',
-        borderRadius: 6,
-        paddingHorizontal: 8,
-        paddingVertical: 6,
+    projectScroll: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
     },
-    selectText: {
-        color: 'white',
-        fontSize: 14,
-    },
-    selectArrow: {
-        color: 'rgba(255,255,255,0.6)',
-        fontSize: 10,
-    },
-    selectDropdown: {
-        position: 'absolute',
-        top: '100%',
-        left: 0,
-        right: 0,
-        backgroundColor: '#1e293b',
-        borderRadius: 6,
-        marginTop: 2,
-        zIndex: 1000,
-    },
-    selectOption: {
-        paddingHorizontal: 8,
+    projectOption: {
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 16,
+        paddingHorizontal: 12,
         paddingVertical: 6,
+        marginRight: 6,
     },
-    selectOptionText: {
+    projectOptionActive: {
+        backgroundColor: '#10b981',
+    },
+    projectOptionText: {
+        color: 'rgba(255,255,255,0.8)',
+        fontSize: 12,
+    },
+    projectOptionTextActive: {
         color: 'white',
-        fontSize: 14,
+        fontWeight: '600',
     },
-    priorityButtons: {
+    priorityContainer: {
         flexDirection: 'row',
         gap: 4,
     },
-    priorityButton: {
+    priorityOption: {
         flex: 1,
         backgroundColor: 'rgba(255,255,255,0.1)',
         borderRadius: 4,
         paddingVertical: 6,
         alignItems: 'center',
     },
-    priorityButtonActive: {
+    priorityOptionActive: {
         backgroundColor: '#10b981',
     },
-    priorityButtonText: {
+    priorityOptionText: {
         color: 'rgba(255,255,255,0.8)',
         fontSize: 12,
         fontWeight: '600',
     },
-    priorityButtonTextActive: {
+    priorityOptionTextActive: {
         color: 'white',
     },
     filterSection: {
@@ -556,25 +537,25 @@ const styles = StyleSheet.create({
         fontSize: 12,
         marginBottom: 8,
     },
-    filterButtons: {
+    filterScroll: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 6,
+        alignItems: 'center',
     },
-    filterButton: {
+    filterOption: {
         backgroundColor: 'rgba(255,255,255,0.1)',
         borderRadius: 16,
         paddingHorizontal: 12,
         paddingVertical: 6,
+        marginRight: 6,
     },
-    filterButtonActive: {
+    filterOptionActive: {
         backgroundColor: '#10b981',
     },
-    filterButtonText: {
+    filterOptionText: {
         color: 'rgba(255,255,255,0.8)',
         fontSize: 12,
     },
-    filterButtonTextActive: {
+    filterOptionTextActive: {
         color: 'white',
         fontWeight: '600',
     },

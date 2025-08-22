@@ -197,7 +197,7 @@ export function useNavigationData() {
         {
             id: 'tareas',
             label: 'Tareas',
-            legend: 'Gestión',
+            legend: 'Diario',
             isActive: activeTab === 'tareas',
             isRunning: false
         },
@@ -218,7 +218,7 @@ export function useNavigationData() {
         {
             id: 'analiticas',
             label: 'Stats',
-            legend: 'Analíticas',
+            legend: 'Análisis',
             isActive: activeTab === 'analiticas',
             isRunning: false
         }
