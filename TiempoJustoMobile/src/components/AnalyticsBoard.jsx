@@ -3,12 +3,43 @@ import { View, Text, StyleSheet, ScrollView, Pressable, Animated } from 'react-n
 import { useAppContext } from '../context/AppContext';
 import { useTaskStats } from '../hooks/useOptimizedComponents';
 
+// Componente de gráfica de barras simple
+const MonthlyProgressChart = ({ data }) => {
+    const maxValue = Math.max(...data.map(item => item.completionRate), 1);
+    
+    return (
+        <View style={styles.chartContainer}>
+            <View style={styles.chartBars}>
+                {data.map((item, index) => (
+                    <View key={index} style={styles.barContainer}>
+                        <View style={styles.barWrapper}>
+                            <View 
+                                style={[
+                                    styles.bar, 
+                                    { 
+                                        height: `${(item.completionRate / maxValue) * 100}%`,
+                                        backgroundColor: item.completionRate >= 80 ? '#10b981' : 
+                                                       item.completionRate >= 60 ? '#f59e0b' : 
+                                                       item.completionRate >= 40 ? '#f97316' : '#ef4444'
+                                    }
+                                ]} 
+                            />
+                        </View>
+                        <Text style={styles.barLabel}>{item.day}</Text>
+                        <Text style={styles.barValue}>{item.completionRate}%</Text>
+                    </View>
+                ))}
+            </View>
+        </View>
+    );
+};
+
 export default function AnalyticsBoard() {
     const today = new Date();
     const todayString = today.toISOString().split('T')[0];
     const [fadeAnim] = useState(new Animated.Value(0));
 
-    const { tasks, projects, projectIdToProject, setActiveTab } = useAppContext();
+    const { tasks, projects, projectIdToProject, setActiveTab, dailyLogs } = useAppContext();
     
     const todayTasks = useMemo(() => {
         return tasks.filter(task => {
@@ -18,6 +49,63 @@ export default function AnalyticsBoard() {
     }, [tasks, todayString]);
 
     const taskStats = useTaskStats(todayTasks);
+
+    // Datos para la gráfica mensual
+    const monthlyData = useMemo(() => {
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+        
+        // Obtener logs del mes actual
+        const monthLogs = dailyLogs.filter(log => {
+            const logDate = new Date(log.date);
+            return logDate.getMonth() === currentMonth && logDate.getFullYear() === currentYear;
+        });
+
+        // Crear array con todos los días del mes
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const monthProgress = [];
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const logEntry = monthLogs.find(log => log.date === dateString);
+            
+            monthProgress.push({
+                day: day,
+                date: dateString,
+                completionRate: logEntry ? logEntry.completionRate : 0,
+                totalTasks: logEntry ? logEntry.totalTasks : 0,
+                completedTasks: logEntry ? logEntry.completedTasks : 0,
+                productivityScore: logEntry ? logEntry.productivityScore : 0
+            });
+        }
+
+        return monthProgress;
+    }, [dailyLogs, today]);
+
+    // Estadísticas del mes
+    const monthlyStats = useMemo(() => {
+        const completedDays = monthlyData.filter(day => day.completionRate > 0);
+        const totalDays = monthlyData.length;
+        const activeDays = completedDays.length;
+        
+        const avgCompletionRate = completedDays.length > 0 
+            ? Math.round(completedDays.reduce((sum, day) => sum + day.completionRate, 0) / completedDays.length)
+            : 0;
+        
+        const totalTasks = monthlyData.reduce((sum, day) => sum + day.totalTasks, 0);
+        const totalCompleted = monthlyData.reduce((sum, day) => sum + day.completedTasks, 0);
+        const totalProductivityScore = monthlyData.reduce((sum, day) => sum + day.productivityScore, 0);
+
+        return {
+            totalDays,
+            activeDays,
+            avgCompletionRate,
+            totalTasks,
+            totalCompleted,
+            totalProductivityScore,
+            consistencyRate: totalDays > 0 ? Math.round((activeDays / totalDays) * 100) : 0
+        };
+    }, [monthlyData]);
 
     useEffect(() => {
         Animated.timing(fadeAnim, {
@@ -120,6 +208,35 @@ export default function AnalyticsBoard() {
                         <Text style={styles.statNumber}>{analytics.productivityScore}</Text>
                         <Text style={styles.statLabel}>Puntuación</Text>
                     </View>
+                </View>
+
+                {/* Nueva sección de progreso mensual */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Progreso Mensual</Text>
+                    <Text style={styles.sectionSubtitle}>
+                        {today.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                    </Text>
+                    
+                    <View style={styles.monthlyStatsGrid}>
+                        <View style={styles.monthlyStatCard}>
+                            <Text style={styles.monthlyStatNumber}>{monthlyStats.activeDays}</Text>
+                            <Text style={styles.monthlyStatLabel}>Días Activos</Text>
+                        </View>
+                        <View style={styles.monthlyStatCard}>
+                            <Text style={styles.monthlyStatNumber}>{monthlyStats.avgCompletionRate}%</Text>
+                            <Text style={styles.monthlyStatLabel}>Promedio</Text>
+                        </View>
+                        <View style={styles.monthlyStatCard}>
+                            <Text style={styles.monthlyStatNumber}>{monthlyStats.consistencyRate}%</Text>
+                            <Text style={styles.monthlyStatLabel}>Consistencia</Text>
+                        </View>
+                        <View style={styles.monthlyStatCard}>
+                            <Text style={styles.monthlyStatNumber}>{monthlyStats.totalProductivityScore}</Text>
+                            <Text style={styles.monthlyStatLabel}>Score Total</Text>
+                        </View>
+                    </View>
+
+                    <MonthlyProgressChart data={monthlyData} />
                 </View>
 
                 <View style={styles.section}>
@@ -235,7 +352,79 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 18,
         fontWeight: '600',
-        marginBottom: 12,
+        marginBottom: 4,
+    },
+    sectionSubtitle: {
+        color: 'rgba(255,255,255,0.6)',
+        fontSize: 14,
+        marginBottom: 16,
+    },
+    monthlyStatsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+        marginBottom: 16,
+    },
+    monthlyStatCard: {
+        flex: 1,
+        minWidth: '45%',
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderRadius: 8,
+        padding: 12,
+        alignItems: 'center',
+    },
+    monthlyStatNumber: {
+        color: 'white',
+        fontSize: 20,
+        fontWeight: '700',
+        marginBottom: 2,
+    },
+    monthlyStatLabel: {
+        color: 'rgba(255,255,255,0.7)',
+        fontSize: 10,
+        textAlign: 'center',
+    },
+    chartContainer: {
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderRadius: 12,
+        padding: 16,
+        marginTop: 8,
+    },
+    chartBars: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+        height: 120,
+        paddingBottom: 20,
+    },
+    barContainer: {
+        flex: 1,
+        alignItems: 'center',
+        marginHorizontal: 1,
+    },
+    barWrapper: {
+        height: 80,
+        width: 8,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 4,
+        overflow: 'hidden',
+        marginBottom: 8,
+    },
+    bar: {
+        position: 'absolute',
+        bottom: 0,
+        width: '100%',
+        borderRadius: 4,
+    },
+    barLabel: {
+        color: 'rgba(255,255,255,0.6)',
+        fontSize: 10,
+        marginBottom: 2,
+    },
+    barValue: {
+        color: 'rgba(255,255,255,0.8)',
+        fontSize: 8,
+        fontWeight: '600',
     },
     priorityGrid: {
         flexDirection: 'row',
