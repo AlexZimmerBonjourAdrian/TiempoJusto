@@ -26,10 +26,10 @@ export const DAILY_PERFORMANCE_LEVELS = {
 
 // Niveles de rendimiento mensual
 export const MONTHLY_PERFORMANCE_LEVELS = {
-  EXCELLENT: { min: 100, label: '🏆 Excelente', color: '#4CAF50' },
-  VERY_GOOD: { min: 70, max: 99, label: '⭐ Muy Bueno', color: '#8BC34A' },
-  GOOD: { min: 40, max: 69, label: '👍 Bueno', color: '#FFC107' },
-  IN_PROGRESS: { max: 39, label: '🌱 En Progreso', color: '#FF9800' }
+    EXCELLENT: { min: 100, label: 'Excelente', color: '#4CAF50' },
+    VERY_GOOD: { min: 70, max: 99, label: 'Muy Bueno', color: '#8BC34A' },
+    GOOD: { min: 40, max: 69, label: 'Bueno', color: '#FFC107' },
+    IN_PROGRESS: { max: 39, label: 'En Progreso', color: '#FF9800' }
 };
 
 // Configuración del Pomodoro

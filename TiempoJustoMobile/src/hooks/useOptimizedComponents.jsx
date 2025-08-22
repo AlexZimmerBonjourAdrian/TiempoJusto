@@ -196,28 +196,28 @@ export function useNavigationData() {
     const tabData = useMemo(() => [
         {
             id: 'tareas',
-            label: '📋',
-            legend: 'Tareas',
+            label: 'Tareas',
+            legend: 'Gestión',
             isActive: activeTab === 'tareas',
             isRunning: false
         },
         {
             id: 'pomodoro',
-            label: '⏰',
+            label: 'Timer',
             legend: 'Pomodoro',
             isActive: activeTab === 'pomodoro',
             isRunning: false
         },
         {
             id: 'proyectos',
-            label: '📁',
-            legend: 'Proyectos',
+            label: 'Proyectos',
+            legend: 'Organización',
             isActive: activeTab === 'proyectos',
             isRunning: false
         },
         {
             id: 'analiticas',
-            label: '📊',
+            label: 'Stats',
             legend: 'Analíticas',
             isActive: activeTab === 'analiticas',
             isRunning: false

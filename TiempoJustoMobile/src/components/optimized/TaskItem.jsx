@@ -39,10 +39,10 @@ const TaskItem = memo(({
             <View style={styles.taskActions}>
                 {task.projectId && (
                     <Pressable 
-                        style={styles.actionButton}
+                        style={styles.actionButton} 
                         onPress={() => onMoveToDaily(task.id)}
                     >
-                        <Text style={styles.actionButtonText}>📋</Text>
+                        <Text style={styles.actionButtonText}>Mover</Text>
                     </Pressable>
                 )}
                 <Pressable 

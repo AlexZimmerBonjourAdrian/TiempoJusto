@@ -18,18 +18,18 @@ class BackupService {
     // Crear backup automático
     async createAutoBackup() {
         try {
-            console.log('🔄 Iniciando backup automático...');
+            console.log('Iniciando backup automático...');
             
             const backup = await this.createBackup();
             await this.saveBackupHistory(backup);
             await this.cleanupOldBackups();
             
             this.lastBackupTime = Date.now();
-            console.log('✅ Backup automático completado');
+            console.log('Backup automático completado');
             
             return backup;
         } catch (error) {
-            console.error('❌ Error en backup automático:', error);
+            console.error('Error en backup automático:', error);
             throw error;
         }
     }
@@ -37,12 +37,12 @@ class BackupService {
     // Crear backup manual
     async createManualBackup() {
         try {
-            console.log('🔄 Iniciando backup manual...');
+            console.log('Iniciando backup manual...');
             
             const backup = await this.createBackup();
             await this.saveBackupHistory(backup);
             
-            console.log('✅ Backup manual completado');
+            console.log('Backup manual completado');
             Alert.alert(
                 'Backup Completado',
                 'Se ha creado un backup de tus datos exitosamente.',
@@ -51,7 +51,7 @@ class BackupService {
             
             return backup;
         } catch (error) {
-            console.error('❌ Error en backup manual:', error);
+            console.error('Error en backup manual:', error);
             Alert.alert(
                 'Error de Backup',
                 'No se pudo crear el backup. Verifica el espacio disponible.',
@@ -125,7 +125,7 @@ class BackupService {
                 if (!currentBackups.find(b => b.timestamp === backup.timestamp)) {
                     const backupKey = `TJ_BACKUP_${backup.timestamp}`;
                     await AsyncStorage.removeItem(backupKey);
-                    console.log(`🗑️ Eliminado backup antiguo: ${backup.timestamp}`);
+                    console.log(`Eliminado backup antiguo: ${backup.timestamp}`);
                 }
             }
             
@@ -139,7 +139,7 @@ class BackupService {
     // Restaurar backup
     async restoreBackup(backupTimestamp = null) {
         try {
-            console.log('🔄 Iniciando restauración...');
+            console.log('Iniciando restauración...');
             
             let backupKey;
             if (backupTimestamp) {
@@ -175,7 +175,7 @@ class BackupService {
             // Restaurar datos
             await AsyncStorage.multiSet(Object.entries(backup.data));
             
-            console.log('✅ Restauración completada');
+            console.log('Restauración completada');
             Alert.alert(
                 'Restauración Completada',
                 'Los datos han sido restaurados exitosamente. La aplicación se reiniciará.',
@@ -184,7 +184,7 @@ class BackupService {
             
             return backup;
         } catch (error) {
-            console.error('❌ Error en restauración:', error);
+            console.error('Error en restauración:', error);
             Alert.alert(
                 'Error de Restauración',
                 error.message || 'No se pudo restaurar el backup.',

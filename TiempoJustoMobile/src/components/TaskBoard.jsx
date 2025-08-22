@@ -342,7 +342,7 @@ export default function TaskBoard() {
             <View style={styles.header}>
                 <Text style={styles.title}>Tablero de Tareas</Text>
                 <Pressable style={styles.closeButton} onPress={handleCloseBoard}>
-                    <Text style={styles.closeButtonText}>📊</Text>
+                    <Text style={styles.closeButtonText}>Cerrar</Text>
                 </Pressable>
             </View>
 
@@ -423,7 +423,8 @@ const styles = StyleSheet.create({
         padding: 8,
     },
     closeButtonText: {
-        fontSize: 20,
+        fontSize: 16,
+        color: 'white',
     },
     inputSection: {
         marginBottom: 16,

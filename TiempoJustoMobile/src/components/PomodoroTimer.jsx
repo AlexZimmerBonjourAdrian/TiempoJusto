@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View, Animated } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import { usePomodoroService } from '../hooks/usePomodoroService';
 
@@ -29,6 +29,18 @@ export default function PomodoroTimer() {
         toggle
     } = usePomodoroService(pomodoroSettings);
 
+    // Animación de entrada simple (consistente con otras pestañas)
+    const [fadeAnim] = useState(new Animated.Value(0));
+
+    // Efecto de entrada
+    useEffect(() => {
+        Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+        }).start();
+    }, []);
+
     // Función para cambiar modo
     const handleSwitchMode = (nextMode) => {
         switchMode(nextMode);
@@ -38,8 +50,19 @@ export default function PomodoroTimer() {
         updatePomodoroSettings({ ...pomodoroSettings, ...updates });
     };
 
+    // Calcular progreso para la barra de progreso
+    const progress = useMemo(() => {
+        if (totalSeconds === 0) return 0;
+        return (totalSeconds - secondsLeft) / totalSeconds;
+    }, [secondsLeft, totalSeconds]);
+
     return (
-        <View style={styles.container}>
+        <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+            <View style={styles.header}>
+                <Text style={styles.title}>Pomodoro Timer</Text>
+                <Text style={styles.subtitle}>Gestiona tu tiempo de trabajo</Text>
+            </View>
+
             <View style={styles.modeRow}>
                 <Pressable
                     onPress={() => handleSwitchMode('focus')}
@@ -55,19 +78,46 @@ export default function PomodoroTimer() {
                 </Pressable>
             </View>
 
-            <Text style={styles.timerText}>{secondsToMMSS(secondsLeft)}</Text>
+            <View style={styles.timerContainer}>
+                <Text style={styles.timerText}>
+                    {secondsToMMSS(secondsLeft)}
+                </Text>
+                
+                {/* Barra de progreso */}
+                <View style={styles.progressContainer}>
+                    <View style={styles.progressBar}>
+                        <View 
+                            style={[
+                                styles.progressFill, 
+                                { 
+                                    width: `${progress * 100}%`,
+                                    backgroundColor: mode === 'focus' ? '#10b981' : '#3b82f6'
+                                }
+                            ]} 
+                        />
+                    </View>
+                </View>
+            </View>
 
             <View style={styles.controlsRow}>
-                <Pressable onPress={toggle} style={[styles.controlBtn, isRunning ? styles.pause : styles.start]}>
-                    <Text style={styles.controlBtnText}>{isRunning ? 'Pausar' : 'Iniciar'}</Text>
+                <Pressable 
+                    onPress={toggle} 
+                    style={[styles.controlBtn, isRunning ? styles.pause : styles.start]}
+                >
+                    <Text style={styles.controlBtnText}>
+                        {isRunning ? 'Pausar' : 'Iniciar'}
+                    </Text>
                 </Pressable>
-                <Pressable onPress={reset} style={[styles.controlBtn, styles.reset]}>
+                <Pressable 
+                    onPress={reset} 
+                    style={[styles.controlBtn, styles.reset]}
+                >
                     <Text style={styles.controlBtnText}>Reiniciar</Text>
                 </Pressable>
             </View>
 
             <View style={styles.config}>
-                <Text style={styles.configTitle}>Ajustes (minutos)</Text>
+                <Text style={styles.configTitle}>Configuración (minutos)</Text>
                 <View style={styles.configRow}>
                     <Text style={styles.configLabel}>Enfoque</Text>
                     <TextInput
@@ -102,29 +152,41 @@ export default function PomodoroTimer() {
                     />
                 </View>
             </View>
-        </View>
+        </Animated.View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        padding: 16,
+    },
+    header: {
         alignItems: 'center',
-        justifyContent: 'center',
-        padding: 20,
+        marginBottom: 24,
+    },
+    title: {
+        color: 'white',
+        fontSize: 24,
+        fontWeight: '700',
+        marginBottom: 4,
+    },
+    subtitle: {
+        color: 'rgba(255,255,255,0.7)',
+        fontSize: 14,
     },
     modeRow: {
         flexDirection: 'row',
-        marginBottom: 30,
+        marginBottom: 32,
         backgroundColor: 'rgba(255,255,255,0.1)',
         borderRadius: 12,
         padding: 4,
     },
     modeBtn: {
+        flex: 1,
         paddingHorizontal: 20,
-        paddingVertical: 10,
+        paddingVertical: 12,
         borderRadius: 8,
-        minWidth: 100,
         alignItems: 'center',
     },
     modeBtnActive: {
@@ -139,17 +201,36 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: '700',
     },
+    timerContainer: {
+        alignItems: 'center',
+        marginBottom: 32,
+    },
     timerText: {
         fontSize: 72,
         fontWeight: '300',
         color: 'white',
-        marginBottom: 30,
+        marginBottom: 16,
         fontVariant: ['tabular-nums'],
+    },
+    progressContainer: {
+        width: '100%',
+        paddingHorizontal: 20,
+    },
+    progressBar: {
+        height: 6,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 3,
+        overflow: 'hidden',
+    },
+    progressFill: {
+        height: '100%',
+        borderRadius: 3,
     },
     controlsRow: {
         flexDirection: 'row',
         gap: 16,
-        marginBottom: 40,
+        marginBottom: 32,
+        justifyContent: 'center',
     },
     controlBtn: {
         paddingHorizontal: 24,
@@ -173,7 +254,6 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     config: {
-        width: '100%',
         backgroundColor: 'rgba(255,255,255,0.05)',
         borderRadius: 12,
         padding: 20,

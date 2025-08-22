@@ -33,7 +33,7 @@ export const useBackgroundNotifications = (lastActivityAt) => {
             ? `Tienes ${importantTasks.length} tareas importantes pendientes: ${taskNames}...`
             : `Tareas pendientes: ${taskNames}`;
             
-        console.log('🔔 Notificación en segundo plano:', message);
+        console.log('Notificación en segundo plano:', message);
         
         // Aquí podrías integrar con expo-notifications para notificaciones reales
         // Notifications.scheduleNotificationAsync({

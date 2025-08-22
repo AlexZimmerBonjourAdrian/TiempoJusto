@@ -136,7 +136,7 @@ export default function ProductiPet({ tasks, projects, onActivity }) {
 
                 {/* Información de productividad */}
                 <View style={styles.productivitySection}>
-                    <Text style={styles.productivityTitle}>📊 Tu Productividad</Text>
+                    <Text style={styles.productivityTitle}>Tu Productividad</Text>
                     <Text style={styles.productivityText}>
                         Tareas completadas hoy: {tasks?.filter(t => t.done).length || 0}
                     </Text>

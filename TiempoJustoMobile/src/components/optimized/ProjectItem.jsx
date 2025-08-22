@@ -32,7 +32,7 @@ const ProjectItem = memo(({
                         style={[styles.actionButton, styles.completeButton]}
                         onPress={() => onComplete(project.id)}
                     >
-                        <Text style={styles.actionButtonText}>✅ Completar</Text>
+                        <Text style={styles.actionButtonText}>Completar</Text>
                     </Pressable>
                     <Pressable 
                         style={[styles.actionButton, styles.removeButton]}
