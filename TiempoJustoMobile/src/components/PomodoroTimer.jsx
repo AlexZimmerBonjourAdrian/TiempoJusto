@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useAppContext } from '../context/AppContext';
 import { usePomodoroService } from '../hooks/usePomodoroService';
 
 function secondsToMMSS(totalSeconds) {
@@ -12,7 +13,9 @@ function secondsToMMSS(totalSeconds) {
     return `${m}:${s}`;
 }
 
-export default function PomodoroTimer({ settings, onChangeSettings }) {
+export default function PomodoroTimer() {
+    const { pomodoroSettings, updatePomodoroSettings } = useAppContext();
+    
     const {
         isRunning,
         mode,
@@ -24,11 +27,15 @@ export default function PomodoroTimer({ settings, onChangeSettings }) {
         reset,
         switchMode,
         toggle
-    } = usePomodoroService(settings);
+    } = usePomodoroService(pomodoroSettings);
 
     // Función para cambiar modo
     const handleSwitchMode = (nextMode) => {
         switchMode(nextMode);
+    };
+
+    const handleSettingsChange = (updates) => {
+        updatePomodoroSettings({ ...pomodoroSettings, ...updates });
     };
 
     return (
@@ -65,9 +72,9 @@ export default function PomodoroTimer({ settings, onChangeSettings }) {
                     <Text style={styles.configLabel}>Enfoque</Text>
                     <TextInput
                         keyboardType="numeric"
-                        value={String(settings.focusMinutes)}
+                        value={String(pomodoroSettings.focusMinutes)}
                         onChangeText={(v) =>
-                            onChangeSettings({ ...settings, focusMinutes: Math.max(1, Number(v || 0)) })
+                            handleSettingsChange({ focusMinutes: Math.max(1, Number(v || 0)) })
                         }
                         style={styles.configInput}
                     />
@@ -76,9 +83,9 @@ export default function PomodoroTimer({ settings, onChangeSettings }) {
                     <Text style={styles.configLabel}>Descanso corto</Text>
                     <TextInput
                         keyboardType="numeric"
-                        value={String(settings.shortBreakMinutes)}
+                        value={String(pomodoroSettings.shortBreakMinutes)}
                         onChangeText={(v) =>
-                            onChangeSettings({ ...settings, shortBreakMinutes: Math.max(1, Number(v || 0)) })
+                            handleSettingsChange({ shortBreakMinutes: Math.max(1, Number(v || 0)) })
                         }
                         style={styles.configInput}
                     />
@@ -87,9 +94,9 @@ export default function PomodoroTimer({ settings, onChangeSettings }) {
                     <Text style={styles.configLabel}>Descanso largo</Text>
                     <TextInput
                         keyboardType="numeric"
-                        value={String(settings.longBreakMinutes)}
+                        value={String(pomodoroSettings.longBreakMinutes)}
                         onChangeText={(v) =>
-                            onChangeSettings({ ...settings, longBreakMinutes: Math.max(1, Number(v || 0)) })
+                            handleSettingsChange({ longBreakMinutes: Math.max(1, Number(v || 0)) })
                         }
                         style={styles.configInput}
                     />
@@ -100,30 +107,103 @@ export default function PomodoroTimer({ settings, onChangeSettings }) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, alignItems: 'center', paddingTop: 10 },
-    modeRow: { flexDirection: 'row', gap: 8 },
-    modeBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.08)' },
-    modeBtnActive: { backgroundColor: 'rgba(59,130,246,0.25)' },
-    modeBtnText: { color: 'rgba(255,255,255,0.8)' },
-    modeBtnTextActive: { color: '#bfdbfe', fontWeight: '700' },
-    timerText: { color: 'white', fontSize: 64, fontWeight: '800', marginVertical: 18 },
-    controlsRow: { flexDirection: 'row', gap: 12 },
-    controlBtn: { paddingHorizontal: 16, paddingVertical: 12, borderRadius: 10 },
-    start: { backgroundColor: 'rgba(34,197,94,0.3)' },
-    pause: { backgroundColor: 'rgba(234,179,8,0.3)' },
-    reset: { backgroundColor: 'rgba(239,68,68,0.3)' },
-    controlBtnText: { color: 'white', fontWeight: '700' },
-    config: { alignSelf: 'stretch', marginTop: 20, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 12 },
-    configTitle: { color: 'white', fontWeight: '700', marginBottom: 8 },
-    configRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 },
-    configLabel: { color: 'rgba(255,255,255,0.8)' },
-    configInput: {
-        width: 72,
-        backgroundColor: 'rgba(255,255,255,0.08)',
-        color: 'white',
-        paddingHorizontal: 10,
-        paddingVertical: 8,
+    container: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 20,
+    },
+    modeRow: {
+        flexDirection: 'row',
+        marginBottom: 30,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 12,
+        padding: 4,
+    },
+    modeBtn: {
+        paddingHorizontal: 20,
+        paddingVertical: 10,
         borderRadius: 8,
+        minWidth: 100,
+        alignItems: 'center',
+    },
+    modeBtnActive: {
+        backgroundColor: 'rgba(255,255,255,0.2)',
+    },
+    modeBtnText: {
+        color: 'rgba(255,255,255,0.7)',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    modeBtnTextActive: {
+        color: 'white',
+        fontWeight: '700',
+    },
+    timerText: {
+        fontSize: 72,
+        fontWeight: '300',
+        color: 'white',
+        marginBottom: 30,
+        fontVariant: ['tabular-nums'],
+    },
+    controlsRow: {
+        flexDirection: 'row',
+        gap: 16,
+        marginBottom: 40,
+    },
+    controlBtn: {
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        borderRadius: 8,
+        minWidth: 100,
+        alignItems: 'center',
+    },
+    start: {
+        backgroundColor: '#10b981',
+    },
+    pause: {
+        backgroundColor: '#f59e0b',
+    },
+    reset: {
+        backgroundColor: 'rgba(255,255,255,0.1)',
+    },
+    controlBtnText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    config: {
+        width: '100%',
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderRadius: 12,
+        padding: 20,
+    },
+    configTitle: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: '600',
+        marginBottom: 16,
         textAlign: 'center',
+    },
+    configRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    configLabel: {
+        color: 'rgba(255,255,255,0.8)',
+        fontSize: 14,
+        flex: 1,
+    },
+    configInput: {
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 6,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        color: 'white',
+        fontSize: 16,
+        textAlign: 'center',
+        minWidth: 60,
     },
 });

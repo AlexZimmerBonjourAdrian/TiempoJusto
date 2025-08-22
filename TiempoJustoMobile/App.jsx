@@ -1,65 +1,82 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, StatusBar as RNStatusBar, Pressable } from 'react-native';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { View, Text, StyleSheet, StatusBar as RNStatusBar } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useAsyncStorageState } from './src/storage';
+import { AppProvider, useAppContext } from './src/context/AppContext';
 import TaskBoard from './src/components/TaskBoard';
 import PomodoroTimer from './src/components/PomodoroTimer';
 import ProjectBoard from './src/components/ProjectBoard';
 import AnalyticsBoard from './src/components/AnalyticsBoard';
 import SplashScreen from './src/components/SplashScreen';
+import LoadingScreen from './src/components/LoadingScreen';
 import backgroundService from './src/services/backgroundService';
-
 import DateTimeDisplay from './src/components/DateTimeDisplay';
 import MotivationalNotification from './src/components/MotivationalNotification';
 import PomodoroNotification from './src/components/PomodoroNotification';
 import { useMotivationalNotifications } from './src/hooks/useMotivationalNotifications';
 import { useBackgroundNotifications } from './src/hooks/useBackgroundNotifications';
 import { usePomodoroService } from './src/hooks/usePomodoroService';
+import { useNavigationData, useNotificationData } from './src/hooks/useOptimizedComponents';
+import TabButton from './src/components/optimized/TabButton';
 
 function AppInner() {
-    const [showSplash, setShowSplash] = useState(true);
-    const [activeTab, setActiveTab] = useState('tareas');
-    const [pomodoroNotification, setPomodoroNotification] = useState({ visible: false, mode: null });
-
-    const [tasks, setTasks] = useAsyncStorageState('TJ_TASKS', []);
-    const [projects, setProjects] = useAsyncStorageState('TJ_PROJECTS', []);
-    const [dailyLogs, setDailyLogs] = useAsyncStorageState('TJ_DAILY_LOGS', []);
-    const [milestones, setMilestones] = useAsyncStorageState('TJ_MILESTONES', []);
-    const [pomodoroSettings, setPomodoroSettings] = useAsyncStorageState(
-        'TJ_POMODORO_SETTINGS', { focusMinutes: 25, shortBreakMinutes: 5, longBreakMinutes: 15 }
-    );
-
-    const projectIdToProject = useMemo(() => {
-        const mapping = {};
-        for (const project of projects || []) {
-            mapping[project.id] = project;
-        }
-        return mapping;
-    }, [projects]);
-
-    const [lastActivityAt, setLastActivityAt] = useState(Date.now());
-    const { showNotification, notificationType, closeNotification, showManualNotification } = useMotivationalNotifications(
-        tasks,
+    const { 
+        showSplash, 
+        setShowSplash, 
+        activeTab, 
+        pomodoroSettings,
         lastActivityAt,
-        { minIntervalMs: 2 * 60 * 60 * 1000, idleThresholdMs: 4 * 60 * 60 * 1000, autoHideMs: 6000 }
+        isLoading,
+        storageError
+    } = useAppContext();
+
+    // Estado local para notificaciones motivacionales
+    const [showNotification, setShowNotification] = useState(false);
+    const [notificationType, setNotificationType] = useState(null);
+
+    const { tabData, handleTabPress } = useNavigationData();
+    const { 
+        pomodoroNotification,
+        handleClosePomodoroNotification 
+    } = useNotificationData();
+
+    // Función para cerrar notificaciones motivacionales
+    const closeNotification = useCallback(() => {
+        setShowNotification(false);
+        setNotificationType(null);
+    }, []);
+
+    // Función para mostrar notificaciones motivacionales
+    const handleShowNotification = useCallback((type) => {
+        setNotificationType(type);
+        setShowNotification(true);
+        
+        // Auto-ocultar después de 7 segundos
+        setTimeout(() => {
+            setShowNotification(false);
+            setNotificationType(null);
+        }, 7000);
+    }, []);
+
+    // Memoizar las opciones para evitar recreaciones
+    const motivationalOptions = useMemo(() => ({
+        minIntervalMs: 2 * 60 * 60 * 1000,
+        idleThresholdMs: 4 * 60 * 60 * 1000,
+        autoHideMs: 6000
+    }), []);
+
+    // Configurar notificaciones motivacionales
+    const { showManualNotification } = useMotivationalNotifications(
+        lastActivityAt,
+        motivationalOptions,
+        handleShowNotification
     );
 
     // Configurar notificaciones en segundo plano
-    useBackgroundNotifications(tasks, lastActivityAt);
+    useBackgroundNotifications(lastActivityAt);
 
     // Configurar servicio de Pomodoro
     const pomodoroState = usePomodoroService(pomodoroSettings);
-
-    // Manejar notificación de completado del Pomodoro
-    useEffect(() => {
-        if (pomodoroState.completed) {
-            setPomodoroNotification({
-                visible: true,
-                mode: pomodoroState.completedMode
-            });
-        }
-    }, [pomodoroState.completed, pomodoroState.completedMode]);
 
     // Configurar servicio de segundo plano
     useEffect(() => {
@@ -87,72 +104,12 @@ function AppInner() {
         backgroundService.updateActivityTime();
     };
 
-    function archiveTodayAndClean() {
-        const today = new Date();
-        const todayString = today.toISOString().split('T')[0];
-        const priorityOrder = { A: 0, B: 1, C: 2, D: 3 };
-
-        const todayTasks = (tasks || []).filter((t) => {
-            const dateStr = t.createdAt ? new Date(t.createdAt).toISOString().split('T')[0] : todayString;
-            return dateStr === todayString;
-        });
-
-        const completed = todayTasks.filter((t) => t.done);
-        const completionRate = todayTasks.length ? Math.round((completed.length / todayTasks.length) * 100) : 0;
-
-        const priorityBreakdown = { A: 0, B: 0, C: 0, D: 0 };
-        for (const t of todayTasks) {
-            const p = t.priority || 'C';
-            priorityBreakdown[p]++;
-        }
-
-        const projectBreakdown = {};
-        for (const t of todayTasks) {
-            const projectName = t.projectId ? (projects?.find(p=>p.id===t.projectId)?.name || 'Sin proyecto') : 'Sin proyecto';
-            if (!projectBreakdown[projectName]) projectBreakdown[projectName] = { total: 0, completed: 0 };
-            projectBreakdown[projectName].total++;
-            if (t.done) projectBreakdown[projectName].completed++;
-        }
-
-        let productivityScore = 0;
-        for (const t of completed) {
-            const p = t.priority || 'C';
-            productivityScore += p === 'A' ? 10 : p === 'B' ? 7 : p === 'C' ? 4 : 1;
-        }
-
-        const logEntry = {
-            date: todayString,
-            totalTasks: todayTasks.length,
-            completedTasks: completed.length,
-            completionRate,
-            productivityScore,
-            priorityBreakdown,
-            projectBreakdown,
-        };
-
-        setDailyLogs((prev) => {
-            const arr = Array.isArray(prev) ? [...prev] : [];
-            const idx = arr.findIndex((e) => e.date === todayString);
-            if (idx >= 0) arr[idx] = logEntry; else arr.push(logEntry);
-            return arr;
-        });
-
-        // Eliminar tareas sin proyecto
-        setTasks((prev) => (prev || []).filter((t) => t.projectId));
-
-        // Mostrar analíticas
-        setActiveTab('analiticas');
-    }
-
-    function completeProjectAndRegisterMilestone(projectId) {
-        const project = (projects || []).find((p) => p.id === projectId);
-        if (!project) return;
-        const completedAt = new Date().toISOString();
-        setProjects((prev) => (prev || []).map((p) => (p.id === projectId ? { ...p, completedAt, status: 'completed' } : p)));
-        setMilestones((prev) => ([...(prev || []), { id: `${projectId}-${completedAt}`, projectId, name: project.name, completedAt }]));
-    }
-
     const insets = useSafeAreaInsets();
+    
+    // Mostrar pantalla de carga si los datos están cargando
+    if (isLoading) {
+        return <LoadingScreen message="Cargando datos..." />;
+    }
     
     // Mostrar pantalla de inicio si showSplash es true
     if (showSplash) {
@@ -169,71 +126,23 @@ function AppInner() {
             </View>
 
             <View style={styles.content}>
-                {activeTab === 'tareas' && (
-                    <TaskBoard
-                        tasks={tasks}
-                        setTasks={setTasks}
-                        projects={projects}
-                        projectIdToProject={projectIdToProject}
-                        onShowAnalytics={archiveTodayAndClean}
-                        onShowNotification={showManualNotification}
-                        onActivity={() => setLastActivityAt(Date.now())}
-                    />
-                )}
-                {activeTab === 'pomodoro' && (
-                    <PomodoroTimer
-                        settings={pomodoroSettings}
-                        onChangeSettings={setPomodoroSettings}
-                    />
-                )}
-                {activeTab === 'proyectos' && (
-                    <ProjectBoard
-                        projects={projects}
-                        setProjects={setProjects}
-                        tasks={tasks}
-                        setTasks={setTasks}
-                        onCompleteProject={completeProjectAndRegisterMilestone}
-                        onActivity={() => setLastActivityAt(Date.now())}
-                    />
-                )}
-                {activeTab === 'analiticas' && (
-                    <AnalyticsBoard
-                        tasks={tasks}
-                        projects={projects}
-                        projectIdToProject={projectIdToProject}
-                        onCloseBoard={() => setActiveTab('tareas')}
-                    />
-                )}
-
+                {activeTab === 'tareas' && <TaskBoard />}
+                {activeTab === 'pomodoro' && <PomodoroTimer />}
+                {activeTab === 'proyectos' && <ProjectBoard />}
+                {activeTab === 'analiticas' && <AnalyticsBoard />}
             </View>
 
             <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom + 5, 17) }]}>
-                <TabButton 
-                    label="Tareas" 
-                    legend="Organizar tareas"
-                    isActive={activeTab === 'tareas'} 
-                    onPress={() => setActiveTab('tareas')} 
-                />
-                <TabButton 
-                    label="Pomodoro" 
-                    legend="Técnica de tiempo"
-                    isActive={activeTab === 'pomodoro'} 
-                    onPress={() => setActiveTab('pomodoro')} 
-                    isRunning={pomodoroState.isRunning}
-                />
-                <TabButton 
-                    label="Proyectos" 
-                    legend="Gestión de proyectos"
-                    isActive={activeTab === 'proyectos'} 
-                    onPress={() => setActiveTab('proyectos')} 
-                />
-                <TabButton 
-                    label="Analíticas" 
-                    legend="Estadísticas diarias"
-                    isActive={activeTab === 'analiticas'} 
-                    onPress={() => setActiveTab('analiticas')} 
-                />
-
+                {tabData.map(tab => (
+                    <TabButton
+                        key={tab.id}
+                        label={tab.label}
+                        legend={tab.legend}
+                        isActive={tab.isActive}
+                        onPress={() => handleTabPress(tab.id)}
+                        isRunning={tab.isRunning}
+                    />
+                ))}
             </View>
 
             <MotivationalNotification
@@ -244,7 +153,7 @@ function AppInner() {
             <PomodoroNotification
                 visible={pomodoroNotification.visible}
                 mode={pomodoroNotification.mode}
-                onClose={() => setPomodoroNotification({ visible: false, mode: null })}
+                onClose={handleClosePomodoroNotification}
             />
         </View>
     );
@@ -253,18 +162,10 @@ function AppInner() {
 export default function App() {
     return (
         <SafeAreaProvider>
-            <AppInner />
+            <AppProvider>
+                <AppInner />
+            </AppProvider>
         </SafeAreaProvider>
-    );
-}
-
-function TabButton({ label, legend, isActive, onPress, isRunning }) {
-    return (
-        <Pressable onPress={onPress} style={[styles.tabButton, isActive && styles.tabButtonActive]}>
-            <Text style={[styles.tabButtonText, isActive && styles.tabButtonTextActive]}>{label}</Text>
-            <Text style={[styles.tabButtonLegend, isActive && styles.tabButtonLegendActive]}>{legend}</Text>
-            {isRunning && <View style={styles.runningIndicator} />}
-        </Pressable>
     );
 }
 
@@ -304,46 +205,5 @@ const styles = StyleSheet.create({
         borderTopColor: 'rgba(255,255,255,0.08)',
         backgroundColor: 'rgba(15,23,42,0.98)',
         paddingHorizontal: 4,
-    },
-    tabButton: {
-        flex: 1,
-        paddingVertical: 8,
-        paddingHorizontal: 4,
-        alignItems: 'center',
-        borderRadius: 6,
-        marginHorizontal: 2,
-    },
-    tabButtonActive: {
-        backgroundColor: 'rgba(255,255,255,0.06)',
-    },
-    tabButtonText: {
-        color: 'rgba(255,255,255,0.8)',
-        fontWeight: '600',
-        fontSize: 11,
-        marginBottom: 1,
-    },
-    tabButtonTextActive: {
-        color: 'white',
-        fontWeight: '700',
-    },
-    tabButtonLegend: {
-        color: 'rgba(255,255,255,0.5)',
-        fontSize: 8,
-        textAlign: 'center',
-        lineHeight: 10,
-    },
-    tabButtonLegendActive: {
-        color: 'rgba(255,255,255,0.7)',
-    },
-    runningIndicator: {
-        position: 'absolute',
-        top: 4,
-        right: 4,
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: '#ef4444',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.3)',
     },
 });

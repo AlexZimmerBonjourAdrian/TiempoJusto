@@ -1,10 +1,23 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Animated } from 'react-native';
+import { useAppContext } from '../context/AppContext';
+import { useTaskStats } from '../hooks/useOptimizedComponents';
 
-export default function AnalyticsBoard({ tasks, projects, projectIdToProject, onCloseBoard }) {
+export default function AnalyticsBoard() {
     const today = new Date();
     const todayString = today.toISOString().split('T')[0];
     const [fadeAnim] = useState(new Animated.Value(0));
+
+    const { tasks, projects, projectIdToProject, setActiveTab } = useAppContext();
+    
+    const todayTasks = useMemo(() => {
+        return tasks.filter(task => {
+            const taskDate = task.createdAt ? new Date(task.createdAt).toISOString().split('T')[0] : todayString;
+            return taskDate === todayString;
+        });
+    }, [tasks, todayString]);
+
+    const taskStats = useTaskStats(todayTasks);
 
     useEffect(() => {
         Animated.timing(fadeAnim, {
@@ -15,7 +28,7 @@ export default function AnalyticsBoard({ tasks, projects, projectIdToProject, on
     }, []);
 
     const analytics = useMemo(() => {
-        if (!tasks || tasks.length === 0) {
+        if (!todayTasks || todayTasks.length === 0) {
             return {
                 totalTasks: 0,
                 completedTasks: 0,
@@ -26,11 +39,6 @@ export default function AnalyticsBoard({ tasks, projects, projectIdToProject, on
                 timeSpent: 0,
             };
         }
-
-        const todayTasks = tasks.filter(task => {
-            const taskDate = task.createdAt ? new Date(task.createdAt).toISOString().split('T')[0] : todayString;
-            return taskDate === todayString;
-        });
 
         const completedTasks = todayTasks.filter(task => task.done);
         const completionRate = todayTasks.length > 0 ? (completedTasks.length / todayTasks.length) * 100 : 0;
@@ -76,7 +84,11 @@ export default function AnalyticsBoard({ tasks, projects, projectIdToProject, on
             productivityScore,
             timeSpent: completedTasks.length * 25, // Estimación: 25 min por tarea
         };
-    }, [tasks, projects, projectIdToProject, todayString]);
+    }, [todayTasks, projectIdToProject]);
+
+    const handleCloseBoard = () => {
+        setActiveTab('tareas');
+    };
 
     return (
         <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
@@ -106,16 +118,16 @@ export default function AnalyticsBoard({ tasks, projects, projectIdToProject, on
                     </View>
                     <View style={styles.statCard}>
                         <Text style={styles.statNumber}>{analytics.productivityScore}</Text>
-                        <Text style={styles.statLabel}>Score Productividad</Text>
+                        <Text style={styles.statLabel}>Puntuación</Text>
                     </View>
                 </View>
 
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Desglose por Prioridad</Text>
+                    <Text style={styles.sectionTitle}>Distribución por Prioridad</Text>
                     <View style={styles.priorityGrid}>
                         {Object.entries(analytics.priorityBreakdown).map(([priority, count]) => (
-                            <View key={priority} style={styles.priorityCard}>
-                                <Text style={[styles.priorityLetter, styles[`priority${priority}`]]}>
+                            <View key={priority} style={styles.priorityItem}>
+                                <Text style={[styles.priorityLabel, styles[`priority${priority}`]]}>
                                     {priority}
                                 </Text>
                                 <Text style={styles.priorityCount}>{count}</Text>
@@ -126,20 +138,40 @@ export default function AnalyticsBoard({ tasks, projects, projectIdToProject, on
 
                 {Object.keys(analytics.projectBreakdown).length > 0 && (
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Proyectos</Text>
-                        {Object.entries(analytics.projectBreakdown).map(([projectName, data]) => (
-                            <View key={projectName} style={styles.projectCard}>
+                        <Text style={styles.sectionTitle}>Rendimiento por Proyecto</Text>
+                        {Object.entries(analytics.projectBreakdown).map(([projectName, stats]) => (
+                            <View key={projectName} style={styles.projectItem}>
                                 <Text style={styles.projectName}>{projectName}</Text>
                                 <Text style={styles.projectStats}>
-                                    {data.completed}/{data.total} completadas
+                                    {stats.completed}/{stats.total} completadas
                                 </Text>
+                                <View style={styles.progressBar}>
+                                    <View 
+                                        style={[
+                                            styles.progressFill, 
+                                            { width: `${(stats.completed / stats.total) * 100}%` }
+                                        ]} 
+                                    />
+                                </View>
                             </View>
                         ))}
                     </View>
                 )}
 
-                <Pressable onPress={onCloseBoard} style={styles.closeButton}>
-                    <Text style={styles.closeButtonText}>Cerrar Tablero</Text>
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Resumen de Tiempo</Text>
+                    <View style={styles.timeCard}>
+                        <Text style={styles.timeEstimate}>
+                            Tiempo estimado: {Math.round(analytics.timeSpent / 60)} horas
+                        </Text>
+                        <Text style={styles.timeNote}>
+                            Basado en 25 minutos por tarea completada
+                        </Text>
+                    </View>
+                </View>
+
+                <Pressable style={styles.closeButton} onPress={handleCloseBoard}>
+                    <Text style={styles.closeButtonText}>Cerrar Análisis</Text>
                 </Pressable>
             </ScrollView>
         </Animated.View>
@@ -149,137 +181,140 @@ export default function AnalyticsBoard({ tasks, projects, projectIdToProject, on
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        alignItems: 'center',
     },
     scrollView: {
         flex: 1,
-        width: '100%',
     },
     scrollContent: {
-        padding: 12,
-        alignItems: 'center',
+        padding: 16,
     },
     header: {
-        width: '100%',
-        marginBottom: 16,
         alignItems: 'center',
+        marginBottom: 24,
     },
     title: {
-        fontSize: 20,
-        fontWeight: '700',
         color: 'white',
-        marginBottom: 6,
-        textAlign: 'center',
+        fontSize: 24,
+        fontWeight: '700',
+        marginBottom: 8,
     },
     date: {
-        fontSize: 12,
         color: 'rgba(255,255,255,0.7)',
+        fontSize: 14,
         textAlign: 'center',
     },
     statsGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 8,
-        marginBottom: 16,
-        width: '100%',
-        justifyContent: 'center',
+        gap: 12,
+        marginBottom: 24,
     },
     statCard: {
         flex: 1,
         minWidth: '45%',
-        backgroundColor: 'rgba(255,255,255,0.08)',
+        backgroundColor: 'rgba(255,255,255,0.05)',
         borderRadius: 12,
         padding: 16,
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
     },
     statNumber: {
-        fontSize: 24,
-        fontWeight: '700',
         color: 'white',
-        marginBottom: 6,
+        fontSize: 28,
+        fontWeight: '700',
+        marginBottom: 4,
     },
     statLabel: {
-        fontSize: 12,
         color: 'rgba(255,255,255,0.7)',
+        fontSize: 12,
         textAlign: 'center',
-        fontWeight: '500',
     },
     section: {
-        marginBottom: 16,
-        width: '100%',
-        alignItems: 'center',
+        marginBottom: 24,
     },
     sectionTitle: {
-        fontSize: 16,
-        fontWeight: '600',
         color: 'white',
+        fontSize: 18,
+        fontWeight: '600',
         marginBottom: 12,
-        textAlign: 'center',
     },
     priorityGrid: {
         flexDirection: 'row',
         gap: 8,
-        width: '100%',
-        justifyContent: 'center',
     },
-    priorityCard: {
+    priorityItem: {
         flex: 1,
-        backgroundColor: 'rgba(255,255,255,0.08)',
-        borderRadius: 12,
-        padding: 16,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderRadius: 8,
+        padding: 12,
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
     },
-    priorityLetter: {
-        fontSize: 20,
+    priorityLabel: {
+        fontSize: 16,
         fontWeight: '700',
-        marginBottom: 6,
+        marginBottom: 4,
+    },
+    priorityCount: {
+        color: 'rgba(255,255,255,0.8)',
+        fontSize: 14,
+        fontWeight: '600',
     },
     priorityA: { color: '#ef4444' },
     priorityB: { color: '#f97316' },
     priorityC: { color: '#eab308' },
     priorityD: { color: '#6b7280' },
-    priorityCount: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: 'white',
-    },
-    projectCard: {
-        backgroundColor: 'rgba(255,255,255,0.08)',
-        borderRadius: 12,
+    projectItem: {
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderRadius: 8,
         padding: 12,
         marginBottom: 8,
-        width: '100%',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
     },
     projectName: {
+        color: 'white',
         fontSize: 14,
         fontWeight: '600',
-        color: 'white',
-        marginBottom: 2,
+        marginBottom: 4,
     },
     projectStats: {
-        fontSize: 12,
         color: 'rgba(255,255,255,0.7)',
+        fontSize: 12,
+        marginBottom: 8,
+    },
+    progressBar: {
+        height: 4,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 2,
+        overflow: 'hidden',
+    },
+    progressFill: {
+        height: '100%',
+        backgroundColor: '#10b981',
+    },
+    timeCard: {
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderRadius: 8,
+        padding: 16,
+    },
+    timeEstimate: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '600',
+        marginBottom: 4,
+    },
+    timeNote: {
+        color: 'rgba(255,255,255,0.6)',
+        fontSize: 12,
     },
     closeButton: {
-        backgroundColor: '#ef4444',
+        backgroundColor: '#10b981',
+        borderRadius: 8,
         paddingVertical: 12,
         paddingHorizontal: 24,
-        borderRadius: 12,
         alignItems: 'center',
         marginTop: 16,
-        marginBottom: 32,
-        borderWidth: 1,
-        borderColor: 'rgba(239,68,68,0.3)',
     },
     closeButtonText: {
         color: 'white',
-        fontSize: 14,
-        fontWeight: '700',
+        fontSize: 16,
+        fontWeight: '600',
     },
 });

@@ -1,102 +1,88 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback, useMemo } from 'react';
+import { useAppContext } from '../context/AppContext';
 
-export function useMotivationalNotifications(tasks, lastActivityAt, options = {}) {
-    const [showNotification, setShowNotification] = useState(false);
-    const [notificationType, setNotificationType] = useState('general');
+export function useMotivationalNotifications(lastActivityAt, options = {}, onShowNotification) {
+    const { tasks } = useAppContext();
     const lastNotificationTime = useRef(0);
     const completedTasksCount = useRef(0);
     const autoHideTimerRef = useRef(null);
 
-    const minIntervalMs = options.minIntervalMs ?? 2 * 60 * 60 * 1000; // 2 horas
-    const idleThresholdMs = options.idleThresholdMs ?? 4 * 60 * 60 * 1000; // 4 horas
+    // Memoizar las opciones para evitar recreaciones
+    const memoizedOptions = useMemo(() => ({
+        minIntervalMs: options.minIntervalMs ?? 2 * 60 * 60 * 1000, // 2 horas
+        idleThresholdMs: options.idleThresholdMs ?? 4 * 60 * 60 * 1000, // 4 horas
+    }), [options.minIntervalMs, options.idleThresholdMs]);
+
+    // Memoizar la función de callback para evitar recreaciones
+    const memoizedOnShowNotification = useCallback((type) => {
+        if (onShowNotification) {
+            onShowNotification(type);
+        }
+    }, [onShowNotification]);
+
+    // Memoizar las tareas para evitar recálculos innecesarios
+    const memoizedTasks = useMemo(() => tasks || [], [tasks]);
 
     useEffect(() => {
-        if (!tasks || tasks.length === 0) return;
+        if (!memoizedTasks.length || !memoizedOnShowNotification) return;
 
-        const completedTasks = tasks.filter(task => task.done).length;
-        const totalTasks = tasks.length;
+        const completedTasks = memoizedTasks.filter(task => task.done).length;
+        const totalTasks = memoizedTasks.length;
         const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
         const now = Date.now();
 
         // Notificación cuando se completa una tarea importante
         if (completedTasks > completedTasksCount.current) {
-            const newlyCompleted = tasks.filter(task => 
+            const newlyCompleted = memoizedTasks.filter(task => 
                 task.done && 
                 (task.priority === 'A' || task.priority === 'B')
             );
             
             if (newlyCompleted.length > 0) {
-                setNotificationType('motivation');
-                setShowNotification(true);
+                memoizedOnShowNotification('motivation');
                 lastNotificationTime.current = now;
             }
         }
 
         // Notificación periódica poco frecuente (mínimo cada 2 horas)
-        if (now - lastNotificationTime.current > minIntervalMs) {
+        if (now - lastNotificationTime.current > memoizedOptions.minIntervalMs) {
             if (completionRate < 40) {
-                setNotificationType('discipline');
-                setShowNotification(true);
+                memoizedOnShowNotification('discipline');
                 lastNotificationTime.current = now;
             } else if (completionRate > 85) {
-                setNotificationType('motivation');
-                setShowNotification(true);
+                memoizedOnShowNotification('motivation');
                 lastNotificationTime.current = now;
             }
         }
 
         // Notificación de disciplina si hay muchas tareas pendientes (con el mismo rate limit)
-        const pendingTasks = tasks.filter(task => !task.done);
-        if (pendingTasks.length > 7 && now - lastNotificationTime.current > minIntervalMs) {
-            setNotificationType('discipline');
-            setShowNotification(true);
+        const pendingTasks = memoizedTasks.filter(task => !task.done);
+        if (pendingTasks.length > 7 && now - lastNotificationTime.current > memoizedOptions.minIntervalMs) {
+            memoizedOnShowNotification('discipline');
             lastNotificationTime.current = now;
         }
 
         completedTasksCount.current = completedTasks;
-    }, [tasks]);
+    }, [memoizedTasks, memoizedOnShowNotification, memoizedOptions.minIntervalMs]);
 
     // Inactividad: si no hay actividad por 4 horas, avisar (respetando el rate limit)
     useEffect(() => {
-        if (!lastActivityAt) return;
+        if (!lastActivityAt || !memoizedOnShowNotification) return;
         const now = Date.now();
-        if (now - lastActivityAt >= idleThresholdMs && now - lastNotificationTime.current >= minIntervalMs) {
-            setNotificationType('motivation');
-            setShowNotification(true);
+        if (now - lastActivityAt >= memoizedOptions.idleThresholdMs && now - lastNotificationTime.current >= memoizedOptions.minIntervalMs) {
+            memoizedOnShowNotification('motivation');
             lastNotificationTime.current = now;
         }
-    }, [lastActivityAt]);
+    }, [lastActivityAt, memoizedOnShowNotification, memoizedOptions.idleThresholdMs, memoizedOptions.minIntervalMs]);
 
-    // Auto-ocultar las notificaciones tipo leyenda
-    useEffect(() => {
-        if (showNotification) {
-            if (autoHideTimerRef.current) clearTimeout(autoHideTimerRef.current);
-            autoHideTimerRef.current = setTimeout(() => {
-                setShowNotification(false);
-            }, options.autoHideMs ?? 7000);
+    const showManualNotification = useCallback((type = 'general') => {
+        if (memoizedOnShowNotification) {
+            memoizedOnShowNotification(type);
+            lastNotificationTime.current = Date.now();
         }
-        return () => {
-            if (autoHideTimerRef.current) {
-                clearTimeout(autoHideTimerRef.current);
-                autoHideTimerRef.current = null;
-            }
-        };
-    }, [showNotification]);
-
-    const closeNotification = () => {
-        setShowNotification(false);
-    };
-
-    const showManualNotification = (type = 'general') => {
-        setNotificationType(type);
-        setShowNotification(true);
-        lastNotificationTime.current = Date.now();
-    };
+    }, [memoizedOnShowNotification]);
 
     return {
-        showNotification,
-        notificationType,
-        closeNotification,
         showManualNotification
     };
 }
