@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View, Alert, Animated } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, TextInput, View, Alert, Animated, ScrollView } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import TaskItem from './optimized/TaskItem';
+import ProgressChart from './ProgressChart';
+import TimeRangeSelector from './TimeRangeSelector';
 
 // Componente memoizado para el input de nueva tarea
 const NewTaskInput = React.memo(({ 
@@ -166,6 +168,7 @@ export default function TaskBoard() {
     const [filterProjectId, setFilterProjectId] = useState(null);
     const [fadeAnim] = useState(new Animated.Value(0));
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [timeRange, setTimeRange] = useState('month');
 
     const { 
         projects, 
@@ -346,51 +349,63 @@ export default function TaskBoard() {
                 </Pressable>
             </View>
 
-            <View style={styles.inputSection}>
-                <NewTaskInput
-                    newTitle={newTitle}
-                    setNewTitle={setNewTitle}
-                    isSubmitting={isSubmitting}
-                    onSubmit={handleAddTask}
+            <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+                {/* Gráfica de Progreso */}
+                <TimeRangeSelector
+                    selectedRange={timeRange}
+                    onRangeChange={setTimeRange}
+                />
+                <ProgressChart
+                    tasks={tasks || []}
+                    timeRange={timeRange}
                 />
 
-                <View style={styles.optionsRow}>
-                    <ProjectSelector
-                        projects={projects}
-                        selectedProjectId={selectedProjectId}
-                        setSelectedProjectId={setSelectedProjectId}
+                <View style={styles.inputSection}>
+                    <NewTaskInput
+                        newTitle={newTitle}
+                        setNewTitle={setNewTitle}
+                        isSubmitting={isSubmitting}
+                        onSubmit={handleAddTask}
                     />
-                    <PrioritySelector
-                        selectedPriority={selectedPriority}
-                        setSelectedPriority={setSelectedPriority}
-                    />
+
+                    <View style={styles.optionsRow}>
+                        <ProjectSelector
+                            projects={projects}
+                            selectedProjectId={selectedProjectId}
+                            setSelectedProjectId={setSelectedProjectId}
+                        />
+                        <PrioritySelector
+                            selectedPriority={selectedPriority}
+                            setSelectedPriority={setSelectedPriority}
+                        />
+                    </View>
                 </View>
-            </View>
 
-            <FilterSection
-                projects={projects}
-                filterProjectId={filterProjectId}
-                setFilterProjectId={setFilterProjectId}
-                clearFilter={clearFilter}
-            />
+                <FilterSection
+                    projects={projects}
+                    filterProjectId={filterProjectId}
+                    setFilterProjectId={setFilterProjectId}
+                    clearFilter={clearFilter}
+                />
 
-            <FlatList
-                data={sortedTasks}
-                renderItem={renderTask}
-                keyExtractor={keyExtractor}
-                style={styles.taskList}
-                showsVerticalScrollIndicator={false}
-                ListEmptyComponent={ListEmptyComponent}
-                removeClippedSubviews={true}
-                maxToRenderPerBatch={10}
-                windowSize={10}
-                initialNumToRender={10}
-                getItemLayout={(data, index) => ({
-                    length: 80,
-                    offset: 80 * index,
-                    index,
-                })}
-            />
+                {/* Lista de Tareas */}
+                <View style={styles.taskListContainer}>
+                    {sortedTasks.length > 0 ? (
+                        sortedTasks.map((task) => (
+                            <TaskItem
+                                key={task.id}
+                                task={task}
+                                projectName={task.projectId ? projectIdToProject[task.projectId]?.name : null}
+                                onToggle={handleToggleTask}
+                                onRemove={handleRemoveTask}
+                                onMoveToDaily={moveToDailyBoard}
+                            />
+                        ))
+                    ) : (
+                        <EmptyList filterProjectId={filterProjectId} />
+                    )}
+                </View>
+            </ScrollView>
         </Animated.View>
     );
 }
@@ -560,6 +575,12 @@ const styles = StyleSheet.create({
     filterButtonTextActive: {
         color: 'white',
         fontWeight: '600',
+    },
+    scrollContainer: {
+        flex: 1,
+    },
+    taskListContainer: {
+        paddingBottom: 20,
     },
     taskList: {
         flex: 1,

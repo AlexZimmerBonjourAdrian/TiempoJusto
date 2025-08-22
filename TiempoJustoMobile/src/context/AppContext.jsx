@@ -101,9 +101,17 @@ export function AppProvider({ children }) {
     const toggleTask = useCallback((taskId) => {
         setAppState(prev => ({
             ...prev,
-            tasks: (prev.tasks || []).map(task => 
-                task.id === taskId ? { ...task, done: !task.done } : task
-            ),
+            tasks: (prev.tasks || []).map(task => {
+                if (task.id === taskId) {
+                    const newDone = !task.done;
+                    return {
+                        ...task,
+                        done: newDone,
+                        completedAt: newDone ? new Date().toISOString() : null
+                    };
+                }
+                return task;
+            }),
             lastActivityAt: Date.now()
         }));
     }, [setAppState]);
