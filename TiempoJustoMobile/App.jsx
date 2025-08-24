@@ -18,6 +18,7 @@ import { useBackgroundNotifications } from './src/hooks/useBackgroundNotificatio
 import { usePomodoroService } from './src/hooks/usePomodoroService';
 import { useNavigationData, useNotificationData } from './src/hooks/useOptimizedComponents';
 import TabButton from './src/components/optimized/TabButton';
+import mobileAds, { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 
 function AppInner() {
     const { 
@@ -80,6 +81,9 @@ function AppInner() {
 
     // Configurar servicio de segundo plano
     useEffect(() => {
+        // Inicializar SDK de Google Mobile Ads
+        mobileAds().initialize();
+
         // Inicializar servicio de segundo plano
         backgroundService.updateActivityTime();
         
@@ -130,6 +134,13 @@ function AppInner() {
                 {activeTab === 'pomodoro' && <PomodoroTimer />}
                 {activeTab === 'proyectos' && <ProjectBoard />}
                 {activeTab === 'analiticas' && <AnalyticsBoard />}
+            </View>
+
+            <View style={styles.adContainer}>
+                <BannerAd
+                    unitId={TestIds.BANNER}
+                    size={BannerAdSize.BANNER}
+                />
             </View>
 
             <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom + 5, 17) }]}>
@@ -205,5 +216,10 @@ const styles = StyleSheet.create({
         borderTopColor: 'rgba(255,255,255,0.08)',
         backgroundColor: 'rgba(15,23,42,0.98)',
         paddingHorizontal: 4,
+    },
+    adContainer: {
+        alignItems: 'center',
+        paddingVertical: 8,
+        backgroundColor: 'rgba(15,23,42,0.98)'
     },
 });
