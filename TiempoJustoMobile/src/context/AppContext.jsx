@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useMemo, useCallback, useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { useAsyncStorageState, validateTask, validateProject, validatePomodoroSettings } from '../storage';
+import adService from '../services/adService';
 
 // Estado inicial
 const initialState = {
@@ -99,9 +100,8 @@ export function AppProvider({ children }) {
     }, [setAppState]);
     
     const toggleTask = useCallback((taskId) => {
-        setAppState(prev => ({
-            ...prev,
-            tasks: (prev.tasks || []).map(task => {
+        setAppState(prev => {
+            const updatedTasks = (prev.tasks || []).map(task => {
                 if (task.id === taskId) {
                     const newDone = !task.done;
                     return {
@@ -111,9 +111,20 @@ export function AppProvider({ children }) {
                     };
                 }
                 return task;
-            }),
-            lastActivityAt: Date.now()
-        }));
+            });
+
+            // Disparar anuncio cada 5 tareas completadas
+            const completedToday = updatedTasks.filter(t => t.done).length;
+            if (completedToday > 0 && completedToday % 5 === 0) {
+                try { adService.showNext(); } catch {}
+            }
+
+            return {
+                ...prev,
+                tasks: updatedTasks,
+                lastActivityAt: Date.now()
+            };
+        });
     }, [setAppState]);
     
     const removeTask = useCallback((taskId) => {
@@ -182,6 +193,9 @@ export function AppProvider({ children }) {
             milestones: [...(prev.milestones || []), milestone],
             lastActivityAt: Date.now()
         }));
+
+        // Mostrar anuncio al completar proyecto
+        try { adService.onProjectCompleted(); } catch {}
     }, [appState.projects, setAppState]);
     
     const removeProject = useCallback((projectId) => {

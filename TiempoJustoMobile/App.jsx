@@ -19,6 +19,7 @@ import { usePomodoroService } from './src/hooks/usePomodoroService';
 import { useNavigationData, useNotificationData } from './src/hooks/useOptimizedComponents';
 import TabButton from './src/components/optimized/TabButton';
 import mobileAds, { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
+import adService from './src/services/adService';
 
 function AppInner() {
     const { 
@@ -83,6 +84,7 @@ function AppInner() {
     useEffect(() => {
         // Inicializar SDK de Google Mobile Ads
         mobileAds().initialize();
+        adService.initialize();
 
         // Inicializar servicio de segundo plano
         backgroundService.updateActivityTime();

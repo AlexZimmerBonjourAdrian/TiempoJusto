@@ -8,6 +8,7 @@ export default function ProjectBoard() {
     const [newName, setNewName] = useState('');
     const [fadeAnim] = useState(new Animated.Value(0));
     const [expandedProjects, setExpandedProjects] = useState(new Set());
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const { projects, projectIdToTaskCount, projectTasks } = useAppContext();
     const { handleAddProject, handleCompleteProject, handleRemoveProject } = useProjectActions();
@@ -20,13 +21,21 @@ export default function ProjectBoard() {
         }).start();
     }, []);
 
-    function addProject() {
+    async function addProject() {
         const name = newName.trim();
-        if (!name) return;
-        
-        const project = { name };
-        handleAddProject(project);
-        setNewName('');
+        if (!name || isSubmitting) return;
+
+        setIsSubmitting(true);
+        try {
+            const project = { name };
+            await handleAddProject(project);
+            setNewName('');
+        } catch (error) {
+            console.error('Error al crear proyecto:', error);
+            Alert.alert('Error', 'No se pudo crear el proyecto. Inténtalo nuevamente.');
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     function toggleProjectExpansion(projectId) {
@@ -99,15 +108,16 @@ export default function ProjectBoard() {
             <View style={styles.inputSection}>
                 <View style={styles.inputRow}>
                     <TextInput
-                        style={styles.nameInput}
+                        style={[styles.nameInput, isSubmitting && styles.nameInputDisabled]}
                         placeholder="Nuevo proyecto..."
                         placeholderTextColor="rgba(255,255,255,0.5)"
                         value={newName}
                         onChangeText={setNewName}
                         onSubmitEditing={addProject}
+                        editable={!isSubmitting}
                     />
-                    <Pressable style={styles.addButton} onPress={addProject}>
-                        <Text style={styles.addButtonText}>+</Text>
+                    <Pressable style={[styles.addButton, isSubmitting && styles.addButtonDisabled]} onPress={addProject} disabled={isSubmitting}>
+                        <Text style={styles.addButtonText}>{isSubmitting ? '...' : '+'}</Text>
                     </Pressable>
                 </View>
             </View>
@@ -163,6 +173,9 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginRight: 8,
     },
+    nameInputDisabled: {
+        opacity: 0.6,
+    },
     addButton: {
         backgroundColor: '#10b981',
         borderRadius: 8,
@@ -170,6 +183,9 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    addButtonDisabled: {
+        backgroundColor: '#6b7280',
     },
     addButtonText: {
         color: 'white',

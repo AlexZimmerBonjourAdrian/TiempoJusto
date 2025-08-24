@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View, Alert, Animated, ScrollView } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import TaskItem from './optimized/TaskItem';
@@ -189,6 +189,7 @@ export default function TaskBoard() {
     const [filterProjectId, setFilterProjectId] = useState(null);
     const [fadeAnim] = useState(new Animated.Value(0));
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const isAddingRef = useRef(false);
 
     const { 
         projects, 
@@ -261,12 +262,15 @@ export default function TaskBoard() {
 
     // Manejar agregar nueva tarea
     const handleAddTask = useCallback(async () => {
-        if (!newTitle.trim() || isSubmitting) return;
-        
+        const title = newTitle.trim();
+        if (!title) return;
+        if (isAddingRef.current) return; // candado sincronizado para evitar dobles envíos
+        isAddingRef.current = true;
         setIsSubmitting(true);
+
         try {
             await addTask({
-                title: newTitle.trim(),
+                title,
                 projectId: selectedProjectId,
                 priority: selectedPriority
             });
@@ -278,8 +282,9 @@ export default function TaskBoard() {
             Alert.alert('Error', 'No se pudo agregar la tarea');
         } finally {
             setIsSubmitting(false);
+            isAddingRef.current = false;
         }
-    }, [newTitle, selectedProjectId, selectedPriority, isSubmitting, addTask]);
+    }, [newTitle, selectedProjectId, selectedPriority, addTask]);
 
     // Manejar toggle de tarea
     const handleToggleTask = useCallback((taskId) => {
