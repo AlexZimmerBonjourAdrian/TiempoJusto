@@ -7,13 +7,15 @@ class BackgroundService {
         this.isActive = true;
         this.lastActivityTime = Date.now();
         this.backgroundTasks = [];
+        this.appStateSubscription = null;
+        this.handleAppStateChange = this.handleAppStateChange.bind(this);
         
         this.setupAppStateListener();
     }
 
     setupAppStateListener() {
         try {
-            AppState.addEventListener('change', this.handleAppStateChange.bind(this));
+            this.appStateSubscription = AppState.addEventListener('change', this.handleAppStateChange);
         } catch (error) {
             console.error('Error configurando listener de AppState:', error);
         }
@@ -129,13 +131,15 @@ class BackgroundService {
         // Ejemplo: Verificar si hay tareas pendientes importantes
         this.addBackgroundTask(async () => {
             try {
-                const tasks = await AsyncStorage.getItem('TJ_TASKS');
-                if (tasks) {
-                    const parsedTasks = JSON.parse(tasks);
-                    const pendingImportantTasks = parsedTasks.filter(
+                // Leer estado unificado de la app
+                const appStateStr = await AsyncStorage.getItem('TJ_APP_STATE');
+                const appState = appStateStr ? JSON.parse(appStateStr) : null;
+                const tasks = Array.isArray(appState?.tasks) ? appState.tasks : [];
+
+                if (tasks.length > 0) {
+                    const pendingImportantTasks = tasks.filter(
                         task => !task.done && (task.priority === 'A' || task.priority === 'B')
                     );
-                    
                     if (pendingImportantTasks.length > 0) {
                         console.log(`Tienes ${pendingImportantTasks.length} tareas importantes pendientes`);
                         // Aquí podrías mostrar una notificación
@@ -166,7 +170,9 @@ class BackgroundService {
     // Método para limpiar recursos
     cleanup() {
         try {
-            AppState.removeEventListener('change', this.handleAppStateChange);
+            if (this.appStateSubscription && typeof this.appStateSubscription.remove === 'function') {
+                this.appStateSubscription.remove();
+            }
         } catch (error) {
             console.error('Error removiendo listener de AppState:', error);
         }

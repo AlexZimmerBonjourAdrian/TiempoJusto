@@ -80,15 +80,23 @@ export function AppProvider({ children }) {
     
     // 6. Acciones de tareas
     const addTask = useCallback((task) => {
-        const errors = validateTask(task);
+        const normalizedTask = {
+            title: (task?.title || '').trim(),
+            projectId: task?.projectId ?? null,
+            priority: ['A', 'B', 'C', 'D'].includes(task?.priority) ? task.priority : 'C',
+            description: task?.description,
+            done: false,
+        };
+
+        const errors = validateTask(normalizedTask);
         if (errors.length > 0) {
             Alert.alert('Error de Validación', errors.join('\n'));
-            return;
+            return false;
         }
 
         const newTask = {
-            id: String(Date.now()),
-            ...task,
+            id: `${Date.now()}-${Math.random().toString(36).slice(2,8)}`,
+            ...normalizedTask,
             createdAt: new Date().toISOString(),
         };
         
@@ -97,6 +105,8 @@ export function AppProvider({ children }) {
             tasks: [...(prev.tasks || []), newTask],
             lastActivityAt: Date.now()
         }));
+
+        return true;
     }, [setAppState]);
     
     const toggleTask = useCallback((taskId) => {
@@ -136,33 +146,42 @@ export function AppProvider({ children }) {
     }, [setAppState]);
     
     const updateTask = useCallback((taskId, updates) => {
-        const updatedTask = { ...updates };
-        const errors = validateTask(updatedTask);
-        if (errors.length > 0) {
-            Alert.alert('Error de Validación', errors.join('\n'));
-            return;
-        }
+        setAppState(prev => {
+            const existingTask = (prev.tasks || []).find(t => t.id === taskId);
+            if (!existingTask) return prev;
 
-        setAppState(prev => ({
-            ...prev,
-            tasks: (prev.tasks || []).map(task => 
-                task.id === taskId ? { ...task, ...updates } : task
-            ),
-            lastActivityAt: Date.now()
-        }));
+            const mergedTask = { ...existingTask, ...updates };
+            const errors = validateTask(mergedTask);
+            if (errors.length > 0) {
+                Alert.alert('Error de Validación', errors.join('\n'));
+                return prev;
+            }
+
+            return {
+                ...prev,
+                tasks: (prev.tasks || []).map(task => 
+                    task.id === taskId ? mergedTask : task
+                ),
+                lastActivityAt: Date.now()
+            };
+        });
     }, [setAppState]);
     
     // 7. Acciones de proyectos
     const addProject = useCallback((project) => {
-        const errors = validateProject(project);
+        const normalizedProject = {
+            name: (project?.name || '').trim(),
+        };
+
+        const errors = validateProject(normalizedProject);
         if (errors.length > 0) {
             Alert.alert('Error de Validación', errors.join('\n'));
-            return;
+            return false;
         }
 
         const newProject = {
-            id: String(Date.now()),
-            ...project,
+            id: `${Date.now()}-${Math.random().toString(36).slice(2,8)}`,
+            ...normalizedProject,
             createdAt: new Date().toISOString(),
         };
         
@@ -171,6 +190,8 @@ export function AppProvider({ children }) {
             projects: [...(prev.projects || []), newProject],
             lastActivityAt: Date.now()
         }));
+
+        return true;
     }, [setAppState]);
     
     const completeProject = useCallback((projectId) => {
@@ -266,11 +287,18 @@ export function AppProvider({ children }) {
             const idx = newDailyLogs.findIndex((e) => e.date === todayString);
             if (idx >= 0) newDailyLogs[idx] = logEntry; 
             else newDailyLogs.push(logEntry);
+
+            // Mantener solo tareas que NO sean del día archivado, es decir,
+            // eliminar las tareas creadas hoy (independientemente de proyecto)
+            const filteredTasks = (prev.tasks || []).filter((t) => {
+                const dateStr = t.createdAt ? new Date(t.createdAt).toISOString().split('T')[0] : todayString;
+                return dateStr !== todayString;
+            });
             
             return {
                 ...prev,
                 dailyLogs: newDailyLogs,
-                tasks: (prev.tasks || []).filter((t) => t.projectId),
+                tasks: filteredTasks,
                 activeTab: 'analiticas'
             };
         });

@@ -28,8 +28,10 @@ export default function ProjectBoard() {
         setIsSubmitting(true);
         try {
             const project = { name };
-            await handleAddProject(project);
-            setNewName('');
+            const ok = await handleAddProject(project);
+            if (ok) {
+                setNewName('');
+            }
         } catch (error) {
             console.error('Error al crear proyecto:', error);
             Alert.alert('Error', 'No se pudo crear el proyecto. Inténtalo nuevamente.');
@@ -100,10 +102,7 @@ export default function ProjectBoard() {
 
     return (
         <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-            <View style={styles.header}>
-                <Text style={styles.title}>Gestión de Proyectos</Text>
-                <Text style={styles.subtitle}>Organiza tareas en proyectos</Text>
-            </View>
+            <View style={styles.header} />
 
             <View style={styles.inputSection}>
                 <View style={styles.inputRow}>

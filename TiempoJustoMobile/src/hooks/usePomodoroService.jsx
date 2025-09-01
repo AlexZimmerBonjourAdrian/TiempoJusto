@@ -14,6 +14,15 @@ export const usePomodoroService = (settings) => {
         return unsubscribe;
     }, []);
 
+    // Sincronizar ajustes cuando cambian (cargar duración correcta si el timer no está corriendo)
+    useEffect(() => {
+        if (!timerState.isRunning) {
+            // Si el temporizador está detenido, ajustar los segundos totales según el modo actual
+            pomodoroService.reset(settings, timerState.mode || 'focus');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [settings.focusMinutes, settings.shortBreakMinutes, settings.longBreakMinutes]);
+
     const start = (mode = 'focus') => {
         pomodoroService.start(settings, mode);
     };

@@ -185,7 +185,7 @@ const EmptyList = React.memo(({ filterProjectId }) => (
 export default function TaskBoard() {
     const [newTitle, setNewTitle] = useState('');
     const [selectedProjectId, setSelectedProjectId] = useState(null);
-    const [selectedPriority, setSelectedPriority] = useState('C');
+    const [selectedPriority, setSelectedPriority] = useState('A');
     const [filterProjectId, setFilterProjectId] = useState(null);
     const [fadeAnim] = useState(new Animated.Value(0));
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -243,6 +243,12 @@ export default function TaskBoard() {
         });
     }, [filteredTasks]);
 
+    // Función para mover tarea al tablero diario
+    const moveToDailyBoard = useCallback((taskId) => {
+        // Esta funcionalidad se puede implementar si es necesaria
+        console.log('Mover tarea al tablero diario:', taskId);
+    }, []);
+
     // Memoizar el renderTask para evitar re-creaciones
     const renderTask = useCallback(({ item }) => (
         <TaskItem
@@ -254,12 +260,6 @@ export default function TaskBoard() {
         />
     ), [projectIdToProject, toggleTask, removeTask, moveToDailyBoard]);
 
-    // Función para mover tarea al tablero diario
-    const moveToDailyBoard = useCallback((taskId) => {
-        // Esta funcionalidad se puede implementar si es necesaria
-        console.log('Mover tarea al tablero diario:', taskId);
-    }, []);
-
     // Manejar agregar nueva tarea
     const handleAddTask = useCallback(async () => {
         const title = newTitle.trim();
@@ -269,14 +269,16 @@ export default function TaskBoard() {
         setIsSubmitting(true);
 
         try {
-            await addTask({
+            const ok = await addTask({
                 title,
                 projectId: selectedProjectId,
                 priority: selectedPriority
             });
-            setNewTitle('');
-            setSelectedProjectId(null);
-            setSelectedPriority('C');
+            if (ok) {
+                setNewTitle('');
+                setSelectedProjectId(null);
+                setSelectedPriority('A');
+            }
         } catch (error) {
             console.error('Error al agregar tarea:', error);
             Alert.alert('Error', 'No se pudo agregar la tarea');
@@ -341,15 +343,7 @@ export default function TaskBoard() {
 
     return (
         <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-            <View style={styles.header}>
-                <Text style={styles.title}>Tareas del Día</Text>
-                <Text style={styles.date}>{today.toLocaleDateString('es-ES', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                })}</Text>
-            </View>
+            <View style={styles.header} />
 
             <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
                 <ProjectHistory projects={projects || []} />

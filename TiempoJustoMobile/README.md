@@ -75,13 +75,78 @@ Una aplicación móvil de gestión de tareas y productividad inspirada en los m�
 - **Animated API**: Animaciones nativas
 - **Expo Dev Client**: Cliente de desarrollo para testing
 
+## 📦 Dependencias y Versiones
+
+- **Runtime**:
+  - expo: ^53.0.20
+  - react: 19.0.0
+  - react-native: 0.79.5 (Hermes)
+  - @react-native-async-storage/async-storage: 2.1.2
+  - react-native-safe-area-context: 5.4.0
+  - expo-dev-client: ~5.2.4
+  - expo-status-bar: ~2.2.3
+  - react-native-svg: ^15.12.1
+  - react-native-chart-kit: ^6.12.0
+  - react-native-google-mobile-ads: ^15.4.2 (opcional, plugin desactivado)
+
+- **Dev**:
+  - @babel/core: ^7.24.0
+  - @react-native-community/cli: ^20.0.1
+  - babel-preset-expo: ~13.0.0
+
+- **Permisos Android declarados**:
+  - WAKE_LOCK
+  - RECEIVE_BOOT_COMPLETED
+  - VIBRATE
+
+## 🧰 Requisitos para crear builds (Android)
+
+- **Cuenta de Expo**: necesaria para EAS Build
+- **Node.js**: 18.x o superior
+- **npm**: 9.x o superior (o Yarn/Pnpm)
+- **EAS CLI**: usar `npx eas` (recomendado). Opcional global: `npm install -g eas-cli`
+- **Expo CLI**: `npx expo` (incluido con expo)
+- **Crear builds en la nube (recomendado)**: no requiere Android Studio local
+- **Crear builds locales (opcional)**:
+  - JDK 17 (Temurin/Adoptium recomendado)
+  - Android Studio con SDKs recientes (API 34+)
+  - Variables de entorno Android configuradas
+
+### Configuración del entorno local (opcional, solo para builds locales)
+
+- Windows (PowerShell):
+```powershell
+# Sustituye por tu ruta real del SDK
+$env:ANDROID_SDK_ROOT = "C:\\Android\\Sdk"
+$env:ANDROID_HOME = $env:ANDROID_SDK_ROOT
+$env:JAVA_HOME = "C:\\Program Files\\Eclipse Adoptium\\jdk-17*"
+```
+
+- macOS/Linux (bash/zsh):
+```bash
+export ANDROID_SDK_ROOT="$HOME/Library/Android/sdk"  # macOS
+export ANDROID_HOME="$ANDROID_SDK_ROOT"
+export JAVA_HOME="$(/usr/libexec/java_home -v 17)"   # macOS
+```
+
+### ✅ Checklist previo al build
+
+- Sesión iniciada en Expo: `eas login`
+- Dependencias instaladas: `npm install`
+- `app.config.js` actualizado (nombre, versión, `android.package`, `versionCode`)
+- Keystore gestionado por EAS (automático por defecto)
+- Limpieza de cache si hay problemas: `npm start -- --clear`
+
 ## 📱 Estructura de Archivos
 
 ```
 TiempoJustoMobile/
-├── app.json                 # Configuración de Expo y EAS
-├── eas.json                 # Configuración de builds EAS
-├── package.json             # Dependencias y scripts
+├── app.config.js           # Configuración de Expo y EAS
+├── eas.json                # Configuración de builds EAS
+├── package.json            # Dependencias y scripts
+├── Build.ps1               # Build EAS (Windows)
+├── Testexpogo.ps1          # Iniciar Expo Go (Windows)
+├── Setup.ps1               # Setup de entorno (Windows)
 ├── src/
 │   ├── components/
 │   │   ├── TaskBoard.jsx          # Tablero principal de tareas
@@ -95,7 +160,7 @@ TiempoJustoMobile/
 │   │   └── useMotivationalNotifications.jsx # Lógica de notificaciones
 │   └── storage/
 │       └── index.jsx              # Persistencia de datos
-└── assets/                  # Iconos y recursos
+└── assets/                 # Iconos y recursos
 ```
 
 ## 🚀 Configuración de Builds y Despliegue
@@ -103,14 +168,14 @@ TiempoJustoMobile/
 ### 📦 Instalación de Herramientas de Build
 
 ```bash
-# Instalar EAS CLI globalmente
+# (Opcional) Instalar EAS CLI globalmente
 npm install -g eas-cli
 
 # Iniciar sesión en Expo
-eas login
+npx eas login
 
 # Configurar EAS Build para el proyecto
-eas build:configure
+npx eas build:configure
 ```
 
 ### 🔧 Scripts de Build Disponibles
@@ -125,6 +190,53 @@ npm run build:dev           # Build de desarrollo (con expo-dev-client)
 npm run build:preview       # Build de preview (APK para testing)
 npm run build:prod          # Build de producción (APK optimizado)
 npm run build:all           # Build para todas las plataformas
+```
+
+### 🖥️ Scripts de PowerShell (Windows)
+
+Accesos directos para crear builds con EAS y probar el entorno con Expo Go.
+
+- Archivos:
+  - `Build.ps1`: ejecuta builds de EAS con perfiles (`development`, `preview`, `production`).
+  - `Testexpogo.ps1`: inicia `npx expo start` para probar en Expo Go.
+  - `Setup.ps1`: verifica/instala dependencias y configura JDK/Android opcionalmente.
+
+Ejemplos de uso:
+
+```powershell
+# Build de producción (APK)
+./Build.ps1 -Profile production -Platform android
+
+# Build de preview (APK interno)
+./Build.ps1 -Profile preview
+
+# Build de desarrollo, sin VCS y limpiando caché
+./Build.ps1 -Profile development -NoVcs -ClearCache
+
+# Iniciar Expo para Expo Go (LAN por defecto)
+./Testexpogo.ps1
+
+# Iniciar Expo con túnel y limpiar caché
+./Testexpogo.ps1 -Tunnel -ClearCache
+```
+
+Si PowerShell bloquea la ejecución de scripts, puedes permitirla solo para la sesión actual:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+```
+
+#### 🔧 Setup del entorno (Windows)
+
+```powershell
+# Setup básico (Node/npm, EAS por npx, dependencias del proyecto)
+./Setup.ps1
+
+# Setup completo (JDK 17, Android SDK/Studio y variables de entorno)
+./Setup.ps1 -InstallJdk -InstallAndroid -SetUserEnv
+
+# Instalar EAS CLI global (opcional)
+./Setup.ps1 -GlobalEas
 ```
 
 ### 📱 Creación de APKs
@@ -194,25 +306,25 @@ El proyecto está configurado con:
 }
 ```
 
-#### `app.json`
-```json
-{
-  "expo": {
-    "name": "TiempoJusto",
-    "slug": "tiempo-justo-mobile",
-    "version": "0.1.0",
-    "platforms": ["android"],
-    "android": {
-      "package": "com.tiempojusto.app",
-      "versionCode": 1
+#### `app.config.js`
+```js
+export default {
+  expo: {
+    name: "TiempoJusto",
+    slug: "tiempo-justo-mobile",
+    version: "1.0.0",
+    platforms: ["android"],
+    jsEngine: "hermes",
+    android: {
+      package: "com.tiempojusto.app",
+      versionCode: 2,
+      permissions: ["WAKE_LOCK", "RECEIVE_BOOT_COMPLETED", "VIBRATE"]
     },
-    "extra": {
-      "eas": {
-        "projectId": "8da8dceb-16a5-40da-83cb-3af3b97e0c12"
-      }
+    extra: {
+      eas: { projectId: "8da8dceb-16a5-40da-83cb-3af3b97e0c12" }
     }
   }
-}
+};
 ```
 
 ## 🎯 Filosofía de Productividad
@@ -329,8 +441,8 @@ La aplicación calcula un **Score de Productividad** basado en:
 ### Problemas Comunes de Build
 
 1. **Error de Git**: Si no tienes Git instalado, usa:
-   ```bash
-   $env:EAS_NO_VCS=1; eas build:configure
+   ```powershell
+   $env:EAS_NO_VCS=1; npx eas build:configure
    ```
 
 2. **Error de credenciales**: Verifica tu login con:
@@ -345,16 +457,16 @@ La aplicación calcula un **Score de Productividad** basado en:
 
 ```bash
 # Ver builds disponibles
-eas build:list
+npx eas build:list
 
 # Ver logs de un build específico
-eas build:view
+npx eas build:view
 
 # Limpiar cache
 npm start -- --clear
 
 # Verificar configuración
-eas build:configure
+npx eas build:configure
 ```
 
 ---

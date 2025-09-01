@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable, Animated, TextInput, Fla
 import { useAppContext } from '../context/AppContext';
 import { useTaskStats } from '../hooks/useOptimizedComponents';
 import TimeRangeSelector from './TimeRangeSelector';
-import ProgressChart from './ProgressChart';
+import SimpleProgressChart from './SimpleProgressChart';
 import TaskItem from './optimized/TaskItem';
 
 // Componente de gráfica de barras simple
@@ -200,14 +200,16 @@ export default function AnalyticsBoard() {
         
         setIsSubmitting(true);
         try {
-            await addTask({
+            const ok = await addTask({
                 title: newTitle.trim(),
                 projectId: selectedProjectId,
                 priority: selectedPriority
             });
-            setNewTitle('');
-            setSelectedProjectId(null);
-            setSelectedPriority('C');
+            if (ok) {
+                setNewTitle('');
+                setSelectedProjectId(null);
+                setSelectedPriority('C');
+            }
         } catch (error) {
             console.error('Error al agregar tarea:', error);
         } finally {
@@ -326,9 +328,8 @@ export default function AnalyticsBoard() {
                     onRangeChange={setTimeRange}
                 />
                 
-                <ProgressChart
-                    tasks={tasks || []}
-                    projects={projects || []}
+                <SimpleProgressChart
+                    data={(timeRange === 'month' ? monthlyData : monthlyData.slice(-7)).map(d => ({ date: d.date, completed: d.completedTasks }))}
                     timeRange={timeRange}
                 />
 

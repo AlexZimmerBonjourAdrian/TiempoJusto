@@ -102,8 +102,10 @@ export function useTaskActions() {
     
     const handleAddTask = useCallback(async (taskData) => {
         try {
-            await addTask(taskData);
+            const ok = await addTask(taskData);
+            if (!ok) return false;
             setLastActivity();
+            return true;
         } catch (error) {
             console.error('Error in handleAddTask:', error);
             throw error;
@@ -154,8 +156,10 @@ export function useProjectActions() {
     
     const handleAddProject = useCallback(async (projectData) => {
         try {
-            await addProject(projectData);
+            const ok = await addProject(projectData);
+            if (!ok) return false;
             setLastActivity();
+            return true;
         } catch (error) {
             console.error('Error in handleAddProject:', error);
             throw error;

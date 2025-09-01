@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
+    "@react-native-community/cli": "^20.0.1",
     "babel-preset-expo": "~13.0.0"
   }
 }

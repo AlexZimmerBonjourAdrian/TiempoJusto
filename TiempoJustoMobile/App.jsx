@@ -18,7 +18,7 @@ import { useBackgroundNotifications } from './src/hooks/useBackgroundNotificatio
 import { usePomodoroService } from './src/hooks/usePomodoroService';
 import { useNavigationData, useNotificationData } from './src/hooks/useOptimizedComponents';
 import TabButton from './src/components/optimized/TabButton';
-import mobileAds, { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
+import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import adService from './src/services/adService';
 
 function AppInner() {
@@ -82,8 +82,7 @@ function AppInner() {
 
     // Configurar servicio de segundo plano
     useEffect(() => {
-        // Inicializar SDK de Google Mobile Ads
-        mobileAds().initialize();
+        // Inicializar servicio de anuncios (una sola vez)
         adService.initialize();
 
         // Inicializar servicio de segundo plano
@@ -126,8 +125,6 @@ function AppInner() {
         <View style={[styles.container, { paddingTop: Math.max(insets.top, RNStatusBar.currentHeight || 12) }]}>
             <StatusBar style="auto" />
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>TiempoJusto</Text>
-                <Text style={styles.headerSubtitle}>Gestión de Productividad Personal</Text>
                 <DateTimeDisplay />
             </View>
 
@@ -140,7 +137,7 @@ function AppInner() {
 
             <View style={styles.adContainer}>
                 <BannerAd
-                    unitId={TestIds.BANNER}
+                    unitId={"ca-app-pub-5830123606672832/1949608897"}
                     size={BannerAdSize.BANNER}
                 />
             </View>

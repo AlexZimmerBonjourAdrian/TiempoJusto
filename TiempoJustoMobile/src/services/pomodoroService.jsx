@@ -12,6 +12,9 @@ class PomodoroService {
         this.pauseTime = null;
         this.callbacks = new Set();
         this.appState = AppState.currentState; // Inicializar appState
+        this.appStateSubscription = null;
+        // Asegurar que el handler mantenga el contexto correcto
+        this.handleAppStateChange = this.handleAppStateChange.bind(this);
         
         this.setupAppStateListener();
         this.loadState();
@@ -19,7 +22,8 @@ class PomodoroService {
 
     setupAppStateListener() {
         try {
-            AppState.addEventListener('change', this.handleAppStateChange.bind(this));
+            // Usar la API moderna que retorna una suscripción removible
+            this.appStateSubscription = AppState.addEventListener('change', this.handleAppStateChange);
         } catch (error) {
             console.error('Error configurando listener de AppState:', error);
         }
@@ -303,7 +307,9 @@ class PomodoroService {
             clearInterval(this.timer);
         }
         try {
-            AppState.removeEventListener('change', this.handleAppStateChange);
+            if (this.appStateSubscription && typeof this.appStateSubscription.remove === 'function') {
+                this.appStateSubscription.remove();
+            }
         } catch (error) {
             console.error('Error removiendo listener de AppState:', error);
         }

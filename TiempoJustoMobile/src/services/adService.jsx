@@ -78,7 +78,8 @@ class AdService {
     #showAdInstance(instance) {
         if (!instance) return;
         try {
-            if (instance.isLoaded) {
+            // Propiedad correcta en react-native-google-mobile-ads v10+: get isLoaded() o método getAdLoadState
+            if (typeof instance.isLoaded === 'function' ? instance.isLoaded() : instance._loaded === true) {
                 instance.show().catch(() => instance.load());
             } else {
                 const onLoaded = instance.addAdEventListener(AdEventType.LOADED, () => {
