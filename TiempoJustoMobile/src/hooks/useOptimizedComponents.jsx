@@ -102,10 +102,10 @@ export function useTaskActions() {
     
     const handleAddTask = useCallback(async (taskData) => {
         try {
-            const ok = await addTask(taskData);
-            if (!ok) return false;
+            const res = await addTask(taskData);
+            if (!res?.ok) return { ok: false, errors: res?.errors || [] };
             setLastActivity();
-            return true;
+            return { ok: true };
         } catch (error) {
             console.error('Error in handleAddTask:', error);
             throw error;
@@ -134,8 +134,10 @@ export function useTaskActions() {
     
     const handleUpdateTask = useCallback(async (taskId, updates) => {
         try {
-            await updateTask(taskId, updates);
+            const res = await updateTask(taskId, updates);
+            if (!res?.ok) return res;
             setLastActivity();
+            return { ok: true };
         } catch (error) {
             console.error('Error in handleUpdateTask:', error);
             throw error;
@@ -156,10 +158,10 @@ export function useProjectActions() {
     
     const handleAddProject = useCallback(async (projectData) => {
         try {
-            const ok = await addProject(projectData);
-            if (!ok) return false;
+            const res = await addProject(projectData);
+            if (!res?.ok) return { ok: false, errors: res?.errors || [] };
             setLastActivity();
-            return true;
+            return { ok: true };
         } catch (error) {
             console.error('Error in handleAddProject:', error);
             throw error;

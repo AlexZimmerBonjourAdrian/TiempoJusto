@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus Flow - Gestión de Tiempo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <script>
+    tailwind.config = {
+        darkMode: 'class',
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    popover: {
+                        DEFAULT: "var(--popover)",
+                        foreground: "var(--popover-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    destructive: {
+                        DEFAULT: "var(--destructive)",
+                        foreground: "var(--destructive-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                    chart: {
+                        "1": "var(--chart-1)",
+                        "2": "var(--chart-2)",
+                        "3": "var(--chart-3)",
+                        "4": "var(--chart-4)",
+                        "5": "var(--chart-5)",
+                    }
+                },
+                fontFamily: {
+                    sans: ["var(--font-sans)"],
+                    serif: ["var(--font-serif)"],
+                    mono: ["var(--font-mono)"],
+                }
+            },
+        }
+    };
+    </script>
+    
+    <style>
+        :root {
+            --card: hsl(0, 0%, 96.47%);
+            --ring: hsl(0, 0%, 0%);
+            --input: hsl(0, 0%, 0%);
+            --muted: hsl(0, 0%, 96.08%);
+            --accent: hsl(254.21, 100%, 92.55%);
+            --border: hsl(0, 0%, 96.47%);
+            --radius: 0rem;
+            --shadow: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+            --chart-1: hsl(203.8863 88.2845% 53.1373%);
+            --chart-2: hsl(159.7826 100% 36.0784%);
+            --chart-3: hsl(42.0290 92.8251% 56.2745%);
+            --chart-4: hsl(147.1429 78.5047% 41.9608%);
+            --chart-5: hsl(341.4894 75.2000% 50.9804%);
+            --popover: hsl(0, 0%, 100%);
+            --primary: hsl(96, 85.19%, 73.53%);
+            --sidebar: hsl(180 6.6667% 97.0588%);
+            --spacing: 0.25rem;
+            --font-mono: 'Geist Mono', monospace;
+            --font-sans: 'Space Grotesk', sans-serif;
+            --secondary: hsl(0, 0%, 0%);
+            --background: hsl(0, 0%, 100%);
+            --font-serif: 'Geist', sans-serif;
+            --foreground: hsl(0, 0%, 0%);
+            --destructive: hsl(2.04, 74.62%, 61.37%);
+            --sidebar-ring: hsl(202.8169 89.1213% 53.1373%);
+            --sidebar-accent: hsl(211.5789 51.3514% 92.7451%);
+            --sidebar-border: hsl(205.0000 25.0000% 90.5882%);
+            --card-foreground: hsl(0, 0%, 0%);
+            --sidebar-primary: hsl(203.8863 88.2845% 53.1373%);
+            --tracking-normal: 0em;
+            --muted-foreground: hsl(0, 0%, 52.94%);
+            --accent-foreground: hsl(0, 0%, 0%);
+            --popover-foreground: hsl(0, 0%, 0%);
+            --primary-foreground: hsl(0, 0%, 0%);
+            --sidebar-foreground: hsl(210 25% 7.8431%);
+            --secondary-foreground: hsl(0, 0%, 100%);
+            --destructive-foreground: hsl(0 0% 100%);
+            --sidebar-accent-foreground: hsl(203.8863 88.2845% 53.1373%);
+            --sidebar-primary-foreground: hsl(0 0% 100%);
+        }
+        
+        .dark {
+            --card: hsl(228 9.8039% 10%);
+            --ring: hsl(202.8169 89.1213% 53.1373%);
+            --input: hsl(207.6923 27.6596% 18.4314%);
+            --muted: hsl(0 0% 9.4118%);
+            --accent: hsl(205.7143 70% 7.8431%);
+            --border: hsl(210 5.2632% 14.9020%);
+            --radius: 1.3rem;
+            --shadow: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+            --chart-1: hsl(203.8863 88.2845% 53.1373%);
+            --chart-2: hsl(159.7826 100% 36.0784%);
+            --chart-3: hsl(42.0290 92.8251% 56.2745%);
+            --chart-4: hsl(147.1429 78.5047% 41.9608%);
+            --chart-5: hsl(341.4894 75.2000% 50.9804%);
+            --popover: hsl(0 0% 0%);
+            --primary: hsl(203.7736 87.6033% 52.5490%);
+            --sidebar: hsl(228 9.8039% 10%);
+            --spacing: 0.25rem;
+            --font-mono: Menlo, monospace;
+            --font-sans: Open Sans, sans-serif;
+            --secondary: hsl(195.0000 15.3846% 94.9020%);
+            --background: hsl(0 0% 0%);
+            --font-serif: Georgia, serif;
+            --foreground: hsl(200 6.6667% 91.1765%);
+            --destructive: hsl(356.3033 90.5579% 54.3137%);
+            --sidebar-ring: hsl(202.8169 89.1213% 53.1373%);
+            --sidebar-accent: hsl(205.7143 70% 7.8431%);
+            --sidebar-border: hsl(205.7143 15.7895% 26.0784%);
+            --card-foreground: hsl(0 0% 85.0980%);
+            --sidebar-primary: hsl(202.8169 89.1213% 53.1373%);
+            --tracking-normal: 0em;
+            --muted-foreground: hsl(210 3.3898% 46.2745%);
+            --accent-foreground: hsl(203.7736 87.6033% 52.5490%);
+            --popover-foreground: hsl(200 6.6667% 91.1765%);
+            --primary-foreground: hsl(0 0% 100%);
+            --sidebar-foreground: hsl(0 0% 85.0980%);
+            --secondary-foreground: hsl(210 25% 7.8431%);
+            --destructive-foreground: hsl(0 0% 100%);
+            --sidebar-accent-foreground: hsl(203.7736 87.6033% 52.5490%);
+            --sidebar-primary-foreground: hsl(0 0% 100%);
+        }
+    </style>
+</head>
+
+<body class="h-full bg-background text-foreground font-sans antialiased">
+    <!-- @COMPONENT: MainLayout -->
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- @COMPONENT: ExperienceSidebar -->
+        <!-- Experience Sidebar - Left Panel -->
+        <aside class="w-60 bg-card border-r border-border flex flex-col">
+            <div class="p-6 border-b border-border">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-primary-foreground text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-medium" data-bind="user.name">Usuario</h3>
+                        <p class="text-xs text-muted-foreground">Nivel <span data-bind="user.level">5</span></p>
+                    </div>
+                </div>
+                
+                <!-- XP Progress Bar -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs text-muted-foreground">
+                        <span data-bind="user.currentXP">2,450</span>
+                        <span data-bind="user.nextLevelXP">3,000 XP</span>
+                    </div>
+                    <div class="w-full bg-muted rounded-full h-2">
+                        <div class="bg-primary h-2 rounded-full transition-all duration-300" style="width: 82%" data-bind="user.xpPercentage"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex-1 p-4 space-y-2">
+                <button class="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium bg-accent text-accent-foreground rounded-md transition-colors" data-active="true">
+                    <i class="fas fa-clock w-4 h-4"></i>
+                    Timer
+                </button>
+                <button class="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-md transition-colors">
+                    <i class="fas fa-tasks w-4 h-4"></i>
+                    Tareas
+                </button>
+                <button class="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-md transition-colors">
+                    <i class="fas fa-chart-bar w-4 h-4"></i>
+                    Estadísticas
+                </button>
+                <button class="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-md transition-colors">
+                    <i class="fas fa-history w-4 h-4"></i>
+                    Historial
+                </button>
+            </nav>
+            
+            <!-- Daily Stats -->
+            <div class="p-4 border-t border-border">
+                <h4 class="text-xs font-medium text-muted-foreground mb-3">HOY</h4>
+                <div class="space-y-2 text-xs">
+                    <div class="flex justify-between">
+                        <span>Tareas completadas</span>
+                        <span class="font-medium" data-bind="stats.todayCompleted">7</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Pomodoros</span>
+                        <span class="font-medium" data-bind="stats.todayPomodoros">12</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Racha actual</span>
+                        <span class="font-medium text-primary" data-bind="stats.currentStreak">3 🔥</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <!-- @END_COMPONENT: ExperienceSidebar -->
+        
+        <!-- @COMPONENT: MainContent -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            
+            <!-- @COMPONENT: TopBar -->
+            <header class="h-16 border-b border-border flex items-center justify-between px-6 bg-background">
+                <div class="flex items-center gap-4">
+                    <h1 class="text-xl font-semibold">Focus Flow</h1>
+                    <div class="text-sm text-muted-foreground" data-bind="currentDateTime">
+                        Jueves, 23 Enero 2025 • 14:32
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <button class="p-2 hover:bg-accent rounded-md transition-colors" data-event="click:toggleTheme">
+                        <i class="fas fa-moon text-muted-foreground"></i>
+                    </button>
+                    <button class="p-2 hover:bg-accent rounded-md transition-colors" data-event="click:showSettings">
+                        <i class="fas fa-cog text-muted-foreground"></i>
+                    </button>
+                </div>
+            </header>
+            <!-- @END_COMPONENT: TopBar -->
+            
+            <div class="flex flex-1 overflow-hidden">
+                
+                <!-- @COMPONENT: TimerSection -->
+                <!-- Main Timer Area -->
+                <div class="flex-1 p-6 flex flex-col items-center justify-center">
+                    
+                    <!-- Pomodoro Timer -->
+                    <div class="text-center mb-8">
+                        <h2 class="text-sm font-medium text-muted-foreground mb-2" data-bind="timer.currentPhase">TRABAJO</h2>
+                        <div class="text-6xl font-mono font-light mb-4" data-bind="timer.displayTime">25:00</div>
+                        
+                        <!-- Timer Controls -->
+                        <div class="flex items-center gap-4 mb-6">
+                            <button class="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center hover:opacity-90 transition-opacity" data-event="click:toggleTimer">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button class="w-10 h-10 border border-border rounded-full flex items-center justify-center hover:bg-accent transition-colors" data-event="click:resetTimer">
+                                <i class="fas fa-stop text-sm"></i>
+                            </button>
+                            <button class="w-10 h-10 border border-border rounded-full flex items-center justify-center hover:bg-accent transition-colors" data-event="click:skipTimer">
+                                <i class="fas fa-forward text-sm"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Session Counter -->
+                        <div class="flex items-center gap-1">
+                            <!-- @MAP: sessionDots.map(session => ( -->
+                            <div class="w-2 h-2 rounded-full bg-primary" data-mock="true"></div>
+                            <div class="w-2 h-2 rounded-full bg-primary" data-mock="true"></div>
+                            <div class="w-2 h-2 rounded-full bg-primary" data-mock="true"></div>
+                            <div class="w-2 h-2 rounded-full bg-muted" data-mock="true"></div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                        <p class="text-xs text-muted-foreground mt-2" data-bind="timer.sessionCount">Sesión 3 de 4</p>
+                    </div>
+                    
+                    <!-- Current Task Display -->
+                    <div class="w-full max-w-md">
+                        <div class="bg-card rounded-lg border border-border p-4 text-center" data-bind="currentTask">
+                            <div class="text-sm text-muted-foreground mb-1">TAREA ACTUAL</div>
+                            <div class="font-medium" data-mock="true">Diseñar mockups para el proyecto Focus Flow</div>
+                            <div class="text-xs text-muted-foreground mt-1 flex items-center justify-center gap-2">
+                                <span class="px-2 py-1 bg-chart-1 text-white rounded-full">Trabajo</span>
+                                <span>Prioridad A</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: TimerSection -->
+                
+                <!-- @COMPONENT: TaskBoard -->
+                <!-- Task Board - Right Panel -->
+                <div class="w-96 border-l border-border flex flex-col bg-card/50">
+                    
+                    <!-- Task Board Header -->
+                    <div class="p-4 border-b border-border">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-medium">Tareas del Día</h3>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-muted-foreground" data-bind="tasks.autoCloseTime">Cierre: 23:00</span>
+                                <button class="text-xs text-muted-foreground hover:text-foreground" data-event="click:toggleTaskBoard">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Task Filters -->
+                        <div class="flex gap-1 mb-3">
+                            <select class="text-xs border border-border rounded-md px-2 py-1 bg-background text-foreground" data-bind="selectedProject">
+                                <option>Todos los proyectos</option>
+                                <option>Focus Flow</option>
+                                <option>Proyecto Personal</option>
+                                <option>Sin proyecto</option>
+                            </select>
+                            <button class="text-xs px-2 py-1 border border-border rounded-md hover:bg-accent transition-colors" data-event="click:editProjects">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Add Task Input -->
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                placeholder="Añadir nueva tarea..." 
+                                class="w-full text-sm border border-border rounded-md px-3 py-2 bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                                data-event="enter:addTask"
+                            />
+                        </div>
+                    </div>
+                    
+                    <!-- Task List -->
+                    <div class="flex-1 overflow-y-auto">
+                        <div class="p-4 space-y-2">
+                            
+                            <!-- @MAP: tasks.map(task => ( -->
+                            <!-- High Priority Task -->
+                            <div class="group bg-background rounded-lg border border-border p-3 hover:shadow-sm transition-shadow" data-mock="true">
+                                <div class="flex items-start gap-3">
+                                    <button class="mt-0.5 w-4 h-4 border border-border rounded hover:border-primary transition-colors" data-event="click:toggleTask"></button>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-sm font-medium text-foreground">Revisar documentación técnica</div>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="text-xs px-2 py-0.5 bg-destructive text-destructive-foreground rounded-full">A</span>
+                                            <span class="text-xs px-2 py-0.5 bg-chart-1 text-white rounded-full">Trabajo</span>
+                                            <span class="text-xs text-muted-foreground">Focus Flow</span>
+                                        </div>
+                                    </div>
+                                    <button class="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground transition-opacity" data-event="click:editTask">
+                                        <i class="fas fa-ellipsis-h text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Completed Task -->
+                            <div class="group bg-background rounded-lg border border-border p-3 opacity-50" data-mock="true">
+                                <div class="flex items-start gap-3">
+                                    <button class="mt-0.5 w-4 h-4 bg-primary border-primary rounded flex items-center justify-center">
+                                        <i class="fas fa-check text-primary-foreground text-xs"></i>
+                                    </button>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-sm font-medium text-foreground line-through">Actualizar base de datos</div>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="text-xs px-2 py-0.5 bg-muted text-muted-foreground rounded-full">B</span>
+                                            <span class="text-xs px-2 py-0.5 bg-chart-1 text-white rounded-full">Trabajo</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Medium Priority Task -->
+                            <div class="group bg-background rounded-lg border border-border p-3 hover:shadow-sm transition-shadow" data-mock="true">
+                                <div class="flex items-start gap-3">
+                                    <button class="mt-0.5 w-4 h-4 border border-border rounded hover:border-primary transition-colors" data-event="click:toggleTask"></button>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-sm font-medium text-foreground">Planificar sesión de ejercicio</div>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="text-xs px-2 py-0.5 bg-chart-3 text-white rounded-full">C</span>
+                                            <span class="text-xs px-2 py-0.5 bg-chart-4 text-white rounded-full">Salud</span>
+                                            <span class="text-xs text-muted-foreground">Tareas del día</span>
+                                        </div>
+                                    </div>
+                                    <button class="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground transition-opacity" data-event="click:editTask">
+                                        <i class="fas fa-ellipsis-h text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Personal Task -->
+                            <div class="group bg-background rounded-lg border border-border p-3 hover:shadow-sm transition-shadow" data-mock="true">
+                                <div class="flex items-start gap-3">
+                                    <button class="mt-0.5 w-4 h-4 border border-border rounded hover:border-primary transition-colors" data-event="click:toggleTask"></button>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-sm font-medium text-foreground">Leer capítulo del libro de Jordan Peterson</div>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="text-xs px-2 py-0.5 bg-muted text-muted-foreground rounded-full">D</span>
+                                            <span class="text-xs px-2 py-0.5 bg-chart-5 text-white rounded-full">Estudios</span>
+                                            <span class="text-xs text-muted-foreground">Proyecto Personal</span>
+                                        </div>
+                                    </div>
+                                    <button class="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground transition-opacity" data-event="click:editTask">
+                                        <i class="fas fa-ellipsis-h text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                            
+                        </div>
+                    </div>
+                    
+                    <!-- Task Board Footer -->
+                    <div class="p-4 border-t border-border">
+                        <div class="text-xs text-muted-foreground flex justify-between">
+                            <span data-bind="taskStats.completed">3 completadas</span>
+                            <span data-bind="taskStats.remaining">4 pendientes</span>
+                        </div>
+                    </div>
+                    
+                </div>
+                <!-- @END_COMPONENT: TaskBoard -->
+                
+            </div>
+            
+        </main>
+        <!-- @END_COMPONENT: MainContent -->
+        
+    </div>
+    <!-- @END_COMPONENT: MainLayout -->
+    
+    <!-- @COMPONENT: NotificationSystem -->
+    <!-- Motivational Notification (Hidden by default) -->
+    <div class="fixed top-4 right-4 bg-card border border-border rounded-lg p-4 shadow-lg max-w-sm hidden" data-component="MotivationalNotification" data-mock="true">
+        <div class="flex items-start gap-3">
+            <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-quote-right text-primary-foreground text-sm"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="text-xs font-medium text-muted-foreground mb-1">RACHA DE 3 TAREAS 🔥</div>
+                <div class="text-sm text-foreground mb-1">"El éxito es la suma de pequeños esfuerzos repetidos día tras día."</div>
+                <div class="text-xs text-muted-foreground">- Brian Tracy</div>
+            </div>
+            <button class="text-muted-foreground hover:text-foreground" data-event="click:dismissNotification">
+                <i class="fas fa-times text-xs"></i>
+            </button>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: NotificationSystem -->
+    
+    <!-- Footer -->
+    <div class="fixed bottom-4 right-4 text-xs text-muted-foreground">
+        Copyright © ZimmZimmGames 2025
+    </div>
+
+    <script>
+        // Timer functionality mockup - no actual business logic
+        (function() {
+            let isTimerRunning = false;
+            let currentTime = 25 * 60; // 25 minutes in seconds
+            let timerInterval;
+            
+            // TODO: Implement actual Pomodoro timer logic with 25min work, 5min break cycles
+            // TODO: Add experience points calculation based on task importance
+            // TODO: Implement automatic board closure at 23:00 based on timezone
+            // TODO: Add task completion streak detection
+            // TODO: Integrate motivational quotes from Brian Tracy, Jordan Peterson, and Carl Jung
+            // TODO: Implement immutable log system for completed/incomplete tasks
+            // TODO: Add project creation, editing, and deletion functionality
+            // TODO: Implement task priority system (A-D) and categories
+            
+            const timerButton = document.querySelector('[data-event="click:toggleTimer"]');
+            const timerDisplay = document.querySelector('[data-bind="timer.displayTime"]');
+            const playIcon = timerButton?.querySelector('i');
+            
+            if (timerButton) {
+                timerButton.addEventListener('click', function() {
+                    isTimerRunning = !isTimerRunning;
+                    if (playIcon) {
+                        playIcon.className = isTimerRunning ? 'fas fa-pause' : 'fas fa-play';
+                    }
+                    
+                    if (isTimerRunning) {
+                        // Simulate timer countdown for demo purposes only
+                        console.log('Timer started - implement actual countdown logic');
+                    } else {
+                        console.log('Timer paused - implement pause functionality');
+                    }
+                });
+            }
+            
+            // Theme toggle functionality
+            const themeButton = document.querySelector('[data-event="click:toggleTheme"]');
+            if (themeButton) {
+                themeButton.addEventListener('click', function() {
+                    document.documentElement.classList.toggle('dark');
+                    const icon = this.querySelector('i');
+                    if (icon) {
+                        icon.className = document.documentElement.classList.contains('dark') ? 
+                            'fas fa-sun text-muted-foreground' : 'fas fa-moon text-muted-foreground';
+                    }
+                });
+            }
+            
+            // Task completion simulation
+            const taskCheckboxes = document.querySelectorAll('[data-event="click:toggleTask"]');
+            taskCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('click', function() {
+                    const taskItem = this.closest('.group');
+                    if (taskItem) {
+                        taskItem.classList.toggle('opacity-50');
+                        const isCompleted = taskItem.classList.contains('opacity-50');
+                        
+                        if (isCompleted) {
+                            this.innerHTML = '<i class="fas fa-check text-primary-foreground text-xs"></i>';
+                            this.classList.add('bg-primary', 'border-primary');
+                            console.log('Task completed - calculate XP and check for streaks');
+                        } else {
+                            this.innerHTML = '';
+                            this.classList.remove('bg-primary', 'border-primary');
+                            console.log('Task uncompleted - adjust XP accordingly');
+                        }
+                    }
+                });
+            });
+            
+        })();
+    </script>
+
+</body>
+</html>

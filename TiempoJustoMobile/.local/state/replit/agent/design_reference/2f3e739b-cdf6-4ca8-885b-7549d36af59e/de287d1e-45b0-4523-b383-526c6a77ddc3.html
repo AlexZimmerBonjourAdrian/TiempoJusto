@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus - Gestión de Tiempo y Tareas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        darkMode: 'class',
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    popover: {
+                        DEFAULT: "var(--popover)",
+                        foreground: "var(--popover-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    destructive: {
+                        DEFAULT: "var(--destructive)",
+                        foreground: "var(--destructive-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                    chart: {
+                        "1": "var(--chart-1)",
+                        "2": "var(--chart-2)",
+                        "3": "var(--chart-3)",
+                        "4": "var(--chart-4)",
+                        "5": "var(--chart-5)",
+                    }
+                },
+                fontFamily: {
+                    sans: ["var(--font-sans)"],
+                    serif: ["var(--font-serif)"],
+                    mono: ["var(--font-mono)"],
+                }
+            },
+        }
+    };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --card: hsl(0, 0%, 96.47%);
+            --ring: hsl(0, 0%, 0%);
+            --input: hsl(0, 0%, 0%);
+            --muted: hsl(0, 0%, 96.08%);
+            --accent: hsl(254.21, 100%, 92.55%);
+            --border: hsl(0, 0%, 96.47%);
+            --radius: 0rem;
+            --popover: hsl(0, 0%, 100%);
+            --primary: hsl(96, 85.19%, 73.53%);
+            --sidebar: hsl(180 6.6667% 97.0588%);
+            --secondary: hsl(0, 0%, 0%);
+            --background: hsl(0, 0%, 100%);
+            --font-sans: 'Space Grotesk', sans-serif;
+            --font-serif: 'Geist', sans-serif;
+            --font-mono: 'Geist Mono', monospace;
+            --foreground: hsl(0, 0%, 0%);
+            --destructive: hsl(2.04, 74.62%, 61.37%);
+            --sidebar-ring: hsl(202.8169 89.1213% 53.1373%);
+            --sidebar-accent: hsl(211.5789 51.3514% 92.7451%);
+            --sidebar-border: hsl(205.0000 25.0000% 90.5882%);
+            --card-foreground: hsl(0, 0%, 0%);
+            --sidebar-primary: hsl(203.8863 88.2845% 53.1373%);
+            --muted-foreground: hsl(0, 0%, 52.94%);
+            --accent-foreground: hsl(0, 0%, 0%);
+            --popover-foreground: hsl(0, 0%, 0%);
+            --primary-foreground: hsl(0, 0%, 0%);
+            --sidebar-foreground: hsl(210 25% 7.8431%);
+            --secondary-foreground: hsl(0, 0%, 100%);
+            --destructive-foreground: hsl(0 0% 100%);
+            --sidebar-accent-foreground: hsl(203.8863 88.2845% 53.1373%);
+            --sidebar-primary-foreground: hsl(0 0% 100%);
+        }
+
+        .dark {
+            --card: hsl(228 9.8039% 10%);
+            --ring: hsl(202.8169 89.1213% 53.1373%);
+            --input: hsl(207.6923 27.6596% 18.4314%);
+            --muted: hsl(0 0% 9.4118%);
+            --accent: hsl(205.7143 70% 7.8431%);
+            --border: hsl(210 5.2632% 14.9020%);
+            --radius: 1.3rem;
+            --popover: hsl(0 0% 0%);
+            --primary: hsl(203.7736 87.6033% 52.5490%);
+            --sidebar: hsl(228 9.8039% 10%);
+            --secondary: hsl(195.0000 15.3846% 94.9020%);
+            --background: hsl(0 0% 0%);
+            --font-sans: 'Open Sans', sans-serif;
+            --font-serif: 'Georgia', serif;
+            --font-mono: 'Menlo', monospace;
+            --foreground: hsl(200 6.6667% 91.1765%);
+            --destructive: hsl(356.3033 90.5579% 54.3137%);
+            --sidebar-ring: hsl(202.8169 89.1213% 53.1373%);
+            --sidebar-accent: hsl(205.7143 70% 7.8431%);
+            --sidebar-border: hsl(205.7143 15.7895% 26.0784%);
+            --card-foreground: hsl(0 0% 85.0980%);
+            --sidebar-primary: hsl(202.8169 89.1213% 53.1373%);
+            --muted-foreground: hsl(210 3.3898% 46.2745%);
+            --accent-foreground: hsl(203.7736 87.6033% 52.5490%);
+            --popover-foreground: hsl(200 6.6667% 91.1765%);
+            --primary-foreground: hsl(0 0% 100%);
+            --sidebar-foreground: hsl(0 0% 85.0980%);
+            --secondary-foreground: hsl(210 25% 7.8431%);
+            --destructive-foreground: hsl(0 0% 100%);
+            --sidebar-accent-foreground: hsl(203.7736 87.6033% 52.5490%);
+            --sidebar-primary-foreground: hsl(0 0% 100%);
+        }
+
+        .timer-circle {
+            transform: rotate(-90deg);
+            transition: stroke-dashoffset 1s ease-in-out;
+        }
+
+        .pomodoro-active {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .8;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background text-foreground font-sans antialiased">
+    <!-- @COMPONENT: AppLayout -->
+    <div class="min-h-screen bg-background">
+        <!-- Sidebar Navigation -->
+        <!-- @COMPONENT: Sidebar -->
+        <div class="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border">
+            <div class="flex flex-col h-full">
+                <!-- Logo -->
+                <div class="flex items-center justify-center h-16 px-4 border-b border-border">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                            <i class="fas fa-clock text-primary-foreground text-sm"></i>
+                        </div>
+                        <span class="text-xl font-semibold text-card-foreground">Focus</span>
+                    </div>
+                </div>
+
+                <!-- Navigation Menu -->
+                <nav class="flex-1 px-4 py-6 space-y-2">
+                    <a href="#" data-nav="dashboard" class="flex items-center gap-3 px-3 py-2 text-sm font-medium bg-accent text-accent-foreground rounded-lg">
+                        <i class="fas fa-home w-4"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#" data-nav="pomodoro" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg transition-colors">
+                        <i class="fas fa-play w-4"></i>
+                        <span>Pomodoro</span>
+                    </a>
+                    <a href="#" data-nav="tasks" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg transition-colors">
+                        <i class="fas fa-tasks w-4"></i>
+                        <span>Tareas</span>
+                    </a>
+                    <a href="#" data-nav="projects" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg transition-colors">
+                        <i class="fas fa-folder w-4"></i>
+                        <span>Proyectos</span>
+                    </a>
+                    <a href="#" data-nav="statistics" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg transition-colors">
+                        <i class="fas fa-chart-bar w-4"></i>
+                        <span>Estadísticas</span>
+                    </a>
+                </nav>
+
+                <!-- Settings -->
+                <div class="p-4 border-t border-border">
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg transition-colors">
+                        <i class="fas fa-cog w-4"></i>
+                        <span>Configuración</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: Sidebar -->
+
+        <!-- Main Content -->
+        <div class="pl-64">
+            <!-- Header -->
+            <!-- @COMPONENT: Header -->
+            <header class="bg-card border-b border-border sticky top-0 z-40">
+                <div class="flex items-center justify-between h-16 px-6">
+                    <div>
+                        <h1 class="text-2xl font-semibold text-card-foreground">Dashboard</h1>
+                        <p class="text-sm text-muted-foreground" data-mock="true">Bienvenido de vuelta, María</p>
+                    </div>
+                    
+                    <div class="flex items-center gap-4">
+                        <!-- Quick Timer Start -->
+                        <button class="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity" data-event="click:startQuickPomodoro">
+                            <i class="fas fa-play mr-2"></i>
+                            Iniciar Pomodoro
+                        </button>
+                        
+                        <!-- Theme Toggle -->
+                        <button class="p-2 text-muted-foreground hover:text-foreground transition-colors" data-event="click:toggleTheme">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+            <!-- @END_COMPONENT: Header -->
+
+            <!-- Dashboard Content -->
+            <!-- @COMPONENT: DashboardView -->
+            <main class="p-6 space-y-6" id="dashboard-view">
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Today's Focus Time -->
+                    <div class="bg-card rounded-xl p-6 border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground">Tiempo de hoy</p>
+                                <p class="text-2xl font-semibold text-card-foreground" data-bind="stats.todayTime">2h 35m</p>
+                            </div>
+                            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-clock text-primary text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center gap-2">
+                            <div class="w-full bg-muted rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 52%"></div>
+                            </div>
+                            <span class="text-xs text-muted-foreground">52%</span>
+                        </div>
+                    </div>
+
+                    <!-- Completed Pomodoros -->
+                    <div class="bg-card rounded-xl p-6 border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground">Pomodoros hoy</p>
+                                <p class="text-2xl font-semibold text-card-foreground" data-bind="stats.todayPomodoros">6</p>
+                            </div>
+                            <div class="w-12 h-12 bg-chart-2/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-check-circle text-chart-2 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tasks Completed -->
+                    <div class="bg-card rounded-xl p-6 border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground">Tareas completadas</p>
+                                <p class="text-2xl font-semibold text-card-foreground" data-bind="stats.completedTasks">4 / 8</p>
+                            </div>
+                            <div class="w-12 h-12 bg-chart-3/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-tasks text-chart-3 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Weekly Streak -->
+                    <div class="bg-card rounded-xl p-6 border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground">Racha semanal</p>
+                                <p class="text-2xl font-semibold text-card-foreground" data-bind="stats.weeklyStreak">5 días</p>
+                            </div>
+                            <div class="w-12 h-12 bg-chart-4/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-fire text-chart-4 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Current Timer Section -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-card rounded-xl p-6 border border-border">
+                            <h3 class="text-lg font-semibold text-card-foreground mb-6">Timer Actual</h3>
+                            
+                            <!-- Timer Display -->
+                            <div class="flex flex-col items-center">
+                                <div class="relative w-32 h-32">
+                                    <svg class="w-32 h-32" viewBox="0 0 120 120">
+                                        <!-- Background circle -->
+                                        <circle cx="60" cy="60" r="54" fill="none" stroke="hsl(var(--muted))" stroke-width="8"/>
+                                        <!-- Progress circle -->
+                                        <circle cx="60" cy="60" r="54" fill="none" stroke="hsl(var(--primary))" stroke-width="8" 
+                                                class="timer-circle" 
+                                                stroke-dasharray="339.3" 
+                                                stroke-dashoffset="135.7"
+                                                stroke-linecap="round"/>
+                                    </svg>
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <div class="text-center">
+                                            <div class="text-2xl font-mono font-semibold text-card-foreground" data-bind="timer.display">15:32</div>
+                                            <div class="text-xs text-muted-foreground" data-bind="timer.phase">Trabajo</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Timer Controls -->
+                                <div class="flex items-center gap-3 mt-6">
+                                    <button class="p-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity" data-event="click:playPause">
+                                        <i class="fas fa-pause"></i>
+                                    </button>
+                                    <button class="p-3 bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors" data-event="click:reset">
+                                        <i class="fas fa-stop"></i>
+                                    </button>
+                                    <button class="p-3 bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors" data-event="click:skip">
+                                        <i class="fas fa-forward"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Current Task -->
+                                <div class="mt-6 text-center">
+                                    <p class="text-sm text-muted-foreground">Tarea actual:</p>
+                                    <p class="text-sm font-medium text-card-foreground" data-bind="currentTask.name" data-mock="true">Revisar documentación del proyecto</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Today's Tasks & Quick Actions -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <!-- Today's Tasks -->
+                        <div class="bg-card rounded-xl p-6 border border-border">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-lg font-semibold text-card-foreground">Tareas de Hoy</h3>
+                                <button class="text-primary hover:text-primary/80 text-sm font-medium transition-colors" data-event="click:addTask">
+                                    <i class="fas fa-plus mr-2"></i>Nueva tarea
+                                </button>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <!-- @MAP: todayTasks.map(task => ( -->
+                                <div class="flex items-center gap-3 p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors" data-mock="true">
+                                    <button class="w-5 h-5 border-2 border-muted-foreground rounded hover:border-primary transition-colors" data-event="click:toggleTask"></button>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-card-foreground">Revisar documentación del proyecto</p>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="text-xs text-primary bg-primary/10 px-2 py-1 rounded">Desarrollo Web</span>
+                                            <span class="text-xs text-muted-foreground">2 pomodoros</span>
+                                        </div>
+                                    </div>
+                                    <button class="text-muted-foreground hover:text-foreground transition-colors" data-event="click:startTaskTimer">
+                                        <i class="fas fa-play text-sm"></i>
+                                    </button>
+                                </div>
+
+                                <div class="flex items-center gap-3 p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors opacity-60" data-mock="true">
+                                    <button class="w-5 h-5 border-2 border-primary bg-primary rounded flex items-center justify-center" data-event="click:toggleTask">
+                                        <i class="fas fa-check text-primary-foreground text-xs"></i>
+                                    </button>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-card-foreground line-through">Responder emails pendientes</p>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="text-xs text-chart-3 bg-chart-3/10 px-2 py-1 rounded">Comunicación</span>
+                                            <span class="text-xs text-muted-foreground">1 pomodoro</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-3 p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors" data-mock="true">
+                                    <button class="w-5 h-5 border-2 border-muted-foreground rounded hover:border-primary transition-colors" data-event="click:toggleTask"></button>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-card-foreground">Preparar presentación cliente</p>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="text-xs text-chart-4 bg-chart-4/10 px-2 py-1 rounded">Presentaciones</span>
+                                            <span class="text-xs text-muted-foreground">3 pomodoros</span>
+                                        </div>
+                                    </div>
+                                    <button class="text-muted-foreground hover:text-foreground transition-colors" data-event="click:startTaskTimer">
+                                        <i class="fas fa-play text-sm"></i>
+                                    </button>
+                                </div>
+
+                                <div class="flex items-center gap-3 p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors" data-mock="true">
+                                    <button class="w-5 h-5 border-2 border-muted-foreground rounded hover:border-primary transition-colors" data-event="click:toggleTask"></button>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-card-foreground">Actualizar base de datos</p>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="text-xs text-primary bg-primary/10 px-2 py-1 rounded">Desarrollo Web</span>
+                                            <span class="text-xs text-muted-foreground">2 pomodoros</span>
+                                        </div>
+                                    </div>
+                                    <button class="text-muted-foreground hover:text-foreground transition-colors" data-event="click:startTaskTimer">
+                                        <i class="fas fa-play text-sm"></i>
+                                    </button>
+                                </div>
+                                <!-- @END_MAP )) -->
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity -->
+                        <div class="bg-card rounded-xl p-6 border border-border">
+                            <h3 class="text-lg font-semibold text-card-foreground mb-4">Actividad Reciente</h3>
+                            
+                            <div class="space-y-3">
+                                <!-- @MAP: recentActivity.map(activity => ( -->
+                                <div class="flex items-center gap-3 text-sm" data-mock="true">
+                                    <div class="w-2 h-2 bg-primary rounded-full"></div>
+                                    <span class="text-muted-foreground">hace 2 min</span>
+                                    <span class="text-card-foreground">Completaste una sesión de trabajo (25 min)</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-sm" data-mock="true">
+                                    <div class="w-2 h-2 bg-chart-2 rounded-full"></div>
+                                    <span class="text-muted-foreground">hace 28 min</span>
+                                    <span class="text-card-foreground">Completaste: "Responder emails pendientes"</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-sm" data-mock="true">
+                                    <div class="w-2 h-2 bg-chart-3 rounded-full"></div>
+                                    <span class="text-muted-foreground">hace 1 hora</span>
+                                    <span class="text-card-foreground">Iniciaste sesión de trabajo</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-sm" data-mock="true">
+                                    <div class="w-2 h-2 bg-chart-4 rounded-full"></div>
+                                    <span class="text-muted-foreground">hace 2 horas</span>
+                                    <span class="text-card-foreground">Creaste nueva tarea: "Preparar presentación cliente"</span>
+                                </div>
+                                <!-- @END_MAP )) -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weekly Progress Chart -->
+                <div class="bg-card rounded-xl p-6 border border-border">
+                    <h3 class="text-lg font-semibold text-card-foreground mb-6">Progreso Semanal</h3>
+                    
+                    <div class="grid grid-cols-7 gap-4">
+                        <!-- @MAP: weekDays.map(day => ( -->
+                        <div class="text-center" data-mock="true">
+                            <div class="text-xs text-muted-foreground mb-2">Lun</div>
+                            <div class="bg-muted rounded-lg h-24 flex flex-col justify-end p-2">
+                                <div class="bg-primary rounded h-16 mb-1"></div>
+                                <div class="text-xs text-card-foreground">3.5h</div>
+                            </div>
+                        </div>
+                        <div class="text-center" data-mock="true">
+                            <div class="text-xs text-muted-foreground mb-2">Mar</div>
+                            <div class="bg-muted rounded-lg h-24 flex flex-col justify-end p-2">
+                                <div class="bg-primary rounded h-12 mb-1"></div>
+                                <div class="text-xs text-card-foreground">2.5h</div>
+                            </div>
+                        </div>
+                        <div class="text-center" data-mock="true">
+                            <div class="text-xs text-muted-foreground mb-2">Mié</div>
+                            <div class="bg-muted rounded-lg h-24 flex flex-col justify-end p-2">
+                                <div class="bg-primary rounded h-20 mb-1"></div>
+                                <div class="text-xs text-card-foreground">4.2h</div>
+                            </div>
+                        </div>
+                        <div class="text-center" data-mock="true">
+                            <div class="text-xs text-muted-foreground mb-2">Jue</div>
+                            <div class="bg-muted rounded-lg h-24 flex flex-col justify-end p-2">
+                                <div class="bg-primary rounded h-8 mb-1"></div>
+                                <div class="text-xs text-card-foreground">1.8h</div>
+                            </div>
+                        </div>
+                        <div class="text-center" data-mock="true">
+                            <div class="text-xs text-primary font-medium mb-2">Vie</div>
+                            <div class="bg-muted rounded-lg h-24 flex flex-col justify-end p-2 border-2 border-primary">
+                                <div class="bg-primary rounded h-10 mb-1"></div>
+                                <div class="text-xs text-card-foreground">2.3h</div>
+                            </div>
+                        </div>
+                        <div class="text-center" data-mock="true">
+                            <div class="text-xs text-muted-foreground mb-2">Sáb</div>
+                            <div class="bg-muted/50 rounded-lg h-24 flex flex-col justify-end p-2">
+                                <div class="text-xs text-muted-foreground">-</div>
+                            </div>
+                        </div>
+                        <div class="text-center" data-mock="true">
+                            <div class="text-xs text-muted-foreground mb-2">Dom</div>
+                            <div class="bg-muted/50 rounded-lg h-24 flex flex-col justify-end p-2">
+                                <div class="text-xs text-muted-foreground">-</div>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+            </main>
+            <!-- @END_COMPONENT: DashboardView -->
+
+            <!-- Pomodoro View (Hidden by default) -->
+            <!-- @COMPONENT: PomodoroView -->
+            <main class="p-6 hidden" id="pomodoro-view">
+                <div class="max-w-md mx-auto">
+                    <div class="bg-card rounded-xl p-8 border border-border text-center">
+                        <h2 class="text-2xl font-semibold text-card-foreground mb-8">Temporizador Pomodoro</h2>
+                        
+                        <!-- Large Timer Display -->
+                        <div class="relative w-64 h-64 mx-auto mb-8">
+                            <svg class="w-64 h-64" viewBox="0 0 200 200">
+                                <!-- Background circle -->
+                                <circle cx="100" cy="100" r="90" fill="none" stroke="hsl(var(--muted))" stroke-width="8"/>
+                                <!-- Progress circle -->
+                                <circle cx="100" cy="100" r="90" fill="none" stroke="hsl(var(--primary))" stroke-width="8" 
+                                        class="timer-circle pomodoro-active" 
+                                        stroke-dasharray="565.5" 
+                                        stroke-dashoffset="226.2"
+                                        stroke-linecap="round"/>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="text-center">
+                                    <div class="text-5xl font-mono font-bold text-card-foreground" data-bind="pomodoroTimer.display">25:00</div>
+                                    <div class="text-lg text-muted-foreground mt-2" data-bind="pomodoroTimer.phase">Sesión de Trabajo</div>
+                                    <div class="text-sm text-muted-foreground mt-1" data-bind="pomodoroTimer.cycle">Ciclo 1/4</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Timer Controls -->
+                        <div class="flex items-center justify-center gap-4 mb-8">
+                            <button class="p-4 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity text-lg" data-event="click:pomodoroPlayPause">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button class="p-4 bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors" data-event="click:pomodoroReset">
+                                <i class="fas fa-stop"></i>
+                            </button>
+                            <button class="p-4 bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors" data-event="click:pomodoroSkip">
+                                <i class="fas fa-forward"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Session Info -->
+                        <div class="bg-muted/30 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm text-muted-foreground">Tarea actual:</span>
+                                <span class="text-sm font-medium text-card-foreground" data-bind="currentTask.name" data-mock="true">Revisar documentación</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-muted-foreground">Pomodoros completados hoy:</span>
+                                <span class="text-sm font-medium text-primary" data-bind="stats.todayPomodoros">6</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <!-- @END_COMPONENT: PomodoroView -->
+
+            <!-- Tasks View (Hidden by default) -->
+            <!-- @COMPONENT: TasksView -->
+            <main class="p-6 hidden" id="tasks-view">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-semibold text-foreground">Gestión de Tareas</h2>
+                    <button class="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity" data-event="click:openNewTaskModal">
+                        <i class="fas fa-plus mr-2"></i>Nueva Tarea
+                    </button>
+                </div>
+
+                <!-- Filters -->
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-muted-foreground">Proyecto:</label>
+                        <select class="bg-card border border-border rounded-lg px-3 py-2 text-card-foreground focus:ring-2 focus:ring-ring focus:outline-none" data-event="change:filterByProject">
+                            <option value="">Todos los proyectos</option>
+                            <option value="web-dev" data-mock="true">Desarrollo Web</option>
+                            <option value="communication" data-mock="true">Comunicación</option>
+                            <option value="presentations" data-mock="true">Presentaciones</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-muted-foreground">Estado:</label>
+                        <select class="bg-card border border-border rounded-lg px-3 py-2 text-card-foreground focus:ring-2 focus:ring-ring focus:outline-none" data-event="change:filterByStatus">
+                            <option value="">Todas las tareas</option>
+                            <option value="pending">Pendientes</option>
+                            <option value="completed">Completadas</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Task List -->
+                <div class="bg-card rounded-xl border border-border">
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            <!-- @MAP: tasks.map(task => ( -->
+                            <div class="flex items-center gap-4 p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors" data-mock="true">
+                                <button class="w-6 h-6 border-2 border-muted-foreground rounded hover:border-primary transition-colors" data-event="click:toggleTaskComplete"></button>
+                                
+                                <div class="flex-1">
+                                    <h3 class="font-medium text-card-foreground">Revisar documentación del proyecto</h3>
+                                    <div class="flex items-center gap-3 mt-2">
+                                        <span class="text-xs text-primary bg-primary/10 px-2 py-1 rounded">Desarrollo Web</span>
+                                        <span class="text-xs text-muted-foreground">
+                                            <i class="fas fa-clock mr-1"></i>2 pomodoros estimados
+                                        </span>
+                                        <span class="text-xs text-muted-foreground">
+                                            <i class="fas fa-calendar mr-1"></i>Hoy
+                                        </span>
+                                    </div>
+                                    <p class="text-sm text-muted-foreground mt-1">Revisar la nueva documentación API v2.0 y tomar notas para la implementación</p>
+                                </div>
+                                
+                                <div class="flex items-center gap-2">
+                                    <button class="p-2 text-muted-foreground hover:text-primary transition-colors" data-event="click:startTaskTimer" title="Iniciar timer">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                    <button class="p-2 text-muted-foreground hover:text-foreground transition-colors" data-event="click:editTask" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="p-2 text-muted-foreground hover:text-destructive transition-colors" data-event="click:deleteTask" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-4 p-4 bg-muted/30 rounded-lg opacity-60" data-mock="true">
+                                <button class="w-6 h-6 border-2 border-primary bg-primary rounded flex items-center justify-center" data-event="click:toggleTaskComplete">
+                                    <i class="fas fa-check text-primary-foreground text-sm"></i>
+                                </button>
+                                
+                                <div class="flex-1">
+                                    <h3 class="font-medium text-card-foreground line-through">Responder emails pendientes</h3>
+                                    <div class="flex items-center gap-3 mt-2">
+                                        <span class="text-xs text-chart-3 bg-chart-3/10 px-2 py-1 rounded">Comunicación</span>
+                                        <span class="text-xs text-muted-foreground">
+                                            <i class="fas fa-clock mr-1"></i>1 pomodoro completado
+                                        </span>
+                                        <span class="text-xs text-muted-foreground">
+                                            <i class="fas fa-check mr-1"></i>Completada
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-4 p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors" data-mock="true">
+                                <button class="w-6 h-6 border-2 border-muted-foreground rounded hover:border-primary transition-colors" data-event="click:toggleTaskComplete"></button>
+                                
+                                <div class="flex-1">
+                                    <h3 class="font-medium text-card-foreground">Preparar presentación cliente</h3>
+                                    <div class="flex items-center gap-3 mt-2">
+                                        <span class="text-xs text-chart-4 bg-chart-4/10 px-2 py-1 rounded">Presentaciones</span>
+                                        <span class="text-xs text-muted-foreground">
+                                            <i class="fas fa-clock mr-1"></i>3 pomodoros estimados
+                                        </span>
+                                        <span class="text-xs text-muted-foreground">
+                                            <i class="fas fa-calendar mr-1"></i>Mañana
+                                        </span>
+                                        <span class="text-xs bg-destructive/20 text-destructive px-2 py-1 rounded">Recurrente</span>
+                                    </div>
+                                    <p class="text-sm text-muted-foreground mt-1">Crear slides para la presentación del próximo sprint, incluir métricas y roadmap</p>
+                                </div>
+                                
+                                <div class="flex items-center gap-2">
+                                    <button class="p-2 text-muted-foreground hover:text-primary transition-colors" data-event="click:startTaskTimer" title="Iniciar timer">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                    <button class="p-2 text-muted-foreground hover:text-foreground transition-colors" data-event="click:editTask" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="p-2 text-muted-foreground hover:text-destructive transition-colors" data-event="click:deleteTask" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <!-- @END_COMPONENT: TasksView -->
+
+            <!-- Statistics View (Hidden by default) -->
+            <!-- @COMPONENT: StatisticsView -->
+            <main class="p-6 hidden" id="statistics-view">
+                <h2 class="text-2xl font-semibold text-foreground mb-6">Estadísticas</h2>
+
+                <!-- Time Period Selector -->
+                <div class="flex items-center gap-2 mb-6">
+                    <button class="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium">Este mes</button>
+                    <button class="px-4 py-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors">Última semana</button>
+                    <button class="px-4 py-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors">Últimos 3 meses</button>
+                </div>
+
+                <!-- Monthly Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-card rounded-xl p-6 border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground">Tiempo total</p>
+                                <p class="text-3xl font-semibold text-card-foreground" data-bind="monthlyStats.totalTime">58h 30m</p>
+                            </div>
+                            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-clock text-primary text-xl"></i>
+                            </div>
+                        </div>
+                        <p class="text-sm text-chart-2 mt-2">+12% vs mes anterior</p>
+                    </div>
+
+                    <div class="bg-card rounded-xl p-6 border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground">Pomodoros</p>
+                                <p class="text-3xl font-semibold text-card-foreground" data-bind="monthlyStats.pomodoros">142</p>
+                            </div>
+                            <div class="w-12 h-12 bg-chart-2/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-check-circle text-chart-2 text-xl"></i>
+                            </div>
+                        </div>
+                        <p class="text-sm text-chart-2 mt-2">+8% vs mes anterior</p>
+                    </div>
+
+                    <div class="bg-card rounded-xl p-6 border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground">Tareas completadas</p>
+                                <p class="text-3xl font-semibold text-card-foreground" data-bind="monthlyStats.completedTasks">89</p>
+                            </div>
+                            <div class="w-12 h-12 bg-chart-3/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-tasks text-chart-3 text-xl"></i>
+                            </div>
+                        </div>
+                        <p class="text-sm text-chart-2 mt-2">+15% vs mes anterior</p>
+                    </div>
+
+                    <div class="bg-card rounded-xl p-6 border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-muted-foreground">Promedio diario</p>
+                                <p class="text-3xl font-semibold text-card-foreground" data-bind="monthlyStats.dailyAverage">2h 45m</p>
+                            </div>
+                            <div class="w-12 h-12 bg-chart-4/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-chart-line text-chart-4 text-xl"></i>
+                            </div>
+                        </div>
+                        <p class="text-sm text-chart-2 mt-2">+5% vs mes anterior</p>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- Daily Activity Chart -->
+                    <div class="bg-card rounded-xl p-6 border border-border">
+                        <h3 class="text-lg font-semibold text-card-foreground mb-4">Actividad Diaria</h3>
+                        <div class="h-64 flex items-end justify-between gap-2">
+                            <!-- @MAP: dailyActivity.map(day => ( -->
+                            <div class="flex-1 bg-muted rounded-t-lg flex flex-col justify-end" style="height: 45%" data-mock="true">
+                                <div class="bg-primary rounded-t-lg" style="height: 80%"></div>
+                            </div>
+                            <div class="flex-1 bg-muted rounded-t-lg flex flex-col justify-end" style="height: 65%" data-mock="true">
+                                <div class="bg-primary rounded-t-lg" style="height: 90%"></div>
+                            </div>
+                            <div class="flex-1 bg-muted rounded-t-lg flex flex-col justify-end" style="height: 80%" data-mock="true">
+                                <div class="bg-primary rounded-t-lg" style="height: 95%"></div>
+                            </div>
+                            <div class="flex-1 bg-muted rounded-t-lg flex flex-col justify-end" style="height: 30%" data-mock="true">
+                                <div class="bg-primary rounded-t-lg" style="height: 60%"></div>
+                            </div>
+                            <div class="flex-1 bg-muted rounded-t-lg flex flex-col justify-end" style="height: 55%" data-mock="true">
+                                <div class="bg-primary rounded-t-lg" style="height: 85%"></div>
+                            </div>
+                            <div class="flex-1 bg-muted rounded-t-lg flex flex-col justify-end" style="height: 25%" data-mock="true">
+                                <div class="bg-primary rounded-t-lg" style="height: 40%"></div>
+                            </div>
+                            <div class="flex-1 bg-muted rounded-t-lg flex flex-col justify-end" style="height: 35%" data-mock="true">
+                                <div class="bg-primary rounded-t-lg" style="height: 50%"></div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                        <div class="flex justify-between text-xs text-muted-foreground mt-2">
+                            <span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span>
+                        </div>
+                    </div>
+
+                    <!-- Project Distribution -->
+                    <div class="bg-card rounded-xl p-6 border border-border">
+                        <h3 class="text-lg font-semibold text-card-foreground mb-4">Distribución por Proyecto</h3>
+                        <div class="space-y-4">
+                            <!-- @MAP: projectDistribution.map(project => ( -->
+                            <div class="flex items-center justify-between" data-mock="true">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-4 h-4 bg-primary rounded"></div>
+                                    <span class="text-sm font-medium text-card-foreground">Desarrollo Web</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-24 bg-muted rounded-full h-2">
+                                        <div class="bg-primary h-2 rounded-full" style="width: 65%"></div>
+                                    </div>
+                                    <span class="text-sm text-muted-foreground">65%</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between" data-mock="true">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-4 h-4 bg-chart-3 rounded"></div>
+                                    <span class="text-sm font-medium text-card-foreground">Comunicación</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-24 bg-muted rounded-full h-2">
+                                        <div class="bg-chart-3 h-2 rounded-full" style="width: 20%"></div>
+                                    </div>
+                                    <span class="text-sm text-muted-foreground">20%</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between" data-mock="true">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-4 h-4 bg-chart-4 rounded"></div>
+                                    <span class="text-sm font-medium text-card-foreground">Presentaciones</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-24 bg-muted rounded-full h-2">
+                                        <div class="bg-chart-4 h-2 rounded-full" style="width: 15%"></div>
+                                    </div>
+                                    <span class="text-sm text-muted-foreground">15%</span>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Productivity Insights -->
+                <div class="bg-card rounded-xl p-6 border border-border">
+                    <h3 class="text-lg font-semibold text-card-foreground mb-4">Insights de Productividad</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-3 h-3 bg-chart-2 rounded-full"></div>
+                                <span class="text-sm text-card-foreground">Tu mejor día fue el <strong>miércoles</strong> con 4.2h de trabajo enfocado</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-3 h-3 bg-primary rounded-full"></div>
+                                <span class="text-sm text-card-foreground">Has mantenido una racha de <strong>5 días</strong> consecutivos</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-3 h-3 bg-chart-4 rounded-full"></div>
+                                <span class="text-sm text-card-foreground">Completaste <strong>23% más tareas</strong> que el mes pasado</span>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-3 h-3 bg-chart-3 rounded-full"></div>
+                                <span class="text-sm text-card-foreground">Tu franja más productiva: <strong>10:00 - 12:00</strong></span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-3 h-3 bg-chart-5 rounded-full"></div>
+                                <span class="text-sm text-card-foreground">Promedio de <strong>6.8 pomodoros</strong> por día activo</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-3 h-3 bg-primary rounded-full"></div>
+                                <span class="text-sm text-card-foreground">Has mejorado tu tiempo de enfoque en <strong>18%</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <!-- @END_COMPONENT: StatisticsView -->
+        </div>
+    </div>
+    <!-- @END_COMPONENT: AppLayout -->
+
+    <script>
+        // TODO: Implement full application logic, state management, and API integration
+        
+        (function() {
+            // Simple view switching for mockup demonstration
+            const navLinks = document.querySelectorAll('[data-nav]');
+            const views = {
+                'dashboard': document.getElementById('dashboard-view'),
+                'pomodoro': document.getElementById('pomodoro-view'), 
+                'tasks': document.getElementById('tasks-view'),
+                'statistics': document.getElementById('statistics-view')
+            };
+
+            function showView(viewName) {
+                // Hide all views
+                Object.values(views).forEach(view => {
+                    if (view) view.classList.add('hidden');
+                });
+                
+                // Show selected view
+                if (views[viewName]) {
+                    views[viewName].classList.remove('hidden');
+                }
+
+                // Update active navigation
+                navLinks.forEach(link => {
+                    link.classList.remove('bg-accent', 'text-accent-foreground');
+                    link.classList.add('text-muted-foreground', 'hover:text-foreground', 'hover:bg-accent/50');
+                });
+
+                const activeLink = document.querySelector(`[data-nav="${viewName}"]`);
+                if (activeLink) {
+                    activeLink.classList.add('bg-accent', 'text-accent-foreground');
+                    activeLink.classList.remove('text-muted-foreground', 'hover:text-foreground', 'hover:bg-accent/50');
+                }
+
+                // Update header title
+                const header = document.querySelector('header h1');
+                if (header) {
+                    const titles = {
+                        'dashboard': 'Dashboard',
+                        'pomodoro': 'Temporizador Pomodoro',
+                        'tasks': 'Gestión de Tareas',
+                        'statistics': 'Estadísticas'
+                    };
+                    header.textContent = titles[viewName] || 'Focus';
+                }
+            }
+
+            // Add click handlers to navigation
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const viewName = link.getAttribute('data-nav');
+                    showView(viewName);
+                });
+            });
+
+            // Simple timer animation for demonstration
+            let timerInterval;
+            let seconds = 25 * 60; // 25 minutes in seconds
+            let isRunning = false;
+
+            function updateTimer() {
+                const minutes = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                const display = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                
+                const timerDisplays = document.querySelectorAll('[data-bind*="timer.display"], [data-bind*="pomodoroTimer.display"]');
+                timerDisplays.forEach(el => el.textContent = display);
+
+                if (seconds <= 0) {
+                    clearInterval(timerInterval);
+                    isRunning = false;
+                    // TODO: Handle timer completion, switch to break, play notification sound
+                }
+            }
+
+            function startTimer() {
+                if (!isRunning) {
+                    isRunning = true;
+                    timerInterval = setInterval(() => {
+                        seconds--;
+                        updateTimer();
+                    }, 1000);
+                }
+            }
+
+            function pauseTimer() {
+                clearInterval(timerInterval);
+                isRunning = false;
+            }
+
+            function resetTimer() {
+                clearInterval(timerInterval);
+                isRunning = false;
+                seconds = 25 * 60;
+                updateTimer();
+            }
+
+            // Add click handlers for timer controls
+            document.addEventListener('click', (e) => {
+                const target = e.target.closest('[data-event]');
+                if (!target) return;
+
+                const event = target.getAttribute('data-event');
+                
+                switch(event) {
+                    case 'click:playPause':
+                    case 'click:pomodoroPlayPause':
+                        if (isRunning) {
+                            pauseTimer();
+                            target.innerHTML = '<i class="fas fa-play"></i>';
+                        } else {
+                            startTimer();
+                            target.innerHTML = '<i class="fas fa-pause"></i>';
+                        }
+                        break;
+                    case 'click:reset':
+                    case 'click:pomodoroReset':
+                        resetTimer();
+                        const playBtn = document.querySelector('[data-event*="playPause"]');
+                        if (playBtn) playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                        break;
+                    case 'click:toggleTheme':
+                        document.documentElement.classList.toggle('dark');
+                        break;
+                    default:
+                        console.log('Event handler needed for:', event);
+                        // TODO: Implement other event handlers
+                }
+            });
+
+            // Initialize timer display
+            updateTimer();
+        })();
+    </script>
+</body>
+</html>

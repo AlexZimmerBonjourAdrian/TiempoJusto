@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View, Alert, Animated, ScrollView } from 'react-native';
 import { useAppContext } from '../context/AppContext';
+import taskBusinessLogic from '../services/taskBusinessLogic';
 import TaskItem from './optimized/TaskItem';
 import ProjectHistory from './ProjectHistory';
 
@@ -219,28 +220,13 @@ export default function TaskBoard() {
     // Filtrar y ordenar tareas
     const filteredTasks = useMemo(() => {
         if (!todayTasks) return [];
-        
-        let filtered = todayTasks;
-        
-        if (filterProjectId !== null) {
-            filtered = filtered.filter(task => task.projectId === filterProjectId);
-        }
-        
-        return filtered;
+        return taskBusinessLogic.filterTasksAdvanced(todayTasks, {
+            projectId: filterProjectId,
+        });
     }, [todayTasks, filterProjectId]);
 
     const sortedTasks = useMemo(() => {
-        if (!Array.isArray(filteredTasks)) return [];
-        
-        return [...filteredTasks].sort((a, b) => {
-            // Primero por completadas
-            if (a.done !== b.done) return Number(a.done) - Number(b.done);
-            // Luego por prioridad (A, B, C, D)
-            const priorityOrder = { A: 0, B: 1, C: 2, D: 3 };
-            const aPriority = priorityOrder[a.priority || 'C'];
-            const bPriority = priorityOrder[b.priority || 'C'];
-            return aPriority - bPriority;
-        });
+        return taskBusinessLogic.sortTasksIntelligently(filteredTasks);
     }, [filteredTasks]);
 
     // Función para mover tarea al tablero diario
@@ -269,12 +255,12 @@ export default function TaskBoard() {
         setIsSubmitting(true);
 
         try {
-            const ok = await addTask({
+            const res = await addTask({
                 title,
                 projectId: selectedProjectId,
                 priority: selectedPriority
             });
-            if (ok) {
+            if (res?.ok) {
                 setNewTitle('');
                 setSelectedProjectId(null);
                 setSelectedPriority('A');
@@ -336,7 +322,7 @@ export default function TaskBoard() {
     if (storageError) {
         return (
             <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>Error al cargar datos: {storageError}</Text>
+                <Text style={styles.errorText}>Error al cargar datos: {String(storageError?.message || storageError)}</Text>
             </View>
         );
     }

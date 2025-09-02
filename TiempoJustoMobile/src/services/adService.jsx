@@ -6,6 +6,7 @@ import mobileAds, {
     RewardedAdEventType,
     TestIds,
 } from 'react-native-google-mobile-ads';
+import eventBus from './eventBus';
 
 // Servicio sencillo para rotar anuncios de prueba y dispararlos por eventos de app
 class AdService {
@@ -47,6 +48,29 @@ class AdService {
         try { this.rewardedInterstitial.load(); } catch {}
 
         this.isInitialized = true;
+
+        // Suscribirse a eventos de dominio
+        this.subscribeToEvents();
+    }
+
+    subscribeToEvents() {
+        // Cada 5 tareas completadas
+        this.tasksCompletedCount = 0;
+        this.unsubscribeTaskToggled = eventBus.on('task:toggled', ({ task }) => {
+            try {
+                if (task?.done) {
+                    this.tasksCompletedCount += 1;
+                    if (this.tasksCompletedCount % 5 === 0) {
+                        this.showNext();
+                    }
+                }
+            } catch {}
+        });
+
+        // Al completar proyecto
+        this.unsubscribeProjectCompleted = eventBus.on('project:completed', () => {
+            try { this.onProjectCompleted(); } catch {}
+        });
     }
 
     showNext() {

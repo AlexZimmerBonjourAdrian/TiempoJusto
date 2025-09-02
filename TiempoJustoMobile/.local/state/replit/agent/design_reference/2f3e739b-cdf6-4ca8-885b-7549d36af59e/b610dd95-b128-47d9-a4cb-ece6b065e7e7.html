@@ -1,0 +1,697 @@
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow - Gestión de Tiempo y Tareas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    popover: {
+                        DEFAULT: "var(--popover)",
+                        foreground: "var(--popover-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    destructive: {
+                        DEFAULT: "var(--destructive)",
+                        foreground: "var(--destructive-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                    chart: {
+                        "1": "var(--chart-1)",
+                        "2": "var(--chart-2)",
+                        "3": "var(--chart-3)",
+                        "4": "var(--chart-4)",
+                        "5": "var(--chart-5)",
+                    }
+                },
+                fontFamily: {
+                    sans: ["var(--font-sans)"],
+                    serif: ["var(--font-serif)"],
+                    mono: ["var(--font-mono)"],
+                }
+            },
+        }
+    };
+    </script>
+    <style>
+        :root {
+            --card: hsl(0, 0%, 96.47%);
+            --ring: hsl(0, 0%, 0%);
+            --input: hsl(0, 0%, 0%);
+            --muted: hsl(0, 0%, 96.08%);
+            --accent: hsl(254.21, 100%, 92.55%);
+            --border: hsl(0, 0%, 96.47%);
+            --radius: 0rem;
+            --shadow: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+            --chart-1: hsl(203.8863 88.2845% 53.1373%);
+            --chart-2: hsl(159.7826 100% 36.0784%);
+            --chart-3: hsl(42.0290 92.8251% 56.2745%);
+            --chart-4: hsl(147.1429 78.5047% 41.9608%);
+            --chart-5: hsl(341.4894 75.2000% 50.9804%);
+            --popover: hsl(0, 0%, 100%);
+            --primary: hsl(96, 85.19%, 73.53%);
+            --sidebar: hsl(180 6.6667% 97.0588%);
+            --spacing: 0.25rem;
+            --font-mono: 'Geist Mono', monospace;
+            --font-sans: 'Space Grotesk', sans-serif;
+            --secondary: hsl(0, 0%, 0%);
+            --background: hsl(0, 0%, 100%);
+            --font-serif: 'Geist', sans-serif;
+            --foreground: hsl(0, 0%, 0%);
+            --destructive: hsl(2.04, 74.62%, 61.37%);
+            --sidebar-ring: hsl(202.8169 89.1213% 53.1373%);
+            --sidebar-accent: hsl(211.5789 51.3514% 92.7451%);
+            --sidebar-border: hsl(205.0000 25.0000% 90.5882%);
+            --card-foreground: hsl(0, 0%, 0%);
+            --sidebar-primary: hsl(203.8863 88.2845% 53.1373%);
+            --tracking-normal: 0em;
+            --muted-foreground: hsl(0, 0%, 52.94%);
+            --accent-foreground: hsl(0, 0%, 0%);
+            --popover-foreground: hsl(0, 0%, 0%);
+            --primary-foreground: hsl(0, 0%, 0%);
+            --sidebar-foreground: hsl(210 25% 7.8431%);
+            --secondary-foreground: hsl(0, 0%, 100%);
+            --destructive-foreground: hsl(0 0% 100%);
+            --sidebar-accent-foreground: hsl(203.8863 88.2845% 53.1373%);
+            --sidebar-primary-foreground: hsl(0 0% 100%);
+        }
+
+        .dark {
+            --card: hsl(228 9.8039% 10%);
+            --ring: hsl(202.8169 89.1213% 53.1373%);
+            --input: hsl(207.6923 27.6596% 18.4314%);
+            --muted: hsl(0 0% 9.4118%);
+            --accent: hsl(205.7143 70% 7.8431%);
+            --border: hsl(210 5.2632% 14.9020%);
+            --radius: 1.3rem;
+            --background: hsl(0 0% 0%);
+            --foreground: hsl(200 6.6667% 91.1765%);
+            --primary: hsl(203.7736 87.6033% 52.5490%);
+            --sidebar: hsl(228 9.8039% 10%);
+            --secondary: hsl(195.0000 15.3846% 94.9020%);
+            --destructive: hsl(356.3033 90.5579% 54.3137%);
+            --card-foreground: hsl(0 0% 85.0980%);
+            --muted-foreground: hsl(210 3.3898% 46.2745%);
+            --accent-foreground: hsl(203.7736 87.6033% 52.5490%);
+            --popover: hsl(0 0% 0%);
+            --popover-foreground: hsl(200 6.6667% 91.1765%);
+            --primary-foreground: hsl(0 0% 100%);
+            --sidebar-foreground: hsl(0 0% 85.0980%);
+            --secondary-foreground: hsl(210 25% 7.8431%);
+            --destructive-foreground: hsl(0 0% 100%);
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+        
+        .pomodoro-timer {
+            background: conic-gradient(from 0deg, var(--primary) 0%, var(--primary) var(--progress, 0%), var(--muted) var(--progress, 0%), var(--muted) 100%);
+        }
+
+        .task-priority-a { border-left: 4px solid hsl(0, 84%, 60%); }
+        .task-priority-b { border-left: 4px solid hsl(39, 100%, 57%); }
+        .task-priority-c { border-left: 4px solid hsl(48, 100%, 67%); }
+        .task-priority-d { border-left: 4px solid hsl(160, 100%, 37%); }
+
+        .category-trabajo { background: hsl(203, 100%, 95%); color: hsl(203, 89%, 53%); }
+        .category-personal { background: hsl(160, 100%, 95%); color: hsl(160, 100%, 37%); }
+        .category-salud { background: hsl(147, 100%, 95%); color: hsl(147, 78%, 42%); }
+        .category-ocio { background: hsl(341, 100%, 95%); color: hsl(341, 75%, 51%); }
+        .category-estudios { background: hsl(42, 100%, 95%); color: hsl(42, 93%, 56%); }
+        .category-relaciones { background: hsl(321, 100%, 95%); color: hsl(321, 70%, 52%); }
+
+        .experience-bar {
+            background: linear-gradient(90deg, var(--primary) 0%, var(--chart-2) 100%);
+        }
+
+        .notification-motivational {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-background text-foreground font-sans">
+    <!-- @COMPONENT: Layout Container -->
+    <div class="min-h-screen flex">
+        <!-- @COMPONENT: Sidebar [experience display, navigation] -->
+        <aside class="w-80 bg-card border-r border-border flex flex-col">
+            <!-- Experience Section -->
+            <div class="p-6 border-b border-border">
+                <div class="text-center mb-4">
+                    <div class="w-20 h-20 mx-auto mb-3 bg-primary rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-2xl text-primary-foreground"></i>
+                    </div>
+                    <h2 class="text-xl font-semibold" data-bind="user.name">Usuario Productivo</h2>
+                    <p class="text-sm text-muted-foreground">Nivel 12 • Maestro del Tiempo</p>
+                </div>
+                
+                <!-- Experience Bar -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span>XP: 2,847</span>
+                        <span>Siguiente: 3,200</span>
+                    </div>
+                    <div class="w-full bg-muted rounded-full h-3">
+                        <div class="experience-bar h-3 rounded-full" style="width: 75%"></div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-2 gap-4 mt-4">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-primary">47</div>
+                        <div class="text-xs text-muted-foreground">Tareas Hoy</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-chart-2">12</div>
+                        <div class="text-xs text-muted-foreground">Racha</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 p-4">
+                <ul class="space-y-2">
+                    <li>
+                        <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-primary text-primary-foreground">
+                            <i class="fas fa-home"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-muted">
+                            <i class="fas fa-tasks"></i>
+                            <span>Tareas</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-muted">
+                            <i class="fas fa-project-diagram"></i>
+                            <span>Proyectos</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-muted">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Estadísticas</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-muted">
+                            <i class="fas fa-history"></i>
+                            <span>Historial</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Copyright -->
+            <div class="p-4 border-t border-border">
+                <p class="text-xs text-muted-foreground text-center">
+                    Copyright © ZimmZimmGames 2025
+                </p>
+            </div>
+        </aside>
+        <!-- @END_COMPONENT: Sidebar -->
+
+        <!-- @COMPONENT: Main Content Area -->
+        <main class="flex-1 overflow-hidden">
+            <!-- Header -->
+            <header class="bg-card border-b border-border px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold">Dashboard de Productividad</h1>
+                        <p class="text-muted-foreground">Gestiona tu tiempo y maximiza tu eficiencia</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-right">
+                            <div class="text-sm text-muted-foreground">Hoy</div>
+                            <div class="font-semibold" data-bind="currentDate">15 Enero 2025</div>
+                        </div>
+                        <button class="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:opacity-90">
+                            <i class="fas fa-plus mr-2"></i>Nueva Tarea
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Grid -->
+            <div class="p-6 h-full overflow-y-auto">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+                    
+                    <!-- @COMPONENT: Pomodoro Timer [main timer interface] -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-card rounded-lg p-6 h-fit">
+                            <h2 class="text-lg font-semibold mb-4 flex items-center">
+                                <i class="fas fa-clock mr-2 text-primary"></i>
+                                Timer Pomodoro
+                            </h2>
+                            
+                            <!-- Timer Circle -->
+                            <div class="flex justify-center mb-6">
+                                <div class="relative w-48 h-48">
+                                    <div class="pomodoro-timer absolute inset-0 rounded-full p-2" style="--progress: 60%">
+                                        <div class="w-full h-full bg-card rounded-full flex items-center justify-center">
+                                            <div class="text-center">
+                                                <div class="text-3xl font-bold" data-bind="timer.minutes">15</div>
+                                                <div class="text-xl">:</div>
+                                                <div class="text-3xl font-bold" data-bind="timer.seconds">30</div>
+                                                <div class="text-sm text-muted-foreground mt-2">Trabajo</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Timer Controls -->
+                            <div class="flex justify-center space-x-3 mb-4">
+                                <button class="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:opacity-90" data-event="click:handleStartPause">
+                                    <i class="fas fa-play mr-2"></i>Iniciar
+                                </button>
+                                <button class="bg-muted text-muted-foreground px-6 py-2 rounded-lg hover:bg-accent">
+                                    <i class="fas fa-stop mr-2"></i>Parar
+                                </button>
+                            </div>
+
+                            <!-- Current Task -->
+                            <div class="bg-muted rounded-lg p-4">
+                                <div class="text-sm text-muted-foreground mb-1">Tarea Actual</div>
+                                <div class="font-medium" data-bind="currentTask.title">Completar diseño del dashboard</div>
+                                <div class="flex items-center mt-2 space-x-2">
+                                    <span class="px-2 py-1 rounded text-xs category-trabajo">Trabajo</span>
+                                    <span class="px-2 py-1 rounded text-xs bg-destructive text-destructive-foreground">Prioridad A</span>
+                                </div>
+                            </div>
+
+                            <!-- Session Stats -->
+                            <div class="grid grid-cols-2 gap-4 mt-4">
+                                <div class="text-center">
+                                    <div class="text-xl font-bold text-primary">3</div>
+                                    <div class="text-xs text-muted-foreground">Pomodoros Hoy</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-xl font-bold text-chart-3">5min</div>
+                                    <div class="text-xs text-muted-foreground">Próximo Descanso</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: Pomodoro Timer -->
+
+                    <!-- @COMPONENT: Task Board [filterable task list] -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-card rounded-lg p-6 h-full flex flex-col">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-lg font-semibold flex items-center">
+                                    <i class="fas fa-list-ul mr-2 text-primary"></i>
+                                    Board de Tareas
+                                </h2>
+                                <div class="text-sm text-muted-foreground">
+                                    Cierre automático: 23:00
+                                </div>
+                            </div>
+
+                            <!-- Filters -->
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <button class="px-3 py-1 rounded-full bg-primary text-primary-foreground text-sm">
+                                    Todas
+                                </button>
+                                <button class="px-3 py-1 rounded-full bg-muted text-muted-foreground text-sm hover:bg-accent">
+                                    Proyectos
+                                </button>
+                                <button class="px-3 py-1 rounded-full bg-muted text-muted-foreground text-sm hover:bg-accent">
+                                    Sin Proyecto
+                                </button>
+                                <button class="px-3 py-1 rounded-full bg-muted text-muted-foreground text-sm hover:bg-accent">
+                                    Tareas del Día
+                                </button>
+                                <button class="px-3 py-1 rounded-full bg-muted text-muted-foreground text-sm hover:bg-accent">
+                                    Prioridad A
+                                </button>
+                            </div>
+
+                            <!-- Task List -->
+                            <div class="flex-1 overflow-y-auto space-y-3">
+                                <!-- @MAP: tasks.map(task => ( -->
+                                <div class="task-priority-a bg-background border border-border rounded-lg p-4 hover:shadow-sm transition-shadow" data-mock="true">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex items-start space-x-3 flex-1">
+                                            <input type="checkbox" class="mt-1" data-event="change:handleTaskComplete">
+                                            <div class="flex-1">
+                                                <h3 class="font-medium" data-bind="task.title">Revisar código del sistema de autenticación</h3>
+                                                <p class="text-sm text-muted-foreground mt-1">Proyecto: Sistema de Gestión</p>
+                                                <div class="flex items-center mt-2 space-x-2">
+                                                    <span class="px-2 py-1 rounded text-xs category-trabajo">Trabajo</span>
+                                                    <span class="px-2 py-1 rounded text-xs bg-destructive text-destructive-foreground">A</span>
+                                                    <span class="text-xs text-muted-foreground">Estimado: 2 pomodoros</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <button class="text-muted-foreground hover:text-foreground">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-muted-foreground hover:text-destructive">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="task-priority-b bg-background border border-border rounded-lg p-4 hover:shadow-sm transition-shadow" data-mock="true">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex items-start space-x-3 flex-1">
+                                            <input type="checkbox" class="mt-1">
+                                            <div class="flex-1">
+                                                <h3 class="font-medium">Preparar presentación para clientes</h3>
+                                                <p class="text-sm text-muted-foreground mt-1">Sin proyecto</p>
+                                                <div class="flex items-center mt-2 space-x-2">
+                                                    <span class="px-2 py-1 rounded text-xs category-trabajo">Trabajo</span>
+                                                    <span class="px-2 py-1 rounded text-xs bg-chart-3 text-background">B</span>
+                                                    <span class="text-xs text-muted-foreground">Estimado: 3 pomodoros</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <button class="text-muted-foreground hover:text-foreground">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-muted-foreground hover:text-destructive">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="task-priority-c bg-background border border-border rounded-lg p-4 hover:shadow-sm transition-shadow" data-mock="true">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex items-start space-x-3 flex-1">
+                                            <input type="checkbox" class="mt-1">
+                                            <div class="flex-1">
+                                                <h3 class="font-medium">Ejercicio en el gimnasio</h3>
+                                                <p class="text-sm text-muted-foreground mt-1">Tarea del día</p>
+                                                <div class="flex items-center mt-2 space-x-2">
+                                                    <span class="px-2 py-1 rounded text-xs category-salud">Salud</span>
+                                                    <span class="px-2 py-1 rounded text-xs bg-chart-4 text-background">C</span>
+                                                    <span class="text-xs text-muted-foreground">Estimado: 2 pomodoros</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <button class="text-muted-foreground hover:text-foreground">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-muted-foreground hover:text-destructive">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="task-priority-d bg-background border border-border rounded-lg p-4 hover:shadow-sm transition-shadow" data-mock="true">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex items-start space-x-3 flex-1">
+                                            <input type="checkbox" class="mt-1">
+                                            <div class="flex-1">
+                                                <h3 class="font-medium">Leer artículo sobre productividad</h3>
+                                                <p class="text-sm text-muted-foreground mt-1">Proyecto: Desarrollo Personal</p>
+                                                <div class="flex items-center mt-2 space-x-2">
+                                                    <span class="px-2 py-1 rounded text-xs category-estudios">Estudios</span>
+                                                    <span class="px-2 py-1 rounded text-xs bg-chart-2 text-background">D</span>
+                                                    <span class="text-xs text-muted-foreground">Estimado: 1 pomodoro</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <button class="text-muted-foreground hover:text-foreground">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-muted-foreground hover:text-destructive">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- @END_MAP )) -->
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: Task Board -->
+                </div>
+
+                <!-- @COMPONENT: Statistics Section [monthly progress charts] -->
+                <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-card rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center">
+                            <i class="fas fa-chart-line mr-2 text-primary"></i>
+                            Progreso Mensual
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between text-sm mb-2">
+                                    <span>Tareas Completadas</span>
+                                    <span class="font-semibold">247/300</span>
+                                </div>
+                                <div class="w-full bg-muted rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full" style="width: 82%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-2">
+                                    <span>Pomodoros</span>
+                                    <span class="font-semibold">156/200</span>
+                                </div>
+                                <div class="w-full bg-muted rounded-full h-2">
+                                    <div class="bg-chart-2 h-2 rounded-full" style="width: 78%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-2">
+                                    <span>Racha Actual</span>
+                                    <span class="font-semibold">12 días</span>
+                                </div>
+                                <div class="w-full bg-muted rounded-full h-2">
+                                    <div class="bg-chart-3 h-2 rounded-full" style="width: 60%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-card rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center">
+                            <i class="fas fa-trophy mr-2 text-chart-3"></i>
+                            Logros Recientes
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center space-x-3 p-3 bg-muted rounded-lg">
+                                <div class="w-8 h-8 bg-chart-3 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-fire text-xs text-background"></i>
+                                </div>
+                                <div>
+                                    <div class="font-medium text-sm">Racha de Fuego</div>
+                                    <div class="text-xs text-muted-foreground">10 días consecutivos</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3 p-3 bg-muted rounded-lg">
+                                <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                                    <i class="fas fa-star text-xs text-primary-foreground"></i>
+                                </div>
+                                <div>
+                                    <div class="font-medium text-sm">Maestro Pomodoro</div>
+                                    <div class="text-xs text-muted-foreground">100 pomodoros completados</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-card rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center">
+                            <i class="fas fa-calendar-week mr-2 text-chart-4"></i>
+                            Esta Semana
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-sm">Lunes</span>
+                                <span class="text-sm font-semibold">8 tareas</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm">Martes</span>
+                                <span class="text-sm font-semibold">12 tareas</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm">Miércoles</span>
+                                <span class="text-sm font-semibold text-primary">15 tareas</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-muted-foreground">Jueves</span>
+                                <span class="text-sm text-muted-foreground">0 tareas</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-muted-foreground">Viernes</span>
+                                <span class="text-sm text-muted-foreground">0 tareas</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: Statistics Section -->
+            </div>
+        </main>
+        <!-- @END_COMPONENT: Main Content Area -->
+    </div>
+
+    <!-- @COMPONENT: Motivational Notification [floating notification overlay] -->
+    <div class="fixed top-4 right-4 bg-card border border-border rounded-lg shadow-lg p-4 max-w-sm notification-motivational hidden" data-mock="true" data-implementation="Show/hide based on streak detection">
+        <div class="flex items-start space-x-3">
+            <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-quote-left text-primary-foreground"></i>
+            </div>
+            <div class="flex-1">
+                <div class="font-medium mb-1">¡Excelente racha!</div>
+                <p class="text-sm text-muted-foreground">"El éxito es la suma de pequeños esfuerzos repetidos día tras día." - Robert Collier</p>
+                <div class="mt-2">
+                    <button class="text-xs text-primary hover:underline">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: Motivational Notification -->
+
+    <!-- @COMPONENT: Task Creation Modal [overlay for new tasks] -->
+    <div class="fixed inset-0 bg-background/80 backdrop-blur-sm hidden" data-mock="true" data-implementation="Modal overlay for task creation">
+        <div class="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] w-full max-w-lg bg-card border border-border rounded-lg shadow-lg">
+            <div class="p-6">
+                <h2 class="text-lg font-semibold mb-4">Nueva Tarea</h2>
+                <form class="space-y-4" data-event="submit:handleTaskCreate">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Título</label>
+                        <input type="text" class="w-full px-3 py-2 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring" placeholder="Describir la tarea...">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Categoría</label>
+                            <select class="w-full px-3 py-2 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
+                                <option>Trabajo</option>
+                                <option>Personal</option>
+                                <option>Salud</option>
+                                <option>Ocio</option>
+                                <option>Estudios</option>
+                                <option>Relaciones</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Prioridad</label>
+                            <select class="w-full px-3 py-2 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
+                                <option>A - Crítica</option>
+                                <option>B - Importante</option>
+                                <option>C - Normal</option>
+                                <option>D - Baja</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Proyecto (Opcional)</label>
+                        <select class="w-full px-3 py-2 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring">
+                            <option>Sin proyecto</option>
+                            <option>Sistema de Gestión</option>
+                            <option>Desarrollo Personal</option>
+                            <option>Proyecto Cliente ABC</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Pomodoros Estimados</label>
+                        <input type="number" min="1" max="8" class="w-full px-3 py-2 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring" placeholder="2">
+                    </div>
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" class="px-4 py-2 text-muted-foreground hover:text-foreground">Cancelar</button>
+                        <button type="submit" class="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90">Crear Tarea</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: Task Creation Modal -->
+
+    <script>
+        (function() {
+            // TODO: Implement timer functionality, task management, and experience system
+            // TODO: Add real-time updates for timer progress
+            // TODO: Implement motivational notifications based on streaks
+            // TODO: Add task completion tracking and experience calculation
+            // TODO: Implement auto-close functionality at 23:00 based on user timezone
+            
+            // Mock timer animation for demo
+            let progress = 60;
+            const timerElement = document.querySelector('.pomodoro-timer');
+            
+            // Mock task completion handler
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        this.closest('.task-priority-a, .task-priority-b, .task-priority-c, .task-priority-d')
+                            .style.opacity = '0.6';
+                        // TODO: Update experience points and check for streaks
+                    }
+                });
+            });
+
+            // Mock notification system
+            function showMotivationalNotification() {
+                const notification = document.querySelector('.notification-motivational');
+                notification.classList.remove('hidden');
+                setTimeout(() => {
+                    notification.classList.add('hidden');
+                }, 5000);
+            }
+
+            // Show notification on 3-task streak (mock)
+            let completedTasks = 0;
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        completedTasks++;
+                        if (completedTasks % 3 === 0) {
+                            showMotivationalNotification();
+                        }
+                    }
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

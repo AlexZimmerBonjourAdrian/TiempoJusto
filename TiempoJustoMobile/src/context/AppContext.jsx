@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useMemo, useCallback, useState, useEffect } from 'react';
-import { Alert } from 'react-native';
 import { useAsyncStorageState, validateTask, validateProject, validatePomodoroSettings } from '../storage';
 import adService from '../services/adService';
+import eventBus from '../services/eventBus';
 
 // Estado inicial
 const initialState = {
@@ -90,8 +90,7 @@ export function AppProvider({ children }) {
 
         const errors = validateTask(normalizedTask);
         if (errors.length > 0) {
-            Alert.alert('Error de Validación', errors.join('\n'));
-            return false;
+            return { ok: false, errors };
         }
 
         const newTask = {
@@ -106,7 +105,7 @@ export function AppProvider({ children }) {
             lastActivityAt: Date.now()
         }));
 
-        return true;
+        return { ok: true, task: newTask };
     }, [setAppState]);
     
     const toggleTask = useCallback((taskId) => {
@@ -114,20 +113,16 @@ export function AppProvider({ children }) {
             const updatedTasks = (prev.tasks || []).map(task => {
                 if (task.id === taskId) {
                     const newDone = !task.done;
-                    return {
+                    const updated = {
                         ...task,
                         done: newDone,
                         completedAt: newDone ? new Date().toISOString() : null
                     };
+                    try { eventBus.emit('task:toggled', { task: updated }); } catch {}
+                    return updated;
                 }
                 return task;
             });
-
-            // Disparar anuncio cada 5 tareas completadas
-            const completedToday = updatedTasks.filter(t => t.done).length;
-            if (completedToday > 0 && completedToday % 5 === 0) {
-                try { adService.showNext(); } catch {}
-            }
 
             return {
                 ...prev,
@@ -146,17 +141,22 @@ export function AppProvider({ children }) {
     }, [setAppState]);
     
     const updateTask = useCallback((taskId, updates) => {
+        let result = { ok: false, errors: [] };
         setAppState(prev => {
             const existingTask = (prev.tasks || []).find(t => t.id === taskId);
-            if (!existingTask) return prev;
+            if (!existingTask) {
+                result = { ok: false, errors: ['Tarea no encontrada'] };
+                return prev;
+            }
 
             const mergedTask = { ...existingTask, ...updates };
             const errors = validateTask(mergedTask);
             if (errors.length > 0) {
-                Alert.alert('Error de Validación', errors.join('\n'));
+                result = { ok: false, errors };
                 return prev;
             }
 
+            result = { ok: true };
             return {
                 ...prev,
                 tasks: (prev.tasks || []).map(task => 
@@ -165,6 +165,7 @@ export function AppProvider({ children }) {
                 lastActivityAt: Date.now()
             };
         });
+        return result;
     }, [setAppState]);
     
     // 7. Acciones de proyectos
@@ -175,8 +176,7 @@ export function AppProvider({ children }) {
 
         const errors = validateProject(normalizedProject);
         if (errors.length > 0) {
-            Alert.alert('Error de Validación', errors.join('\n'));
-            return false;
+            return { ok: false, errors };
         }
 
         const newProject = {
@@ -191,7 +191,7 @@ export function AppProvider({ children }) {
             lastActivityAt: Date.now()
         }));
 
-        return true;
+        return { ok: true, project: newProject };
     }, [setAppState]);
     
     const completeProject = useCallback((projectId) => {
@@ -215,8 +215,7 @@ export function AppProvider({ children }) {
             lastActivityAt: Date.now()
         }));
 
-        // Mostrar anuncio al completar proyecto
-        try { adService.onProjectCompleted(); } catch {}
+        try { eventBus.emit('project:completed', { projectId }); } catch {}
     }, [appState.projects, setAppState]);
     
     const removeProject = useCallback((projectId) => {
@@ -232,11 +231,11 @@ export function AppProvider({ children }) {
     const updatePomodoroSettings = useCallback((settings) => {
         const errors = validatePomodoroSettings(settings);
         if (errors.length > 0) {
-            Alert.alert('Error de Validación', errors.join('\n'));
-            return;
+            return { ok: false, errors };
         }
 
         setAppState(prev => ({ ...prev, pomodoroSettings: settings }));
+        return { ok: true };
     }, [setAppState]);
     
     // 9. Acción de archivar día

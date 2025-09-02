@@ -2,6 +2,7 @@ import React, { useMemo, useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Animated, TextInput, FlatList } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import { useTaskStats } from '../hooks/useOptimizedComponents';
+import taskBusinessLogic from '../services/taskBusinessLogic';
 import TimeRangeSelector from './TimeRangeSelector';
 import SimpleProgressChart from './SimpleProgressChart';
 import TaskItem from './optimized/TaskItem';
@@ -95,38 +96,20 @@ export default function AnalyticsBoard() {
     // Filtrar tareas por rango de tiempo
     const filteredTasks = useMemo(() => {
         if (!tasks) return [];
-        
         const now = new Date();
         let startDate;
-        
         if (timeRange === 'month') {
-            // Mes actual
             startDate = new Date(now.getFullYear(), now.getMonth(), 1);
         } else {
-            // Últimos 7 días
             startDate = new Date(now);
             startDate.setDate(startDate.getDate() - 6);
         }
-        
-        return tasks.filter(task => {
-            const taskDate = task.createdAt ? new Date(task.createdAt) : new Date();
-            return taskDate >= startDate;
-        });
+        return taskBusinessLogic.filterTasksAdvanced(tasks, { dateRange: { start: startDate, end: null } });
     }, [tasks, timeRange]);
 
     // Ordenar tareas
     const sortedTasks = useMemo(() => {
-        if (!Array.isArray(filteredTasks)) return [];
-        
-        return [...filteredTasks].sort((a, b) => {
-            // Primero por completadas
-            if (a.done !== b.done) return Number(a.done) - Number(b.done);
-            // Luego por prioridad (A, B, C, D)
-            const priorityOrder = { A: 0, B: 1, C: 2, D: 3 };
-            const aPriority = priorityOrder[a.priority || 'C'];
-            const bPriority = priorityOrder[b.priority || 'C'];
-            return aPriority - bPriority;
-        });
+        return taskBusinessLogic.sortTasksIntelligently(filteredTasks);
     }, [filteredTasks]);
 
     // Datos para la gráfica mensual mejorada
@@ -200,12 +183,12 @@ export default function AnalyticsBoard() {
         
         setIsSubmitting(true);
         try {
-            const ok = await addTask({
+            const res = await addTask({
                 title: newTitle.trim(),
                 projectId: selectedProjectId,
                 priority: selectedPriority
             });
-            if (ok) {
+            if (res?.ok) {
                 setNewTitle('');
                 setSelectedProjectId(null);
                 setSelectedPriority('C');

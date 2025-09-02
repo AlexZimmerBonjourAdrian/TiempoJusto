@@ -28,8 +28,8 @@ export default function ProjectBoard() {
         setIsSubmitting(true);
         try {
             const project = { name };
-            const ok = await handleAddProject(project);
-            if (ok) {
+            const res = await handleAddProject(project);
+            if (res?.ok) {
                 setNewName('');
             }
         } catch (error) {

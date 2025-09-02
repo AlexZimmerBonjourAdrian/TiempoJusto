@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimeTracker Pro - Task & Time Management Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+       theme: {
+         extend: {
+          borderRadius: {
+          lg: "var(--radius)",
+          md: "calc(var(--radius) - 2px)",
+          sm: "calc(var(--radius) - 4px)",
+          },
+          colors: {
+          background: "var(--background)",
+          foreground: "var(--foreground)",
+          card: {
+             DEFAULT: "var(--card)",
+             foreground: "var(--card-foreground)",
+          },
+          popover: {
+             DEFAULT: "var(--popover)",
+             foreground: "var(--popover-foreground)",
+          },
+          primary: {
+             DEFAULT: "var(--primary)",
+             foreground: "var(--primary-foreground)",
+          },
+          secondary: {
+             DEFAULT: "var(--secondary)",
+             foreground: "var(--secondary-foreground)",
+          },
+          muted: {
+             DEFAULT: "var(--muted)",
+             foreground: "var(--muted-foreground)",
+          },
+          accent: {
+             DEFAULT: "var(--accent)",
+             foreground: "var(--accent-foreground)",
+          },
+          destructive: {
+             DEFAULT: "var(--destructive)",
+             foreground: "var(--destructive-foreground)",
+          },
+          border: "var(--border)",
+          input: "var(--input)",
+          ring: "var(--ring)",
+          chart: {
+             "1": "var(--chart-1)",
+             "2": "var(--chart-2)",
+             "3": "var(--chart-3)",
+             "4": "var(--chart-4)",
+             "5": "var(--chart-5)",
+          }
+          },
+          fontFamily: {
+          sans: ["var(--font-sans)"],
+          serif: ["var(--font-serif)"],
+          mono: ["var(--font-mono)"],
+       }
+  },
+}
+    };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+          --card: hsl(0, 0%, 96.47%);
+          --ring: hsl(0, 0%, 0%);
+          --input: hsl(0, 0%, 0%);
+          --muted: hsl(0, 0%, 96.08%);
+          --accent: hsl(254.21, 100%, 92.55%);
+          --border: hsl(0, 0%, 96.47%);
+          --radius: 0rem;
+          --shadow: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+          --chart-1: hsl(203.8863 88.2845% 53.1373%);
+          --chart-2: hsl(159.7826 100% 36.0784%);
+          --chart-3: hsl(42.0290 92.8251% 56.2745%);
+          --chart-4: hsl(147.1429 78.5047% 41.9608%);
+          --chart-5: hsl(341.4894 75.2000% 50.9804%);
+          --popover: hsl(0, 0%, 100%);
+          --primary: hsl(96, 85.19%, 73.53%);
+          --sidebar: hsl(180 6.6667% 97.0588%);
+          --spacing: 0.25rem;
+          --font-mono: 'Geist Mono', monospace;
+          --font-sans: 'Space Grotesk', sans-serif;
+          --secondary: hsl(0, 0%, 0%);
+          --shadow-lg: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+          --shadow-md: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+          --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+          --shadow-xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+          --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+          --background: hsl(0, 0%, 100%);
+          --font-serif: 'Geist', sans-serif;
+          --foreground: hsl(0, 0%, 0%);
+          --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+          --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+          --destructive: hsl(2.04, 74.62%, 61.37%);
+          --sidebar-ring: hsl(202.8169 89.1213% 53.1373%);
+          --sidebar-accent: hsl(211.5789 51.3514% 92.7451%);
+          --sidebar-border: hsl(205.0000 25.0000% 90.5882%);
+          --card-foreground: hsl(0, 0%, 0%);
+          --sidebar-primary: hsl(203.8863 88.2845% 53.1373%);
+          --tracking-normal: 0em;
+          --muted-foreground: hsl(0, 0%, 52.94%);
+          --accent-foreground: hsl(0, 0%, 0%);
+          --popover-foreground: hsl(0, 0%, 0%);
+          --primary-foreground: hsl(0, 0%, 0%);
+          --sidebar-foreground: hsl(210 25% 7.8431%);
+          --secondary-foreground: hsl(0, 0%, 100%);
+          --destructive-foreground: hsl(0 0% 100%);
+          --sidebar-accent-foreground: hsl(203.8863 88.2845% 53.1373%);
+          --sidebar-primary-foreground: hsl(0 0% 100%);
+        }
+        
+        .dark {
+          --card: hsl(228 9.8039% 10%);
+          --ring: hsl(202.8169 89.1213% 53.1373%);
+          --input: hsl(207.6923 27.6596% 18.4314%);
+          --muted: hsl(0 0% 9.4118%);
+          --accent: hsl(205.7143 70% 7.8431%);
+          --border: hsl(210 5.2632% 14.9020%);
+          --radius: 1.3rem;
+          --shadow: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+          --chart-1: hsl(203.8863 88.2845% 53.1373%);
+          --chart-2: hsl(159.7826 100% 36.0784%);
+          --chart-3: hsl(42.0290 92.8251% 56.2745%);
+          --chart-4: hsl(147.1429 78.5047% 41.9608%);
+          --chart-5: hsl(341.4894 75.2000% 50.9804%);
+          --popover: hsl(0 0% 0%);
+          --primary: hsl(203.7736 87.6033% 52.5490%);
+          --sidebar: hsl(228 9.8039% 10%);
+          --spacing: 0.25rem;
+          --font-mono: Menlo, monospace;
+          --font-sans: Open Sans, sans-serif;
+          --secondary: hsl(195.0000 15.3846% 94.9020%);
+          --shadow-lg: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+          --shadow-md: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+          --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+          --shadow-xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+          --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+          --background: hsl(0 0% 0%);
+          --font-serif: Georgia, serif;
+          --foreground: hsl(200 6.6667% 91.1765%);
+          --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+          --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+          --destructive: hsl(356.3033 90.5579% 54.3137%);
+          --sidebar-ring: hsl(202.8169 89.1213% 53.1373%);
+          --sidebar-accent: hsl(205.7143 70% 7.8431%);
+          --sidebar-border: hsl(205.7143 15.7895% 26.0784%);
+          --card-foreground: hsl(0 0% 85.0980%);
+          --sidebar-primary: hsl(202.8169 89.1213% 53.1373%);
+          --tracking-normal: 0em;
+          --muted-foreground: hsl(210 3.3898% 46.2745%);
+          --accent-foreground: hsl(203.7736 87.6033% 52.5490%);
+          --popover-foreground: hsl(200 6.6667% 91.1765%);
+          --primary-foreground: hsl(0 0% 100%);
+          --sidebar-foreground: hsl(0 0% 85.0980%);
+          --secondary-foreground: hsl(210 25% 7.8431%);
+          --destructive-foreground: hsl(0 0% 100%);
+          --sidebar-accent-foreground: hsl(203.7736 87.6033% 52.5490%);
+          --sidebar-primary-foreground: hsl(0 0% 100%);
+        }
+        
+        body {
+            font-family: var(--font-sans);
+        }
+        
+        .timer-display {
+            font-family: var(--font-mono);
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+
+<body class="bg-background text-foreground min-h-screen">
+    <!-- @COMPONENT: MainLayout -->
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- @COMPONENT: Sidebar -->
+        <aside class="w-64 bg-sidebar border-r border-sidebar-border flex-shrink-0">
+            <div class="p-6 border-b border-sidebar-border">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-clock text-primary-foreground"></i>
+                    </div>
+                    <h1 class="text-xl font-bold text-sidebar-foreground">TimeTracker Pro</h1>
+                </div>
+            </div>
+            
+            <nav class="p-4 space-y-2">
+                <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-sidebar-accent text-sidebar-accent-foreground transition-colors">
+                    <i class="fas fa-tachometer-alt w-5"></i>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">
+                    <i class="fas fa-tasks w-5"></i>
+                    <span>Tasks</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">
+                    <i class="fas fa-play w-5"></i>
+                    <span>Timer</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">
+                    <i class="fas fa-chart-bar w-5"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">
+                    <i class="fas fa-calendar w-5"></i>
+                    <span>Calendar</span>
+                </a>
+                <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">
+                    <i class="fas fa-cog w-5"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+        </aside>
+        <!-- @END_COMPONENT: Sidebar -->
+        
+        <!-- @COMPONENT: MainContent -->
+        <main class="flex-1 overflow-auto bg-background">
+            <!-- @COMPONENT: TopBar -->
+            <header class="border-b border-border bg-background px-6 py-4 sticky top-0 z-10">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-foreground">Dashboard</h2>
+                        <p class="text-sm text-muted-foreground">Welcome back! Here's your productivity overview.</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button class="p-2 rounded-lg bg-card text-card-foreground border border-border hover:bg-accent hover:text-accent-foreground transition-colors">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                        <button class="p-2 rounded-lg bg-card text-card-foreground border border-border hover:bg-accent hover:text-accent-foreground transition-colors">
+                            <i class="fas fa-user-circle"></i>
+                        </button>
+                        <button id="themeToggle" class="p-2 rounded-lg bg-card text-card-foreground border border-border hover:bg-accent hover:text-accent-foreground transition-colors">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+            <!-- @END_COMPONENT: TopBar -->
+            
+            <div class="p-6">
+                <!-- @COMPONENT: StatsOverview -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-card text-card-foreground rounded-lg p-6 border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-muted-foreground">Today's Time</p>
+                                <p class="text-2xl font-bold" data-bind="todayTime">5h 23m</p>
+                            </div>
+                            <div class="w-12 h-12 bg-chart-1 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-clock text-white"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex items-center text-sm text-muted-foreground">
+                                <i class="fas fa-arrow-up text-chart-2 mr-1"></i>
+                                <span>+12% from yesterday</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-card text-card-foreground rounded-lg p-6 border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-muted-foreground">Completed Tasks</p>
+                                <p class="text-2xl font-bold" data-bind="completedTasks">12</p>
+                            </div>
+                            <div class="w-12 h-12 bg-chart-2 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-check text-white"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex items-center text-sm text-muted-foreground">
+                                <i class="fas fa-arrow-up text-chart-2 mr-1"></i>
+                                <span>+3 from yesterday</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-card text-card-foreground rounded-lg p-6 border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-muted-foreground">Active Projects</p>
+                                <p class="text-2xl font-bold" data-bind="activeProjects">8</p>
+                            </div>
+                            <div class="w-12 h-12 bg-chart-3 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-project-diagram text-white"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex items-center text-sm text-muted-foreground">
+                                <i class="fas fa-minus text-muted-foreground mr-1"></i>
+                                <span>No change</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-card text-card-foreground rounded-lg p-6 border border-border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-muted-foreground">Productivity</p>
+                                <p class="text-2xl font-bold" data-bind="productivityScore">87%</p>
+                            </div>
+                            <div class="w-12 h-12 bg-chart-4 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-chart-line text-white"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex items-center text-sm text-muted-foreground">
+                                <i class="fas fa-arrow-up text-chart-2 mr-1"></i>
+                                <span>+5% from last week</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: StatsOverview -->
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- @COMPONENT: CurrentTimer -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="bg-card text-card-foreground rounded-lg p-6 border border-border">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-lg font-semibold">Current Timer</h3>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 bg-chart-2 rounded-full animate-pulse"></div>
+                                    <span class="text-sm text-muted-foreground">Running</span>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center mb-8">
+                                <div class="timer-display text-6xl font-bold text-foreground mb-2" data-bind="currentTimer">01:45:32</div>
+                                <p class="text-lg text-muted-foreground" data-bind="currentTask">Working on UI Design - Dashboard Layout</p>
+                            </div>
+                            
+                            <div class="flex justify-center space-x-4">
+                                <button class="bg-destructive text-destructive-foreground px-6 py-3 rounded-lg font-medium hover:bg-destructive/90 transition-colors" data-event="click:stopTimer">
+                                    <i class="fas fa-stop mr-2"></i>
+                                    Stop
+                                </button>
+                                <button class="bg-muted text-muted-foreground px-6 py-3 rounded-lg font-medium hover:bg-accent hover:text-accent-foreground transition-colors" data-event="click:pauseTimer">
+                                    <i class="fas fa-pause mr-2"></i>
+                                    Pause
+                                </button>
+                                <button class="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors" data-event="click:addTime">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    Add Time
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- @COMPONENT: WeeklyChart -->
+                        <div class="bg-card text-card-foreground rounded-lg p-6 border border-border">
+                            <h3 class="text-lg font-semibold mb-6">Weekly Overview</h3>
+                            <div class="h-64">
+                                <canvas id="weeklyChart"></canvas>
+                            </div>
+                        </div>
+                        <!-- @END_COMPONENT: WeeklyChart -->
+                    </div>
+                    <!-- @END_COMPONENT: CurrentTimer -->
+                    
+                    <!-- @COMPONENT: TaskList -->
+                    <div class="space-y-6">
+                        <div class="bg-card text-card-foreground rounded-lg p-6 border border-border">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-lg font-semibold">Today's Tasks</h3>
+                                <button class="bg-primary text-primary-foreground px-3 py-1 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors" data-event="click:addTask">
+                                    <i class="fas fa-plus mr-1"></i>
+                                    Add
+                                </button>
+                            </div>
+                            
+                            <div class="space-y-3" data-mock="true">
+                                <!-- @MAP: tasks.map(task => ( -->
+                                <div class="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors group">
+                                    <div class="flex items-center space-x-3">
+                                        <button class="w-5 h-5 rounded-full border-2 border-chart-1 hover:bg-chart-1 transition-colors" data-event="click:toggleTask"></button>
+                                        <div>
+                                            <p class="font-medium text-sm">Design Dashboard Components</p>
+                                            <p class="text-xs text-muted-foreground">High Priority • Design</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button class="p-1 text-chart-1 hover:text-chart-1/80" data-event="click:startTimer">
+                                            <i class="fas fa-play text-xs"></i>
+                                        </button>
+                                        <button class="p-1 text-muted-foreground hover:text-foreground" data-event="click:editTask">
+                                            <i class="fas fa-edit text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors group">
+                                    <div class="flex items-center space-x-3">
+                                        <button class="w-5 h-5 rounded-full border-2 border-chart-1 bg-chart-1" data-event="click:toggleTask">
+                                            <i class="fas fa-check text-white text-xs"></i>
+                                        </button>
+                                        <div>
+                                            <p class="font-medium text-sm line-through text-muted-foreground">Review Client Feedback</p>
+                                            <p class="text-xs text-muted-foreground">Medium Priority • Review</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-xs text-muted-foreground">2h 15m</div>
+                                </div>
+                                
+                                <div class="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors group">
+                                    <div class="flex items-center space-x-3">
+                                        <button class="w-5 h-5 rounded-full border-2 border-chart-1 hover:bg-chart-1 transition-colors" data-event="click:toggleTask"></button>
+                                        <div>
+                                            <p class="font-medium text-sm">Update Project Documentation</p>
+                                            <p class="text-xs text-muted-foreground">Low Priority • Documentation</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button class="p-1 text-chart-1 hover:text-chart-1/80" data-event="click:startTimer">
+                                            <i class="fas fa-play text-xs"></i>
+                                        </button>
+                                        <button class="p-1 text-muted-foreground hover:text-foreground" data-event="click:editTask">
+                                            <i class="fas fa-edit text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors group">
+                                    <div class="flex items-center space-x-3">
+                                        <button class="w-5 h-5 rounded-full border-2 border-chart-1 hover:bg-chart-1 transition-colors" data-event="click:toggleTask"></button>
+                                        <div>
+                                            <p class="font-medium text-sm">Prepare Weekly Report</p>
+                                            <p class="text-xs text-muted-foreground">High Priority • Reports</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button class="p-1 text-chart-1 hover:text-chart-1/80" data-event="click:startTimer">
+                                            <i class="fas fa-play text-xs"></i>
+                                        </button>
+                                        <button class="p-1 text-muted-foreground hover:text-foreground" data-event="click:editTask">
+                                            <i class="fas fa-edit text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <!-- @END_MAP )) -->
+                            </div>
+                        </div>
+                        
+                        <!-- @COMPONENT: ProjectProgress -->
+                        <div class="bg-card text-card-foreground rounded-lg p-6 border border-border">
+                            <h3 class="text-lg font-semibold mb-6">Project Progress</h3>
+                            <div class="space-y-4" data-mock="true">
+                                <!-- @MAP: projects.map(project => ( -->
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-3 h-3 bg-chart-1 rounded-full"></div>
+                                            <span class="text-sm font-medium">Dashboard Redesign</span>
+                                        </div>
+                                        <span class="text-sm text-muted-foreground">75%</span>
+                                    </div>
+                                    <div class="w-full bg-muted rounded-full h-2">
+                                        <div class="bg-chart-1 h-2 rounded-full progress-bar" style="width: 75%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-3 h-3 bg-chart-2 rounded-full"></div>
+                                            <span class="text-sm font-medium">API Integration</span>
+                                        </div>
+                                        <span class="text-sm text-muted-foreground">45%</span>
+                                    </div>
+                                    <div class="w-full bg-muted rounded-full h-2">
+                                        <div class="bg-chart-2 h-2 rounded-full progress-bar" style="width: 45%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-3 h-3 bg-chart-3 rounded-full"></div>
+                                            <span class="text-sm font-medium">Testing & QA</span>
+                                        </div>
+                                        <span class="text-sm text-muted-foreground">20%</span>
+                                    </div>
+                                    <div class="w-full bg-muted rounded-full h-2">
+                                        <div class="bg-chart-3 h-2 rounded-full progress-bar" style="width: 20%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-3 h-3 bg-chart-4 rounded-full"></div>
+                                            <span class="text-sm font-medium">Documentation</span>
+                                        </div>
+                                        <span class="text-sm text-muted-foreground">90%</span>
+                                    </div>
+                                    <div class="w-full bg-muted rounded-full h-2">
+                                        <div class="bg-chart-4 h-2 rounded-full progress-bar" style="width: 90%"></div>
+                                    </div>
+                                </div>
+                                <!-- @END_MAP )) -->
+                            </div>
+                        </div>
+                        <!-- @END_COMPONENT: ProjectProgress -->
+                    </div>
+                    <!-- @END_COMPONENT: TaskList -->
+                </div>
+                
+                <!-- @COMPONENT: MonthlyStatistics -->
+                <div class="mt-8">
+                    <div class="bg-card text-card-foreground rounded-lg p-6 border border-border">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-semibold">Monthly Statistics</h3>
+                            <div class="flex items-center space-x-2">
+                                <select class="bg-background border border-border rounded-lg px-3 py-1 text-sm" data-event="change:updatePeriod">
+                                    <option>This Month</option>
+                                    <option>Last Month</option>
+                                    <option>Last 3 Months</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <h4 class="text-sm font-medium text-muted-foreground mb-4">Time Distribution</h4>
+                                <div class="h-64">
+                                    <canvas id="monthlyPieChart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="text-sm font-medium text-muted-foreground mb-4">Daily Average</h4>
+                                <div class="h-64">
+                                    <canvas id="dailyAverageChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="text-center p-4 rounded-lg bg-muted">
+                                <div class="text-2xl font-bold text-foreground mb-1">156h</div>
+                                <div class="text-sm text-muted-foreground">Total Hours</div>
+                            </div>
+                            <div class="text-center p-4 rounded-lg bg-muted">
+                                <div class="text-2xl font-bold text-foreground mb-1">5.2h</div>
+                                <div class="text-sm text-muted-foreground">Daily Average</div>
+                            </div>
+                            <div class="text-center p-4 rounded-lg bg-muted">
+                                <div class="text-2xl font-bold text-foreground mb-1">85%</div>
+                                <div class="text-sm text-muted-foreground">Efficiency</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: MonthlyStatistics -->
+            </div>
+        </main>
+        <!-- @END_COMPONENT: MainContent -->
+    </div>
+    <!-- @END_COMPONENT: MainLayout -->
+    
+    <!-- @COMPONENT: TaskModal -->
+    <div id="taskModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden" data-event="click:closeModal">
+        <div class="bg-card text-card-foreground rounded-lg p-6 w-full max-w-md mx-4" data-event="click:stopPropagation">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Add New Task</h3>
+                <button class="text-muted-foreground hover:text-foreground" data-event="click:closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form class="space-y-4" data-event="submit:createTask">
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-2">Task Name</label>
+                    <input type="text" class="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Enter task name..." data-mock="true">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-2">Category</label>
+                    <select class="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary" data-mock="true">
+                        <option>Design</option>
+                        <option>Development</option>
+                        <option>Review</option>
+                        <option>Documentation</option>
+                        <option>Meeting</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-2">Priority</label>
+                    <div class="flex space-x-2">
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="priority" value="high" class="text-primary focus:ring-primary" data-mock="true">
+                            <span class="text-sm">High</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="priority" value="medium" class="text-primary focus:ring-primary" checked data-mock="true">
+                            <span class="text-sm">Medium</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="priority" value="low" class="text-primary focus:ring-primary" data-mock="true">
+                            <span class="text-sm">Low</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" class="px-4 py-2 text-muted-foreground hover:text-foreground" data-event="click:closeModal">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors">Create Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: TaskModal -->
+
+    <script>
+        // TODO: Implement timer functionality with start/stop/pause
+        // TODO: Implement task creation, editing, and deletion
+        // TODO: Implement data persistence using localStorage or API
+        // TODO: Implement real-time timer updates
+        // TODO: Implement task filtering and sorting
+        // TODO: Implement monthly statistics calculations
+        
+        (function() {
+            // Theme Toggle Functionality
+            const themeToggle = document.getElementById('themeToggle');
+            const html = document.documentElement;
+            
+            themeToggle.addEventListener('click', () => {
+                html.classList.toggle('dark');
+                const isDark = html.classList.contains('dark');
+                themeToggle.innerHTML = `<i class="fas fa-${isDark ? 'sun' : 'moon'}"></i>`;
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            });
+            
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                html.classList.add('dark');
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            }
+            
+            // Chart Initialization
+            function initCharts() {
+                // Weekly Chart
+                const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+                new Chart(weeklyCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'Hours Worked',
+                            data: [8, 6.5, 7, 8.5, 6, 4, 2],
+                            borderColor: 'hsl(var(--chart-1))',
+                            backgroundColor: 'hsla(var(--chart-1), 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'hsl(var(--border))'
+                                },
+                                ticks: {
+                                    color: 'hsl(var(--muted-foreground))'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    color: 'hsl(var(--border))'
+                                },
+                                ticks: {
+                                    color: 'hsl(var(--muted-foreground))'
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Monthly Pie Chart
+                const pieCtx = document.getElementById('monthlyPieChart').getContext('2d');
+                new Chart(pieCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Development', 'Design', 'Meetings', 'Documentation', 'Other'],
+                        datasets: [{
+                            data: [40, 25, 15, 12, 8],
+                            backgroundColor: [
+                                'hsl(var(--chart-1))',
+                                'hsl(var(--chart-2))',
+                                'hsl(var(--chart-3))',
+                                'hsl(var(--chart-4))',
+                                'hsl(var(--chart-5))'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: 'hsl(var(--foreground))',
+                                    padding: 20
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Daily Average Chart
+                const dailyCtx = document.getElementById('dailyAverageChart').getContext('2d');
+                new Chart(dailyCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                        datasets: [{
+                            label: 'Daily Average Hours',
+                            data: [6.2, 7.1, 5.8, 6.9],
+                            backgroundColor: 'hsl(var(--chart-2))',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'hsl(var(--border))'
+                                },
+                                ticks: {
+                                    color: 'hsl(var(--muted-foreground))'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: 'hsl(var(--muted-foreground))'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Initialize charts when page loads
+            window.addEventListener('load', initCharts);
+            
+            // Mock timer functionality
+            let timerInterval;
+            let currentSeconds = 6332; // 1:45:32
+            
+            function updateTimer() {
+                const hours = Math.floor(currentSeconds / 3600);
+                const minutes = Math.floor((currentSeconds % 3600) / 60);
+                const seconds = currentSeconds % 60;
+                
+                const display = document.querySelector('.timer-display');
+                if (display) {
+                    display.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+            }
+            
+            // Update timer every second (mock functionality)
+            timerInterval = setInterval(() => {
+                currentSeconds++;
+                updateTimer();
+            }, 1000);
+            
+            // Modal functionality
+            const modal = document.getElementById('taskModal');
+            const addTaskButtons = document.querySelectorAll('[data-event="click:addTask"]');
+            
+            addTaskButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    modal.classList.remove('hidden');
+                });
+            });
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+            
+            // Close modal buttons
+            document.querySelectorAll('[data-event="click:closeModal"]').forEach(button => {
+                button.addEventListener('click', () => {
+                    modal.classList.add('hidden');
+                });
+            });
+            
+            // Prevent modal from closing when clicking inside
+            document.querySelector('[data-event="click:stopPropagation"]').addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        })();
+    </script>
+</body>
+</html>

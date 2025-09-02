@@ -18,7 +18,7 @@ import { useBackgroundNotifications } from './src/hooks/useBackgroundNotificatio
 import { usePomodoroService } from './src/hooks/usePomodoroService';
 import { useNavigationData, useNotificationData } from './src/hooks/useOptimizedComponents';
 import TabButton from './src/components/optimized/TabButton';
-import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
+import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 import adService from './src/services/adService';
 
 function AppInner() {
@@ -137,7 +137,7 @@ function AppInner() {
 
             <View style={styles.adContainer}>
                 <BannerAd
-                    unitId={"ca-app-pub-5830123606672832/1949608897"}
+                    unitId={__DEV__ ? TestIds.BANNER : "ca-app-pub-5830123606672832/1949608897"}
                     size={BannerAdSize.BANNER}
                 />
             </View>

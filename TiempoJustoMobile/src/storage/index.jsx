@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Constantes de validación
@@ -122,16 +121,7 @@ async function readJson(key, fallbackValue) {
         return parsed;
     } catch (error) {
         console.error('AsyncStorage read error for', key, error);
-        
-        // Mostrar alerta al usuario solo para errores críticos
-        if (key.startsWith('TJ_')) {
-            Alert.alert(
-                'Error de Datos',
-                'Hubo un problema al cargar los datos. Se usarán los valores por defecto.',
-                [{ text: 'OK' }]
-            );
-        }
-        
+        // No UI en capa de datos: devolver fallback
         return fallbackValue;
     }
 }
@@ -163,17 +153,7 @@ async function writeJson(key, value) {
         await AsyncStorage.setItem(key, JSON.stringify(value));
     } catch (error) {
         console.error('AsyncStorage write error for', key, error);
-        
-        // Mostrar alerta al usuario para errores de escritura
-        Alert.alert(
-            'Error de Guardado',
-            'No se pudieron guardar los datos. Verifica el espacio disponible y vuelve a intentar.',
-            [
-                { text: 'Reintentar', onPress: () => writeJson(key, value) },
-                { text: 'Cancelar' }
-            ]
-        );
-        
+        // No UI en capa de datos: propagar error a capas superiores
         throw error;
     }
 }
@@ -236,15 +216,24 @@ export function useAsyncStorageState(key, initialValue) {
 // Función para crear backup
 export async function createBackup() {
     try {
-        const keys = ['TJ_TASKS', 'TJ_PROJECTS', 'TJ_DAILY_LOGS', 'TJ_MILESTONES', 'TJ_POMODORO_SETTINGS'];
-        const data = await AsyncStorage.multiGet(keys);
-        
+        // Respaldar estado unificado si existe; mantener compatibilidad con claves antiguas si no
+        const appStateStr = await AsyncStorage.getItem('TJ_APP_STATE');
+
+        let dataObject;
+        if (appStateStr) {
+            dataObject = { TJ_APP_STATE: appStateStr };
+        } else {
+            const keys = ['TJ_TASKS', 'TJ_PROJECTS', 'TJ_DAILY_LOGS', 'TJ_MILESTONES', 'TJ_POMODORO_SETTINGS'];
+            const data = await AsyncStorage.multiGet(keys);
+            dataObject = Object.fromEntries(data.filter(([_, value]) => value !== null));
+        }
+
         const backup = {
             timestamp: Date.now(),
-            version: '1.0.0',
-            data: Object.fromEntries(data.filter(([_, value]) => value !== null))
+            version: '1.1.0',
+            data: dataObject
         };
-        
+
         await AsyncStorage.setItem('TJ_BACKUP', JSON.stringify(backup));
         return backup;
     } catch (error) {
@@ -262,6 +251,7 @@ export async function restoreBackup() {
         }
         
         const backup = JSON.parse(backupStr);
+        // Restaurar todas las entradas del backup (incluye TJ_APP_STATE o claves antiguas)
         await AsyncStorage.multiSet(Object.entries(backup.data));
         return backup;
     } catch (error) {
