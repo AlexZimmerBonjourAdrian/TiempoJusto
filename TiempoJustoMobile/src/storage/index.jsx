@@ -216,17 +216,14 @@ export function useAsyncStorageState(key, initialValue) {
 // Función para crear backup
 export async function createBackup() {
     try {
-        // Respaldar estado unificado si existe; mantener compatibilidad con claves antiguas si no
-        const appStateStr = await AsyncStorage.getItem('TJ_APP_STATE');
-
-        let dataObject;
-        if (appStateStr) {
-            dataObject = { TJ_APP_STATE: appStateStr };
-        } else {
-            const keys = ['TJ_TASKS', 'TJ_PROJECTS', 'TJ_DAILY_LOGS', 'TJ_MILESTONES', 'TJ_POMODORO_SETTINGS'];
-            const data = await AsyncStorage.multiGet(keys);
-            dataObject = Object.fromEntries(data.filter(([_, value]) => value !== null));
-        }
+        // Respaldar por slices + UI para vertical slice
+        const keys = ['TJ_UI_STATE', 'TJ_TASKS_STATE', 'TJ_PROJECTS_STATE', 'TJ_POMODORO_SETTINGS', 'TJ_DAILY_LOGS', 'TJ_MILESTONES'];
+        const data = await AsyncStorage.multiGet(keys);
+        let dataObject = Object.fromEntries(data.filter(([_, value]) => value !== null));
+        // Compatibilidad: incluir antiguas si existen
+        const legacyKeys = ['TJ_APP_STATE', 'TJ_TASKS', 'TJ_PROJECTS'];
+        const legacyData = await AsyncStorage.multiGet(legacyKeys);
+        legacyData.forEach(([k, v]) => { if (v && !dataObject[k]) dataObject[k] = v; });
 
         const backup = {
             timestamp: Date.now(),

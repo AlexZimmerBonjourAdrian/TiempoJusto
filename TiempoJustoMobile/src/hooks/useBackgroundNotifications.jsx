@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { AppState } from 'react-native';
 import { useAppContext } from '../context/AppContext';
-import backgroundService from '../services/backgroundService';
+import backgroundService from '../features/background/services/backgroundService';
 
 export const useBackgroundNotifications = (lastActivityAt) => {
     const { tasks } = useAppContext();

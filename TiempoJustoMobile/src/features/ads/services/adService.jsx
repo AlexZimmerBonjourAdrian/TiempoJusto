@@ -6,7 +6,7 @@ import mobileAds, {
     RewardedAdEventType,
     TestIds,
 } from 'react-native-google-mobile-ads';
-import eventBus from './eventBus';
+import eventBus from '../../../shared/eventBus';
 
 // Servicio sencillo para rotar anuncios de prueba y dispararlos por eventos de app
 class AdService {

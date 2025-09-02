@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useMemo, useCallback, useState, useEffect } from 'react';
-import { useAsyncStorageState, validateTask, validateProject, validatePomodoroSettings } from '../storage';
-import adService from '../services/adService';
-import eventBus from '../services/eventBus';
+import { useAsyncStorageState } from '../storage';
+import adService from '../features/ads/services/adService';
+import eventBus from '../shared/eventBus';
 
 // Estado inicial
 const initialState = {
@@ -31,7 +31,7 @@ export function useAppContext() {
 // Provider del contexto
 export function AppProvider({ children }) {
     // 1. Estado unificado con AsyncStorage
-    const [appState, setAppState, { error: storageError, isLoading }] = useAsyncStorageState('TJ_APP_STATE', initialState);
+    const [appState, setAppState, { error: storageError, isLoading }] = useAsyncStorageState('TJ_UI_STATE', initialState);
     
     // 2. Estado local para UI (no persistido) - orden consistente
     const [showSplash, setShowSplash] = useState(true);
@@ -78,165 +78,7 @@ export function AppProvider({ children }) {
         setAppState(prev => ({ ...prev, lastActivityAt: now }));
     }, [setAppState]);
     
-    // 6. Acciones de tareas
-    const addTask = useCallback((task) => {
-        const normalizedTask = {
-            title: (task?.title || '').trim(),
-            projectId: task?.projectId ?? null,
-            priority: ['A', 'B', 'C', 'D'].includes(task?.priority) ? task.priority : 'C',
-            description: task?.description,
-            done: false,
-        };
-
-        const errors = validateTask(normalizedTask);
-        if (errors.length > 0) {
-            return { ok: false, errors };
-        }
-
-        const newTask = {
-            id: `${Date.now()}-${Math.random().toString(36).slice(2,8)}`,
-            ...normalizedTask,
-            createdAt: new Date().toISOString(),
-        };
-        
-        setAppState(prev => ({
-            ...prev,
-            tasks: [...(prev.tasks || []), newTask],
-            lastActivityAt: Date.now()
-        }));
-
-        return { ok: true, task: newTask };
-    }, [setAppState]);
-    
-    const toggleTask = useCallback((taskId) => {
-        setAppState(prev => {
-            const updatedTasks = (prev.tasks || []).map(task => {
-                if (task.id === taskId) {
-                    const newDone = !task.done;
-                    const updated = {
-                        ...task,
-                        done: newDone,
-                        completedAt: newDone ? new Date().toISOString() : null
-                    };
-                    try { eventBus.emit('task:toggled', { task: updated }); } catch {}
-                    return updated;
-                }
-                return task;
-            });
-
-            return {
-                ...prev,
-                tasks: updatedTasks,
-                lastActivityAt: Date.now()
-            };
-        });
-    }, [setAppState]);
-    
-    const removeTask = useCallback((taskId) => {
-        setAppState(prev => ({
-            ...prev,
-            tasks: (prev.tasks || []).filter(task => task.id !== taskId),
-            lastActivityAt: Date.now()
-        }));
-    }, [setAppState]);
-    
-    const updateTask = useCallback((taskId, updates) => {
-        let result = { ok: false, errors: [] };
-        setAppState(prev => {
-            const existingTask = (prev.tasks || []).find(t => t.id === taskId);
-            if (!existingTask) {
-                result = { ok: false, errors: ['Tarea no encontrada'] };
-                return prev;
-            }
-
-            const mergedTask = { ...existingTask, ...updates };
-            const errors = validateTask(mergedTask);
-            if (errors.length > 0) {
-                result = { ok: false, errors };
-                return prev;
-            }
-
-            result = { ok: true };
-            return {
-                ...prev,
-                tasks: (prev.tasks || []).map(task => 
-                    task.id === taskId ? mergedTask : task
-                ),
-                lastActivityAt: Date.now()
-            };
-        });
-        return result;
-    }, [setAppState]);
-    
-    // 7. Acciones de proyectos
-    const addProject = useCallback((project) => {
-        const normalizedProject = {
-            name: (project?.name || '').trim(),
-        };
-
-        const errors = validateProject(normalizedProject);
-        if (errors.length > 0) {
-            return { ok: false, errors };
-        }
-
-        const newProject = {
-            id: `${Date.now()}-${Math.random().toString(36).slice(2,8)}`,
-            ...normalizedProject,
-            createdAt: new Date().toISOString(),
-        };
-        
-        setAppState(prev => ({
-            ...prev,
-            projects: [...(prev.projects || []), newProject],
-            lastActivityAt: Date.now()
-        }));
-
-        return { ok: true, project: newProject };
-    }, [setAppState]);
-    
-    const completeProject = useCallback((projectId) => {
-        const project = (appState.projects || []).find(p => p.id === projectId);
-        if (!project) return;
-        
-        const completedAt = new Date().toISOString();
-        const milestone = {
-            id: `${projectId}-${completedAt}`,
-            projectId,
-            name: project.name,
-            completedAt
-        };
-        
-        setAppState(prev => ({
-            ...prev,
-            projects: (prev.projects || []).map(p => 
-                p.id === projectId ? { ...p, completedAt, status: 'completed' } : p
-            ),
-            milestones: [...(prev.milestones || []), milestone],
-            lastActivityAt: Date.now()
-        }));
-
-        try { eventBus.emit('project:completed', { projectId }); } catch {}
-    }, [appState.projects, setAppState]);
-    
-    const removeProject = useCallback((projectId) => {
-        setAppState(prev => ({
-            ...prev,
-            projects: (prev.projects || []).filter(p => p.id !== projectId),
-            tasks: (prev.tasks || []).filter(t => t.projectId !== projectId),
-            lastActivityAt: Date.now()
-        }));
-    }, [setAppState]);
-    
-    // 8. Acciones de configuración
-    const updatePomodoroSettings = useCallback((settings) => {
-        const errors = validatePomodoroSettings(settings);
-        if (errors.length > 0) {
-            return { ok: false, errors };
-        }
-
-        setAppState(prev => ({ ...prev, pomodoroSettings: settings }));
-        return { ok: true };
-    }, [setAppState]);
+    // Acciones de tareas/proyectos/pomodoro movidas a Providers por slice
     
     // 9. Acción de archivar día
     const archiveToday = useCallback(() => {
@@ -305,28 +147,8 @@ export function AppProvider({ children }) {
 
     // 10. Computed values - al final para evitar problemas de dependencias
     const computed = useMemo(() => ({
-        projectIdToProject: (appState.projects || []).reduce((acc, project) => {
-            acc[project.id] = project;
-            return acc;
-        }, {}),
-        
-        projectIdToTaskCount: (appState.tasks || []).reduce((acc, task) => {
-            if (task.projectId) {
-                acc[task.projectId] = (acc[task.projectId] || 0) + 1;
-            }
-            return acc;
-        }, {}),
-        
-        projectTasks: (appState.tasks || []).reduce((acc, task) => {
-            if (task.projectId) {
-                if (!acc[task.projectId]) {
-                    acc[task.projectId] = [];
-                }
-                acc[task.projectId].push(task);
-            }
-            return acc;
-        }, {}),
-    }), [appState.projects, appState.tasks]);
+        // Computados de proyectos/tareas movidos a sus slices
+    }), []);
 
     // 11. Valor del contexto - estructura consistente
     const value = useMemo(() => ({
@@ -337,25 +159,14 @@ export function AppProvider({ children }) {
         lastActivityAt,
         
         // Estado persistido
-        tasks: appState.tasks || [],
-        projects: appState.projects || [],
         dailyLogs: appState.dailyLogs || [],
         milestones: appState.milestones || [],
-        pomodoroSettings: appState.pomodoroSettings || { focusMinutes: 25, shortBreakMinutes: 5, longBreakMinutes: 15 },
         
         // Acciones
         setActiveTab: setActiveTabAction,
         setShowSplash: setShowSplashAction,
         setPomodoroNotification: setPomodoroNotificationAction,
         setLastActivity: setLastActivityAction,
-        addTask,
-        toggleTask,
-        removeTask,
-        updateTask,
-        addProject,
-        completeProject,
-        removeProject,
-        updatePomodoroSettings,
         archiveToday,
         
         // Computed values
@@ -373,19 +184,10 @@ export function AppProvider({ children }) {
         appState.projects,
         appState.dailyLogs,
         appState.milestones,
-        appState.pomodoroSettings,
         setActiveTabAction,
         setShowSplashAction,
         setPomodoroNotificationAction,
         setLastActivityAction,
-        addTask,
-        toggleTask,
-        removeTask,
-        updateTask,
-        addProject,
-        completeProject,
-        removeProject,
-        updatePomodoroSettings,
         archiveToday,
         computed,
         isLoading,

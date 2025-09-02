@@ -1,5 +1,7 @@
 import { useMemo, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { useTasks } from '../features/tasks/hooks/useTasks';
+import { useProjects } from '../features/projects/hooks/useProjects';
 import { useState } from 'react';
 
 // Hook para filtrar y ordenar tareas de manera optimizada
@@ -98,11 +100,12 @@ export function useProjectStats(projects, tasks) {
 
 // Hook para acciones de tareas optimizadas
 export function useTaskActions() {
-    const { addTask, toggleTask, removeTask, updateTask, setLastActivity } = useAppContext();
+    const { create, toggle, remove, update } = useTasks();
+    const { setLastActivity } = useAppContext();
     
     const handleAddTask = useCallback(async (taskData) => {
         try {
-            const res = await addTask(taskData);
+            const res = await create(taskData);
             if (!res?.ok) return { ok: false, errors: res?.errors || [] };
             setLastActivity();
             return { ok: true };
@@ -110,31 +113,31 @@ export function useTaskActions() {
             console.error('Error in handleAddTask:', error);
             throw error;
         }
-    }, [addTask, setLastActivity]);
+    }, [create, setLastActivity]);
     
     const handleToggleTask = useCallback(async (taskId) => {
         try {
-            await toggleTask(taskId);
+            await toggle(taskId);
             setLastActivity();
         } catch (error) {
             console.error('Error in handleToggleTask:', error);
             throw error;
         }
-    }, [toggleTask, setLastActivity]);
+    }, [toggle, setLastActivity]);
     
     const handleRemoveTask = useCallback(async (taskId) => {
         try {
-            await removeTask(taskId);
+            await remove(taskId);
             setLastActivity();
         } catch (error) {
             console.error('Error in handleRemoveTask:', error);
             throw error;
         }
-    }, [removeTask, setLastActivity]);
+    }, [remove, setLastActivity]);
     
     const handleUpdateTask = useCallback(async (taskId, updates) => {
         try {
-            const res = await updateTask(taskId, updates);
+            const res = await update(taskId, updates);
             if (!res?.ok) return res;
             setLastActivity();
             return { ok: true };
@@ -142,7 +145,7 @@ export function useTaskActions() {
             console.error('Error in handleUpdateTask:', error);
             throw error;
         }
-    }, [updateTask, setLastActivity]);
+    }, [update, setLastActivity]);
     
     return {
         handleAddTask,
@@ -154,11 +157,12 @@ export function useTaskActions() {
 
 // Hook para acciones de proyectos optimizadas
 export function useProjectActions() {
-    const { addProject, completeProject, removeProject, setLastActivity } = useAppContext();
+    const { create, complete, remove } = useProjects();
+    const { setLastActivity } = useAppContext();
     
     const handleAddProject = useCallback(async (projectData) => {
         try {
-            const res = await addProject(projectData);
+            const res = await create(projectData);
             if (!res?.ok) return { ok: false, errors: res?.errors || [] };
             setLastActivity();
             return { ok: true };
@@ -166,27 +170,27 @@ export function useProjectActions() {
             console.error('Error in handleAddProject:', error);
             throw error;
         }
-    }, [addProject, setLastActivity]);
+    }, [create, setLastActivity]);
     
     const handleCompleteProject = useCallback(async (projectId) => {
         try {
-            await completeProject(projectId);
+            await complete(projectId);
             setLastActivity();
         } catch (error) {
             console.error('Error in handleCompleteProject:', error);
             throw error;
         }
-    }, [completeProject, setLastActivity]);
+    }, [complete, setLastActivity]);
     
     const handleRemoveProject = useCallback(async (projectId) => {
         try {
-            await removeProject(projectId);
+            await remove(projectId);
             setLastActivity();
         } catch (error) {
             console.error('Error in handleRemoveProject:', error);
             throw error;
         }
-    }, [removeProject, setLastActivity]);
+    }, [remove, setLastActivity]);
     
     return {
         handleAddProject,

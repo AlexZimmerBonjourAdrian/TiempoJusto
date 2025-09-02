@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View, Alert, Animated, ScrollView } from 'react-native';
 import { useAppContext } from '../context/AppContext';
-import taskBusinessLogic from '../services/taskBusinessLogic';
+import { useTasks } from '../features/tasks/hooks/useTasks';
+import { useProjects } from '../features/projects/hooks/useProjects';
+import taskBusinessLogic from '../features/tasks/domain/taskBusinessLogic';
 import TaskItem from './optimized/TaskItem';
 import ProjectHistory from './ProjectHistory';
 
@@ -193,16 +195,13 @@ export default function TaskBoard() {
     const isAddingRef = useRef(false);
 
     const { 
-        projects, 
-        projectIdToProject, 
-        tasks,
-        addTask,
-        toggleTask,
-        removeTask,
         archiveToday,
-        isLoading,
+        isLoading: isUiLoading,
         storageError
     } = useAppContext();
+    const { list: tasks, create: addTask, toggle: toggleTask, remove: removeTask } = useTasks();
+    const { list: projects } = useProjects();
+    const projectIdToProject = useMemo(() => (projects || []).reduce((acc, p) => { acc[p.id] = p; return acc; }, {}), [projects]);
 
     // Filtrar tareas del día actual
     const today = new Date();
@@ -311,7 +310,7 @@ export default function TaskBoard() {
         }).start();
     }, []);
 
-    if (isLoading) {
+    if (isUiLoading) {
         return (
             <View style={styles.loadingContainer}>
                 <Text style={styles.loadingText}>Cargando tareas...</Text>

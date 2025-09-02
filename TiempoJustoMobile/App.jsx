@@ -3,13 +3,16 @@ import { View, Text, StyleSheet, StatusBar as RNStatusBar } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { AppProvider, useAppContext } from './src/context/AppContext';
+import { TasksProvider } from './src/features/tasks/state/TasksProvider';
+import { ProjectsProvider } from './src/features/projects/state/ProjectsProvider';
+import { PomodoroProvider } from './src/features/pomodoro/state/PomodoroProvider';
 import TaskBoard from './src/components/TaskBoard';
 import PomodoroTimer from './src/components/PomodoroTimer';
 import ProjectBoard from './src/components/ProjectBoard';
 import AnalyticsBoard from './src/components/AnalyticsBoard';
 import SplashScreen from './src/components/SplashScreen';
 import LoadingScreen from './src/components/LoadingScreen';
-import backgroundService from './src/services/backgroundService';
+import backgroundService from './src/features/background/services/backgroundService';
 import DateTimeDisplay from './src/components/DateTimeDisplay';
 import MotivationalNotification from './src/components/MotivationalNotification';
 import PomodoroNotification from './src/components/PomodoroNotification';
@@ -19,7 +22,7 @@ import { usePomodoroService } from './src/hooks/usePomodoroService';
 import { useNavigationData, useNotificationData } from './src/hooks/useOptimizedComponents';
 import TabButton from './src/components/optimized/TabButton';
 import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
-import adService from './src/services/adService';
+import adService from './src/features/ads/services/adService';
 
 function AppInner() {
     const { 
@@ -173,7 +176,13 @@ export default function App() {
     return (
         <SafeAreaProvider>
             <AppProvider>
-                <AppInner />
+                <TasksProvider>
+                    <ProjectsProvider>
+                        <PomodoroProvider>
+                            <AppInner />
+                        </PomodoroProvider>
+                    </ProjectsProvider>
+                </TasksProvider>
             </AppProvider>
         </SafeAreaProvider>
     );

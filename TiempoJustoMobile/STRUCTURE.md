@@ -29,11 +29,26 @@ TiempoJustoMobile/
 │   │   ├── 📄 useBackgroundNotifications.jsx # Hook para notificaciones en segundo plano
 │   │   ├── 📄 useMotivationalNotifications.jsx # Hook para notificaciones motivacionales
 │   │   └── 📄 usePomodoroService.jsx     # Hook para el servicio Pomodoro
-│   ├── 📁 services/              # Servicios y lógica de negocio
-│   │   ├── 📄 backgroundService.jsx      # Servicio de segundo plano
-│   │   └── 📄 pomodoroService.jsx        # Servicio del Pomodoro
+│   ├── 📁 features/              # Vertical Slice por funcionalidad
+│   │   ├── 📁 tasks/
+│   │   │   ├── 📁 domain/                # Reglas de negocio (orden/filtros/métricas)
+│   │   │   ├── 📁 hooks/                 # Hooks de tareas
+│   │   │   └── 📁 state/                 # Provider de tareas (persistido)
+│   │   ├── 📁 projects/
+│   │   │   ├── 📁 hooks/
+│   │   │   └── 📁 state/
+│   │   ├── 📁 pomodoro/
+│   │   │   ├── 📁 hooks/
+│   │   │   ├── 📁 services/              # Servicio del Pomodoro
+│   │   │   └── 📁 state/
+│   │   ├── 📁 ads/
+│   │   │   └── 📁 services/              # Servicio de anuncios
+│   │   └── 📁 background/
+│   │       └── 📁 services/              # Servicio de segundo plano
+│   ├── 📁 shared/                # Infra compartida
+│   │   └── 📄 eventBus.jsx               # Bus de eventos (pub/sub)
 │   ├── 📁 storage/               # Persistencia de datos
-│   │   └── 📄 index.jsx                  # Configuración de AsyncStorage
+│   │   └── 📄 index.jsx                  # AsyncStorage + backup/restore por slice
 │   ├── 📁 types/                 # Tipos y estructuras de datos
 │   │   └── 📄 index.jsx                  # Documentación de tipos
 │   └── 📁 utils/                 # Utilidades y funciones auxiliares
@@ -112,7 +127,7 @@ const useMotivationalNotifications = () => {
 };
 ```
 
-#### 2. **Service Layer Pattern**
+#### 2. **Service Layer Pattern (por slice)**
 ```javascript
 // Ejemplo: pomodoroService.jsx
 class PomodoroService {
@@ -184,20 +199,19 @@ export const calculateProductivityScore = (tasks) => {
 - Servicios independientes
 - Estructura modular
 
-## 🔄 Flujo de Datos
+## 🔄 Flujo de Datos (Vertical Slice)
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Components    │───▶│     Services    │───▶│     Storage     │
-│   (UI Layer)    │    │  (Business      │    │   (Data Layer)  │
-│                 │    │   Logic)        │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│      Hooks      │    │     Utils       │    │   Constants     │
-│  (State Mgmt)   │    │  (Pure Funcs)   │    │ (Configuration) │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────┐    ┌─────────────────────────┐    ┌─────────────────┐
+│   Components    │───▶│  Hooks/Providers (Slice)│───▶│     Storage     │
+│   (UI Layer)    │    │  + Services (Slice)     │    │   (Data Layer)  │
+└─────────────────┘    └─────────────────────────┘    └─────────────────┘
+         │                         │                          │
+         ▼                         ▼                          ▼
+┌─────────────────┐    ┌─────────────────┐         ┌─────────────────┐
+│   shared/event  │◀──▶│     Services    │         │   Constants     │
+│     Bus         │    │  (Infra común)  │         │ (Configuración) │
+└─────────────────┘    └─────────────────┘         └─────────────────┘
 ```
 
 ## 📊 Métricas de Calidad
@@ -239,6 +253,14 @@ export const calculateProductivityScore = (tasks) => {
 - [ ] Migración a TypeScript
 - [ ] Implementación de testing unitario
 - [ ] Configuración de ESLint y Prettier
+## 🔐 Claves de Backup/Restore
+
+- UI: `TJ_UI_STATE`
+- Tareas: `TJ_TASKS_STATE`
+- Proyectos: `TJ_PROJECTS_STATE`
+- Pomodoro: `TJ_POMODORO_SETTINGS`
+- Historial: `TJ_DAILY_LOGS`, `TJ_MILESTONES`
+- Compatibilidad: `TJ_APP_STATE`, `TJ_TASKS`, `TJ_PROJECTS` (si existen)
 - [ ] Husky para pre-commit hooks
 - [ ] Storybook para documentación de componentes
 

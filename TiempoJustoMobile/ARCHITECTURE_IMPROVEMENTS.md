@@ -2,34 +2,23 @@
 
 ## Problemas Identificados y Soluciones Implementadas
 
-### 1. Estado Centralizado ❌ → Context API ✅
+### 1. Centralización rígida ❌ → Vertical Slice + UI Shell ✅
 
-**Problema:** Todo el estado estaba centralizado en el componente principal `App.jsx`, lo que causaba:
-- Componente principal muy pesado
-- Difícil mantenimiento
-- Lógica de negocio mezclada con UI
+**Antes:** estado y lógica bajo un único contexto (acoplamiento, UI pesada).
 
-**Solución:** Implementación de Context API con patrón Reducer
-
-```jsx
-// src/context/AppContext.jsx
-export function AppProvider({ children }) {
-    const [state, dispatch] = useReducer(appReducer, initialState);
-    // ... lógica centralizada
-    return (
-        <AppContext.Provider value={value}>
-            {children}
-        </AppContext.Provider>
-    );
-}
-```
+**Ahora:**
+- AppContext reducido a UI/orquestación (`TJ_UI_STATE`): `showSplash`, `activeTab`, `pomodoroNotification`, `lastActivityAt`, `archiveToday` y emisión de eventos.
+- Estado por slices persistido:
+  - Tasks (`TJ_TASKS_STATE`) en `features/tasks/state/TasksProvider.jsx`
+  - Projects (`TJ_PROJECTS_STATE`) en `features/projects/state/ProjectsProvider.jsx`
+  - Pomodoro (`TJ_POMODORO_SETTINGS`) en `features/pomodoro/state/PomodoroProvider.jsx`
 
 **Beneficios:**
 - Estado global accesible desde cualquier componente
 - Separación clara de responsabilidades
 - Fácil testing y debugging
 
-### 2. Props Drilling ❌ → Hooks Optimizados ✅
+### 2. Props Drilling ❌ → Hooks por Slice ✅
 
 **Problema:** Props pasándose a través de múltiples niveles de componentes:
 ```jsx
@@ -45,14 +34,13 @@ export function AppProvider({ children }) {
 />
 ```
 
-**Solución:** Hooks personalizados que acceden directamente al contexto:
+**Solución:** Hooks por slice que acceden a sus Providers:
 ```jsx
-// Después
-export default function TaskBoard() {
-    const { projects, projectIdToProject, archiveToday, showManualNotification } = useAppContext();
-    const { handleAddTask, handleToggleTask, handleRemoveTask } = useTaskActions();
-    // ...
-}
+import { useTasks } from 'src/features/tasks/hooks/useTasks';
+import { useProjects } from 'src/features/projects/hooks/useProjects';
+// ...
+const { sorted, create, toggle, remove } = useTasks();
+const { list: projects } = useProjects();
 ```
 
 **Beneficios:**
@@ -60,7 +48,7 @@ export default function TaskBoard() {
 - Código más limpio y legible
 - Mejor reutilización de lógica
 
-### 3. Falta de Optimización ❌ → Memoización Completa ✅
+### 3. Falta de Optimización ❌ → Regla única + Memo ✅
 
 **Problema:** Componentes se re-renderizaban innecesariamente por falta de memoización.
 
@@ -76,14 +64,8 @@ const TaskItem = memo(({ task, projectName, onToggle, onRemove, onMoveToDaily })
 
 #### B. useMemo para Cálculos Costosos
 ```jsx
-// src/hooks/useOptimizedComponents.jsx
-export function useSortedTasks(tasks) {
-    return useMemo(() => {
-        return [...tasks].sort((a, b) => {
-            // Lógica de ordenamiento
-        });
-    }, [tasks]);
-}
+// src/features/tasks/domain/taskBusinessLogic.jsx
+taskBusinessLogic.sortTasksIntelligently(tasks)
 ```
 
 #### C. useCallback para Funciones
@@ -138,26 +120,29 @@ export function useNavigationData() {
 }
 ```
 
-## Estructura de Archivos Mejorada
+## Estructura de Archivos (Vertical Slice)
 
 ```
 src/
-├── context/
-│   └── AppContext.jsx          # Contexto principal con reducer
-├── hooks/
-│   ├── useOptimizedComponents.jsx  # Hooks optimizados
-│   ├── useMotivationalNotifications.jsx
-│   ├── useBackgroundNotifications.jsx
-│   └── usePomodoroService.jsx
-├── components/
-│   ├── optimized/              # Componentes con React.memo
-│   │   ├── TaskItem.jsx
-│   │   ├── ProjectItem.jsx
-│   │   └── TabButton.jsx
-│   ├── TaskBoard.jsx           # Refactorizado para usar contexto
-│   ├── ProjectBoard.jsx        # Refactorizado para usar contexto
-│   ├── AnalyticsBoard.jsx      # Refactorizado para usar contexto
-│   └── PomodoroTimer.jsx       # Refactorizado para usar contexto
+├── features/
+│   ├── tasks/
+│   │   ├── domain/taskBusinessLogic.jsx
+│   │   ├── hooks/useTasks.jsx
+│   │   └── state/TasksProvider.jsx
+│   ├── projects/
+│   │   ├── hooks/useProjects.jsx
+│   │   └── state/ProjectsProvider.jsx
+│   ├── pomodoro/
+│   │   ├── hooks/usePomodoroService.jsx
+│   │   ├── hooks/usePomodoroSettings.jsx
+│   │   ├── services/pomodoroService.jsx
+│   │   └── state/PomodoroProvider.jsx
+│   ├── ads/services/adService.jsx
+│   └── background/services/backgroundService.jsx
+├── shared/eventBus.jsx
+├── storage/index.jsx
+├── context/AppContext.jsx
+└── components/*
 ```
 
 ## Beneficios de las Mejoras
@@ -193,6 +178,15 @@ src/
 | Líneas de código App.jsx | 349 | 120 | ~65% |
 | Componentes optimizados | 0 | 6 | +6 |
 | Hooks personalizados | 3 | 8 | +5 |
+
+## Claves de backup/restore
+
+- UI: `TJ_UI_STATE`
+- Tareas: `TJ_TASKS_STATE`
+- Proyectos: `TJ_PROJECTS_STATE`
+- Pomodoro: `TJ_POMODORO_SETTINGS`
+- Historial: `TJ_DAILY_LOGS`, `TJ_MILESTONES`
+- Compatibilidad: se incluye `TJ_APP_STATE`, `TJ_TASKS`, `TJ_PROJECTS` si existen
 
 ## Próximos Pasos Recomendados
 

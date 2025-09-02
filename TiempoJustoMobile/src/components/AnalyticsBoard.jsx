@@ -1,8 +1,10 @@
 import React, { useMemo, useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Animated, TextInput, FlatList } from 'react-native';
 import { useAppContext } from '../context/AppContext';
+import { useTasks } from '../features/tasks/hooks/useTasks';
+import { useProjects } from '../features/projects/hooks/useProjects';
 import { useTaskStats } from '../hooks/useOptimizedComponents';
-import taskBusinessLogic from '../services/taskBusinessLogic';
+import taskBusinessLogic from '../features/tasks/domain/taskBusinessLogic';
 import TimeRangeSelector from './TimeRangeSelector';
 import SimpleProgressChart from './SimpleProgressChart';
 import TaskItem from './optimized/TaskItem';
@@ -73,16 +75,10 @@ export default function AnalyticsBoard() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [timeRange, setTimeRange] = useState('month');
 
-    const { 
-        tasks, 
-        projects, 
-        projectIdToProject, 
-        setActiveTab, 
-        dailyLogs,
-        addTask,
-        toggleTask,
-        removeTask
-    } = useAppContext();
+    const { setActiveTab, dailyLogs } = useAppContext();
+    const { list: tasks, create: addTask, toggle: toggleTask, remove: removeTask } = useTasks();
+    const { list: projects } = useProjects();
+    const projectIdToProject = useMemo(() => (projects || []).reduce((acc, p) => { acc[p.id] = p; return acc; }, {}), [projects]);
     
     const todayTasks = useMemo(() => {
         return tasks.filter(task => {
