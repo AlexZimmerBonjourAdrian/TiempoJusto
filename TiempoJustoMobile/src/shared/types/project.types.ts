@@ -21,8 +21,9 @@ export interface Project extends BaseEntity {
   progress: number; // 0-100
   tags: string[];
   notes?: string;
-  isArchived: boolean;
-  archivedAt?: Date;
+  // Un proyecto no puede contener otros proyectos (no hay jerarquía)
+  // Un proyecto no es guardado por nadie (no hay owner/creator)
+  taskIds: string[]; // IDs de las tareas asociadas
 }
 
 // ============================================================================
@@ -31,10 +32,10 @@ export interface Project extends BaseEntity {
 
 export interface ProjectStatistics {
   totalProjects: number;
-  activeProjects: number;
+  openProjects: number;
+  suspendedProjects: number;
+  cancelledProjects: number;
   completedProjects: number;
-  pausedProjects: number;
-  archivedProjects: number;
   averageProgress: number;
   totalEstimatedHours: number;
   totalActualHours: number;
@@ -71,7 +72,7 @@ export interface UpdateProjectData {
   progress?: number;
   tags?: string[];
   notes?: string;
-  isArchived?: boolean;
+  taskIds?: string[];
 }
 
 // ============================================================================
@@ -86,7 +87,6 @@ export interface ProjectFilters {
     to?: Date;
   };
   search?: string;
-  isArchived?: boolean;
 }
 
 export interface ProjectSortOptions {
@@ -106,13 +106,15 @@ export interface UseProjectsReturn {
   addProject: (data: CreateProjectData) => Promise<void>;
   updateProject: (id: string, data: UpdateProjectData) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
-  archiveProject: (id: string) => Promise<void>;
-  unarchiveProject: (id: string) => Promise<void>;
   getProjectById: (id: string) => Project | undefined;
   getProjectsByStatus: (status: ProjectStatus) => Project[];
+  getOpenProjects: () => Project[];
+  getClosedProjects: () => Project[];
   filterProjects: (filters: ProjectFilters) => Project[];
   sortProjects: (projects: Project[], options: ProjectSortOptions) => Project[];
   updateProjectProgress: (id: string, progress: number) => Promise<void>;
+  addTaskToProject: (projectId: string, taskId: string) => Promise<void>;
+  removeTaskFromProject: (projectId: string, taskId: string) => Promise<void>;
 }
 
 // ============================================================================

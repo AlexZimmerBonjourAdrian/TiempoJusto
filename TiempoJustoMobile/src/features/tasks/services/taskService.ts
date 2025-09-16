@@ -35,13 +35,28 @@ export class TaskService {
 
   async createTask(data: CreateTaskData): Promise<Task> {
     try {
+      // Validar que el projectId sea obligatorio
+      if (!data.projectId || data.projectId.trim() === '') {
+        throw new Error('El projectId es obligatorio. Una tarea debe pertenecer a un proyecto.');
+      }
+
+      // Validar que no exista otra tarea con el mismo título en el mismo proyecto
+      const existingTask = this.tasks.find(
+        task => task.title.toLowerCase() === data.title.toLowerCase() && 
+                task.projectId === data.projectId
+      );
+      
+      if (existingTask) {
+        throw new Error(`Ya existe una tarea con el título "${data.title}" en este proyecto.`);
+      }
+
       const task: Task = {
         id: this.generateId(),
         title: data.title,
         description: data.description,
         priority: data.priority,
         status: 'pending',
-        projectId: data.projectId,
+        projectId: data.projectId, // Ya validado que existe
         dueDate: data.dueDate,
         estimatedTime: data.estimatedTime,
         actualTime: undefined,
@@ -57,7 +72,7 @@ export class TaskService {
       this.tasks.push(task);
       await this.saveTasks();
       
-      debugUtils.log('Task created successfully', { id: task.id, title: task.title });
+      debugUtils.log('Task created successfully', { id: task.id, title: task.title, projectId: task.projectId });
       return task;
     } catch (error) {
       debugUtils.error('Error creating task', error);
@@ -73,6 +88,25 @@ export class TaskService {
       }
 
       const task = this.tasks[taskIndex];
+
+      // Validar que si se cambia el projectId, sea válido
+      if (data.projectId !== undefined) {
+        if (!data.projectId || data.projectId.trim() === '') {
+          throw new Error('El projectId no puede estar vacío. Una tarea debe pertenecer a un proyecto.');
+        }
+
+        // Validar que no exista otra tarea con el mismo título en el nuevo proyecto
+        const existingTask = this.tasks.find(
+          t => t.id !== id && 
+               t.title.toLowerCase() === task.title.toLowerCase() && 
+               t.projectId === data.projectId
+        );
+        
+        if (existingTask) {
+          throw new Error(`Ya existe una tarea con el título "${task.title}" en el proyecto seleccionado.`);
+        }
+      }
+
       const updatedTask: Task = {
         ...task,
         ...data,

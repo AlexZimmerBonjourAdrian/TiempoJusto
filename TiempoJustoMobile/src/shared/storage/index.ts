@@ -57,6 +57,13 @@ class TiempoJustoStorageService implements StorageService {
       
       const parsed = JSON.parse(value);
       debugUtils.log(`Storage GET: ${key}`, { hasValue: !!parsed });
+      
+      // Si el objeto tiene la estructura con 'data', devolver solo el data
+      if (parsed && typeof parsed === 'object' && 'data' in parsed) {
+        return parsed.data;
+      }
+      
+      // Si no, devolver el objeto tal como está (para compatibilidad)
       return parsed;
     } catch (error) {
       debugUtils.error(`Error getting storage key: ${key}`, error);

@@ -13,7 +13,7 @@ export interface Task extends BaseEntity {
   description?: string;
   priority: TaskPriority;
   status: TaskStatus;
-  projectId?: string;
+  projectId: string; // Una tarea DEBE pertenecer a un proyecto (no es opcional)
   dueDate?: Date;
   estimatedTime?: number; // minutos
   actualTime?: number; // minutos
@@ -85,7 +85,7 @@ export interface CreateTaskData {
   title: string;
   description?: string;
   priority: TaskPriority;
-  projectId?: string;
+  projectId: string; // OBLIGATORIO: Una tarea debe pertenecer a un proyecto
   dueDate?: Date;
   estimatedTime?: number;
   tags?: string[];

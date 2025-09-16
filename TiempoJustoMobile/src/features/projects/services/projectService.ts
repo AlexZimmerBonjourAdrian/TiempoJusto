@@ -39,7 +39,7 @@ export class ProjectService {
         id: this.generateId(),
         name: data.name,
         description: data.description,
-        status: 'active',
+        status: 'open', // Los proyectos se crean en estado 'open' por defecto
         color: data.color,
         icon: data.icon,
         startDate: data.startDate,
@@ -49,8 +49,7 @@ export class ProjectService {
         progress: 0,
         tags: data.tags || [],
         notes: undefined,
-        isArchived: false,
-        archivedAt: undefined,
+        taskIds: [], // Inicialmente sin tareas
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -215,15 +214,59 @@ export class ProjectService {
   }
 
   // ============================================================================
+  // MÉTODOS DE GESTIÓN DE TAREAS
+  // ============================================================================
+
+  async addTaskToProject(projectId: string, taskId: string): Promise<void> {
+    try {
+      const project = this.projects.find(p => p.id === projectId);
+      if (!project) {
+        throw new Error(`Project with id ${projectId} not found`);
+      }
+
+      if (!project.taskIds.includes(taskId)) {
+        project.taskIds.push(taskId);
+        project.updatedAt = new Date();
+        await this.saveProjects();
+        debugUtils.log('Task added to project', { projectId, taskId });
+      }
+    } catch (error) {
+      debugUtils.error('Error adding task to project', error);
+      throw error;
+    }
+  }
+
+  async removeTaskFromProject(projectId: string, taskId: string): Promise<void> {
+    try {
+      const project = this.projects.find(p => p.id === projectId);
+      if (!project) {
+        throw new Error(`Project with id ${projectId} not found`);
+      }
+
+      project.taskIds = project.taskIds.filter(id => id !== taskId);
+      project.updatedAt = new Date();
+      await this.saveProjects();
+      debugUtils.log('Task removed from project', { projectId, taskId });
+    } catch (error) {
+      debugUtils.error('Error removing task from project', error);
+      throw error;
+    }
+  }
+
+  getProjectsByTaskId(taskId: string): Project[] {
+    return this.projects.filter(project => project.taskIds.includes(taskId));
+  }
+
+  // ============================================================================
   // MÉTODOS DE ESTADÍSTICAS
   // ============================================================================
 
   getStatistics(): ProjectStatistics {
     const total = this.projects.length;
-    const active = this.projects.filter(project => project.status === 'active').length;
+    const open = this.projects.filter(project => project.status === 'open').length;
+    const suspended = this.projects.filter(project => project.status === 'suspended').length;
+    const cancelled = this.projects.filter(project => project.status === 'cancelled').length;
     const completed = this.projects.filter(project => project.status === 'completed').length;
-    const paused = this.projects.filter(project => project.status === 'paused').length;
-    const archived = this.projects.filter(project => project.isArchived).length;
 
     const averageProgress = this.projects.length > 0 
       ? this.projects.reduce((sum, project) => sum + project.progress, 0) / this.projects.length
@@ -255,10 +298,10 @@ export class ProjectService {
 
     return {
       totalProjects: total,
-      activeProjects: active,
+      openProjects: open,
+      suspendedProjects: suspended,
+      cancelledProjects: cancelled,
       completedProjects: completed,
-      pausedProjects: paused,
-      archivedProjects: archived,
       averageProgress,
       totalEstimatedHours,
       totalActualHours,

@@ -51,10 +51,10 @@ export const TASK_STATUS = {
 };
 
 export const PROJECT_STATUS = {
-  ACTIVE: 'active' as const,
-  COMPLETED: 'completed' as const,
-  PAUSED: 'paused' as const,
-  ARCHIVED: 'archived' as const
+  OPEN: 'open' as const,
+  SUSPENDED: 'suspended' as const,
+  CANCELLED: 'cancelled' as const,
+  COMPLETED: 'completed' as const
 };
 
 export const POMODORO_STATE = {
@@ -62,6 +62,13 @@ export const POMODORO_STATE = {
   WORKING: 'working' as const,
   SHORT_BREAK: 'short_break' as const,
   LONG_BREAK: 'long_break' as const
+};
+
+export const POMODORO_DEFAULTS = {
+  FOCUS_DURATION: 25, // minutos
+  SHORT_BREAK_DURATION: 5, // minutos
+  LONG_BREAK_DURATION: 15, // minutos
+  LONG_BREAK_INTERVAL: 4 // número de sesiones de trabajo antes del descanso largo
 };
 
 // ============================================================================

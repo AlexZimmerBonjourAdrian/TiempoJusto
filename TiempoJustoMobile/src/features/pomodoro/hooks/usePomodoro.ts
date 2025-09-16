@@ -3,9 +3,40 @@
 // ============================================================================
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { PomodoroSession, CreatePomodoroSessionData, UpdatePomodoroSessionData, PomodoroConfig, PomodoroStatistics, UsePomodoroReturn } from '../../../shared/types';
-import { pomodoroService } from '../services/pomodoroService';
+import { PomodoroConfig, PomodoroStatistics } from '../../../shared/types';
+import { POMODORO_DEFAULTS } from '../../../shared/constants';
 import { debugUtils } from '../../../shared/utils';
+
+// ============================================================================
+// TIPOS LOCALES
+// ============================================================================
+
+interface PomodoroSession {
+  id: string;
+  state: 'work' | 'shortBreak' | 'longBreak' | 'idle';
+  duration: number; // en minutos
+  remainingTime: number; // en segundos
+  isActive: boolean;
+  isPaused: boolean;
+  startTime?: number;
+  pauseTime?: number;
+  totalPauseTime: number;
+}
+
+interface UsePomodoroReturn {
+  currentSession: PomodoroSession | null;
+  config: PomodoroConfig;
+  statistics: PomodoroStatistics;
+  loading: boolean;
+  error: string | null;
+  startSession: (mode?: 'work' | 'shortBreak' | 'longBreak') => Promise<void>;
+  pauseSession: () => Promise<void>;
+  resumeSession: () => Promise<void>;
+  stopSession: () => Promise<void>;
+  resetSession: () => Promise<void>;
+  resetToMode: (mode: 'work' | 'shortBreak' | 'longBreak') => Promise<void>;
+  updateConfig: (newConfig: Partial<PomodoroConfig>) => Promise<void>;
+}
 
 // ============================================================================
 // HOOK PRINCIPAL DE POMODORO
@@ -18,10 +49,10 @@ export const usePomodoro = (): UsePomodoroReturn => {
 
   const [currentSession, setCurrentSession] = useState<PomodoroSession | null>(null);
   const [config, setConfig] = useState<PomodoroConfig>({
-    workDuration: 25,
-    shortBreakDuration: 5,
-    longBreakDuration: 15,
-    longBreakInterval: 4,
+    workDuration: POMODORO_DEFAULTS.FOCUS_DURATION,
+    shortBreakDuration: POMODORO_DEFAULTS.SHORT_BREAK_DURATION,
+    longBreakDuration: POMODORO_DEFAULTS.LONG_BREAK_DURATION,
+    longBreakInterval: POMODORO_DEFAULTS.LONG_BREAK_INTERVAL,
     autoStartBreaks: false,
     autoStartWork: false,
     soundEnabled: true,
@@ -41,48 +72,101 @@ export const usePomodoro = (): UsePomodoroReturn => {
     monthlySessions: {},
     productivityScore: 0,
     consistencyScore: 0,
-    focusScore: 0,
-    averageCyclesPerDay: 0,
-    bestDay: '',
-    bestWeek: '',
-    bestMonth: ''
+    focusScore: 0
   });
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
 
   // ============================================================================
   // EFECTOS
   // ============================================================================
 
   useEffect(() => {
-    initializePomodoro();
-  }, []);
+    // Limpiar timer al desmontar
+    return () => {
+      if (timer) {
+        clearInterval(timer);
+      }
+    };
+  }, [timer]);
 
   // ============================================================================
-  // FUNCIONES DE INICIALIZACIÓN
+  // FUNCIONES AUXILIARES
   // ============================================================================
 
-  const initializePomodoro = async (): Promise<void> => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      await pomodoroService.initialize();
-      const loadedConfig = pomodoroService.getConfig();
-      const loadedStatistics = pomodoroService.getStatistics();
-      const loadedCurrentSession = pomodoroService.getCurrentSession();
-      
-      setConfig(loadedConfig);
-      setStatistics(loadedStatistics);
-      setCurrentSession(loadedCurrentSession);
-      
-      debugUtils.log('Pomodoro initialized successfully');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error initializing pomodoro';
-      setError(errorMessage);
-      debugUtils.error('Error initializing pomodoro', err);
-    } finally {
-      setLoading(false);
+  const createSession = (state: 'work' | 'shortBreak' | 'longBreak'): PomodoroSession => {
+    const duration = state === 'work' 
+      ? config.workDuration 
+      : state === 'shortBreak' 
+        ? config.shortBreakDuration 
+        : config.longBreakDuration;
+
+    return {
+      id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      state,
+      duration,
+      remainingTime: duration * 60,
+      isActive: false,
+      isPaused: false,
+      totalPauseTime: 0
+    };
+  };
+
+  const startTimer = () => {
+    if (timer) {
+      clearInterval(timer);
+    }
+
+    const newTimer = setInterval(() => {
+      setCurrentSession(prev => {
+        if (!prev || !prev.isActive || prev.isPaused) return prev;
+
+        const newRemainingTime = prev.remainingTime - 1;
+        
+        if (newRemainingTime <= 0) {
+          // Sesión completada
+          clearInterval(newTimer);
+          setTimer(null);
+          
+          // Actualizar estadísticas
+          setStatistics(prevStats => ({
+            ...prevStats,
+            totalSessions: prevStats.totalSessions + 1,
+            completedSessions: prevStats.completedSessions + 1,
+            totalWorkTime: prev.state === 'work' 
+              ? prevStats.totalWorkTime + prev.duration * 60
+              : prevStats.totalWorkTime,
+            totalBreakTime: prev.state !== 'work' 
+              ? prevStats.totalBreakTime + prev.duration * 60
+              : prevStats.totalBreakTime
+          }));
+
+          // Crear siguiente sesión
+          if (prev.state === 'work') {
+            const nextState = statistics.completedSessions % config.longBreakInterval === 0 
+              ? 'longBreak' 
+              : 'shortBreak';
+            return createSession(nextState);
+          } else {
+            return createSession('work');
+          }
+        }
+
+        return {
+          ...prev,
+          remainingTime: newRemainingTime
+        };
+      });
+    }, 1000);
+
+    setTimer(newTimer);
+  };
+
+  const stopTimer = () => {
+    if (timer) {
+      clearInterval(timer);
+      setTimer(null);
     }
   };
 
@@ -90,30 +174,50 @@ export const usePomodoro = (): UsePomodoroReturn => {
   // FUNCIONES DE SESIÓN
   // ============================================================================
 
-  const startSession = useCallback(async (data?: CreatePomodoroSessionData): Promise<void> => {
+  const startSession = useCallback(async (mode: 'work' | 'shortBreak' | 'longBreak' = 'work'): Promise<void> => {
     try {
       setError(null);
-      const session = await pomodoroService.startSession(data);
       
-      setCurrentSession(session);
-      setStatistics(pomodoroService.getStatistics());
+      if (!currentSession) {
+        // Crear nueva sesión con el modo especificado
+        const newSession = createSession(mode);
+        setCurrentSession(newSession);
+      }
       
-      debugUtils.log('Pomodoro session started', { id: session.id });
+      setCurrentSession(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          isActive: true,
+          isPaused: false,
+          startTime: Date.now()
+        };
+      });
+      
+      startTimer();
+      debugUtils.log('Pomodoro session started', { mode });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error starting session';
       setError(errorMessage);
       debugUtils.error('Error starting pomodoro session', err);
       throw err;
     }
-  }, []);
+  }, [currentSession, config, statistics.completedSessions]);
 
   const pauseSession = useCallback(async (): Promise<void> => {
     try {
       setError(null);
-      await pomodoroService.pauseSession();
+      stopTimer();
       
-      const updatedSession = pomodoroService.getCurrentSession();
-      setCurrentSession(updatedSession);
+      setCurrentSession(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          isActive: false,
+          isPaused: true,
+          pauseTime: Date.now()
+        };
+      });
       
       debugUtils.log('Pomodoro session paused');
     } catch (err) {
@@ -127,11 +231,18 @@ export const usePomodoro = (): UsePomodoroReturn => {
   const resumeSession = useCallback(async (): Promise<void> => {
     try {
       setError(null);
-      await pomodoroService.resumeSession();
       
-      const updatedSession = pomodoroService.getCurrentSession();
-      setCurrentSession(updatedSession);
+      setCurrentSession(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          isActive: true,
+          isPaused: false,
+          startTime: Date.now()
+        };
+      });
       
+      startTimer();
       debugUtils.log('Pomodoro session resumed');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error resuming session';
@@ -144,11 +255,9 @@ export const usePomodoro = (): UsePomodoroReturn => {
   const stopSession = useCallback(async (): Promise<void> => {
     try {
       setError(null);
-      await pomodoroService.stopSession();
+      stopTimer();
       
       setCurrentSession(null);
-      setStatistics(pomodoroService.getStatistics());
-      
       debugUtils.log('Pomodoro session stopped');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error stopping session';
@@ -161,10 +270,12 @@ export const usePomodoro = (): UsePomodoroReturn => {
   const resetSession = useCallback(async (): Promise<void> => {
     try {
       setError(null);
-      await pomodoroService.resetSession();
+      stopTimer();
       
-      const updatedSession = pomodoroService.getCurrentSession();
-      setCurrentSession(updatedSession);
+      if (currentSession && currentSession.state !== 'idle') {
+        const resetSession = createSession(currentSession.state as 'work' | 'shortBreak' | 'longBreak');
+        setCurrentSession(resetSession);
+      }
       
       debugUtils.log('Pomodoro session reset');
     } catch (err) {
@@ -173,7 +284,25 @@ export const usePomodoro = (): UsePomodoroReturn => {
       debugUtils.error('Error resetting pomodoro session', err);
       throw err;
     }
-  }, []);
+  }, [currentSession]);
+
+  const resetToMode = useCallback(async (mode: 'work' | 'shortBreak' | 'longBreak'): Promise<void> => {
+    try {
+      setError(null);
+      stopTimer();
+      
+      // Crear nueva sesión con el modo especificado y tiempo configurado
+      const newSession = createSession(mode);
+      setCurrentSession(newSession);
+      
+      debugUtils.log('Pomodoro session reset to mode', { mode });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error resetting session to mode';
+      setError(errorMessage);
+      debugUtils.error('Error resetting pomodoro session to mode', err);
+      throw err;
+    }
+  }, [config]);
 
   // ============================================================================
   // FUNCIONES DE CONFIGURACIÓN
@@ -182,11 +311,7 @@ export const usePomodoro = (): UsePomodoroReturn => {
   const updateConfig = useCallback(async (newConfig: Partial<PomodoroConfig>): Promise<void> => {
     try {
       setError(null);
-      await pomodoroService.updateConfig(newConfig);
-      
-      const updatedConfig = pomodoroService.getConfig();
-      setConfig(updatedConfig);
-      
+      setConfig(prev => ({ ...prev, ...newConfig }));
       debugUtils.log('Pomodoro config updated', newConfig);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error updating config';
@@ -197,80 +322,21 @@ export const usePomodoro = (): UsePomodoroReturn => {
   }, []);
 
   // ============================================================================
-  // FUNCIONES DE CONSULTA
-  // ============================================================================
-
-  const getSessionsByDate = useCallback((date: Date): PomodoroSession[] => {
-    return pomodoroService.getSessionsByDate(date);
-  }, []);
-
-  const getSessionsByTask = useCallback((taskId: string): PomodoroSession[] => {
-    return pomodoroService.getSessionsByTask(taskId);
-  }, []);
-
-  const getSessionsByProject = useCallback((projectId: string): PomodoroSession[] => {
-    return pomodoroService.getSessionsByProject(projectId);
-  }, []);
-
-  // ============================================================================
-  // VALORES MEMOIZADOS
-  // ============================================================================
-
-  const isActive = useMemo(() => {
-    return currentSession?.isActive || false;
-  }, [currentSession]);
-
-  const isPaused = useMemo(() => {
-    return currentSession?.isPaused || false;
-  }, [currentSession]);
-
-  const remainingTime = useMemo(() => {
-    return currentSession?.remainingTime || 0;
-  }, [currentSession]);
-
-  const currentState = useMemo(() => {
-    return currentSession?.state || 'idle';
-  }, [currentSession]);
-
-  const progress = useMemo(() => {
-    if (!currentSession) return 0;
-    const totalTime = currentSession.duration * 60;
-    const elapsed = totalTime - currentSession.remainingTime;
-    return Math.max(0, Math.min(100, (elapsed / totalTime) * 100));
-  }, [currentSession]);
-
-  // ============================================================================
   // RETORNO DEL HOOK
   // ============================================================================
 
   return {
-    // Estado
     currentSession,
     config,
     statistics,
     loading,
     error,
-    
-    // Funciones de sesión
     startSession,
     pauseSession,
     resumeSession,
     stopSession,
     resetSession,
-    
-    // Funciones de configuración
-    updateConfig,
-    
-    // Funciones de consulta
-    getSessionsByDate,
-    getSessionsByTask,
-    getSessionsByProject,
-    
-    // Valores memoizados
-    isActive,
-    isPaused,
-    remainingTime,
-    currentState,
-    progress
+    resetToMode,
+    updateConfig
   };
 };

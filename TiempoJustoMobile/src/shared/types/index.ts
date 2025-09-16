@@ -32,7 +32,7 @@ export interface PriorityConfig {
 // ============================================================================
 
 export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
-export type ProjectStatus = 'active' | 'completed' | 'paused' | 'archived';
+export type ProjectStatus = 'open' | 'suspended' | 'cancelled' | 'completed';
 export type PomodoroState = 'idle' | 'working' | 'short_break' | 'long_break';
 
 // ============================================================================

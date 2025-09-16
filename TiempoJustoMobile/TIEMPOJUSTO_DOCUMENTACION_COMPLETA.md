@@ -1,4 +1,4 @@
-# TiempoJusto - Documentación Completa del Proyecto
+
 
 ## 📋 Índice
 1. [¿Qué es TiempoJusto?](#qué-es-tiempojusto)

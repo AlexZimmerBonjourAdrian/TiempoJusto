@@ -3,10 +3,12 @@
 // ============================================================================
 
 import React, { useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, Alert } from 'react-native';
 import { useTasks } from '../hooks/useTasks';
 import { TaskList } from './TaskList';
+import { TaskModal } from './TaskModal';
 import { Button } from '../../../components/ui/Button';
+import { Task } from '../types';
 import { COLORS, SPACING, FONT_SIZES } from '../../../shared/constants';
 
 // ============================================================================
@@ -14,8 +16,71 @@ import { COLORS, SPACING, FONT_SIZES } from '../../../shared/constants';
 // ============================================================================
 
 export const TaskBoard: React.FC = () => {
-  const { tasks, loading, error, statistics } = useTasks();
+  const { tasks, loading, error, statistics, addTask, updateTask, deleteTask } = useTasks();
   const [showCompleted, setShowCompleted] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+  // ============================================================================
+  // FUNCIONES
+  // ============================================================================
+
+  const handleAddTask = () => {
+    setEditingTask(null);
+    setModalVisible(true);
+  };
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setModalVisible(true);
+  };
+
+  const handleSaveTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      if (editingTask) {
+        await updateTask(editingTask.id, taskData);
+      } else {
+        await addTask(taskData);
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const handleCompleteTask = async (taskId: string) => {
+    try {
+      const task = tasks.find(t => t.id === taskId);
+      if (task) {
+        await updateTask(taskId, {
+          ...task,
+          status: task.status === 'completed' ? 'pending' : 'completed'
+        });
+      }
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo actualizar la tarea');
+    }
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    Alert.alert(
+      'Eliminar Tarea',
+      '¿Estás seguro de que quieres eliminar esta tarea?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteTask(taskId);
+            } catch (error) {
+              Alert.alert('Error', 'No se pudo eliminar la tarea');
+            }
+          }
+        }
+      ]
+    );
+  };
 
   // Filtrar tareas según el estado
   const filteredTasks = tasks.filter(task => {
@@ -90,18 +155,9 @@ export const TaskBoard: React.FC = () => {
           tasks={filteredTasks}
           loading={loading}
           error={error}
-          onTaskPress={(task) => {
-            // TODO: Implementar navegación a detalles de tarea
-            console.log('Task pressed:', task.id);
-          }}
-          onTaskComplete={(taskId) => {
-            // TODO: Implementar completar tarea
-            console.log('Complete task:', taskId);
-          }}
-          onTaskDelete={(taskId) => {
-            // TODO: Implementar eliminar tarea
-            console.log('Delete task:', taskId);
-          }}
+          onTaskPress={handleEditTask}
+          onTaskComplete={handleCompleteTask}
+          onTaskDelete={handleDeleteTask}
         />
       </View>
 
@@ -109,14 +165,19 @@ export const TaskBoard: React.FC = () => {
       <View style={styles.addButtonContainer}>
         <Button
           title="Agregar Tarea"
-          onPress={() => {
-            // TODO: Implementar modal de agregar tarea
-            console.log('Add task');
-          }}
+          onPress={handleAddTask}
           variant="primary"
           fullWidth
         />
       </View>
+
+      {/* Modal de tarea */}
+      <TaskModal
+        visible={modalVisible}
+        task={editingTask}
+        onClose={() => setModalVisible(false)}
+        onSave={handleSaveTask}
+      />
     </View>
   );
 };

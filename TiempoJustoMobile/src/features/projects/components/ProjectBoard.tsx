@@ -2,35 +2,237 @@
 // COMPONENTE DE TABLERO DE PROYECTOS - TIEMPOJUSTO
 // ============================================================================
 
-import React from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useProjects } from '../hooks/useProjects';
-import { COLORS, SPACING, FONT_SIZES } from '../../../shared/constants';
+import { AddProjectModal } from './AddProjectModal';
+import { COLORS, SPACING, FONT_SIZES, PROJECT_STATUS } from '../../../shared/constants';
+import { Project, ProjectStatus } from '../../../shared/types';
 
 // ============================================================================
 // COMPONENTE PRINCIPAL
 // ============================================================================
 
 export const ProjectBoard: React.FC = () => {
-  const { projects, loading, error, statistics } = useProjects();
+  const { 
+    projects, 
+    loading, 
+    error, 
+    statistics, 
+    getOpenProjects, 
+    getClosedProjects,
+    updateProject,
+    deleteProject 
+  } = useProjects();
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
+
+  // ============================================================================
+  // FUNCIONES
+  // ============================================================================
+
+  const handleStatusChange = async (projectId: string, newStatus: ProjectStatus) => {
+    try {
+      await updateProject(projectId, { status: newStatus });
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo actualizar el estado del proyecto');
+    }
+  };
+
+  const handleDeleteProject = async (projectId: string, projectName: string) => {
+    Alert.alert(
+      'Eliminar Proyecto',
+      `¿Estás seguro de que quieres eliminar el proyecto "${projectName}"?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteProject(projectId);
+            } catch (error) {
+              Alert.alert('Error', 'No se pudo eliminar el proyecto');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const getStatusColor = (status: ProjectStatus): string => {
+    switch (status) {
+      case 'open': return '#10b981'; // green
+      case 'suspended': return '#f59e0b'; // amber
+      case 'cancelled': return '#ef4444'; // red
+      case 'completed': return '#3b82f6'; // blue
+      default: return COLORS.TEXT_SECONDARY;
+    }
+  };
+
+  const getStatusLabel = (status: ProjectStatus): string => {
+    switch (status) {
+      case 'open': return 'Abierto';
+      case 'suspended': return 'Suspendido';
+      case 'cancelled': return 'Cancelado';
+      case 'completed': return 'Completado';
+      default: return status;
+    }
+  };
+
+  const renderProjectCard = (project: Project) => (
+    <View key={project.id} style={styles.projectCard}>
+      <View style={styles.projectHeader}>
+        <View style={styles.projectInfo}>
+          <View style={[styles.colorIndicator, { backgroundColor: project.color }]} />
+          <View style={styles.projectDetails}>
+            <Text style={styles.projectName}>{project.name}</Text>
+            <Text style={styles.projectStatus} style={{ color: getStatusColor(project.status) }}>
+              {getStatusLabel(project.status)}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.projectActions}>
+          {project.status === 'open' && (
+            <>
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: '#f59e0b' }]}
+                onPress={() => handleStatusChange(project.id, 'suspended')}
+              >
+                <Text style={styles.actionButtonText}>Suspender</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: '#3b82f6' }]}
+                onPress={() => handleStatusChange(project.id, 'completed')}
+              >
+                <Text style={styles.actionButtonText}>Completar</Text>
+              </TouchableOpacity>
+            </>
+          )}
+          {project.status === 'suspended' && (
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: '#10b981' }]}
+              onPress={() => handleStatusChange(project.id, 'open')}
+            >
+              <Text style={styles.actionButtonText}>Reabrir</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: '#ef4444' }]}
+            onPress={() => handleDeleteProject(project.id, project.name)}
+          >
+            <Text style={styles.actionButtonText}>Eliminar</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      
+      {project.description && (
+        <Text style={styles.projectDescription}>{project.description}</Text>
+      )}
+      
+      <View style={styles.projectFooter}>
+        <Text style={styles.projectStats}>
+          {project.taskIds.length} tareas • {project.progress}% completado
+        </Text>
+        {project.estimatedHours && (
+          <Text style={styles.projectStats}>
+            {project.estimatedHours}h estimadas
+          </Text>
+        )}
+      </View>
+    </View>
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>Cargando proyectos...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>Error: {error}</Text>
+      </View>
+    );
+  }
+
+  const openProjects = getOpenProjects();
+  const closedProjects = getClosedProjects();
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Proyectos</Text>
+        <View style={styles.headerTop}>
+          <Text style={styles.title}>Proyectos</Text>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => setShowAddModal(true)}
+          >
+            <Text style={styles.addButtonText}>+ Nuevo</Text>
+          </TouchableOpacity>
+        </View>
         <Text style={styles.subtitle}>
-          {statistics.totalProjects} proyectos • {statistics.activeProjects} activos
+          {statistics.totalProjects} proyectos • {statistics.openProjects} abiertos • {statistics.completedProjects} completados
         </Text>
       </View>
 
-      <View style={styles.content}>
-        <Text style={styles.placeholder}>
-          🚧 Tablero de proyectos en desarrollo
-        </Text>
-        <Text style={styles.description}>
-          Aquí podrás gestionar tus proyectos y ver su progreso.
-        </Text>
+      {/* Tabs */}
+      <View style={styles.tabs}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'open' && styles.activeTab]}
+          onPress={() => setActiveTab('open')}
+        >
+          <Text style={[styles.tabText, activeTab === 'open' && styles.activeTabText]}>
+            Abiertos ({openProjects.length})
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'closed' && styles.activeTab]}
+          onPress={() => setActiveTab('closed')}
+        >
+          <Text style={[styles.tabText, activeTab === 'closed' && styles.activeTabText]}>
+            Cerrados ({closedProjects.length})
+          </Text>
+        </TouchableOpacity>
       </View>
+
+      {/* Content */}
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {activeTab === 'open' ? (
+          openProjects.length > 0 ? (
+            openProjects.map(renderProjectCard)
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateText}>No hay proyectos abiertos</Text>
+              <Text style={styles.emptyStateSubtext}>
+                Crea tu primer proyecto para comenzar
+              </Text>
+            </View>
+          )
+        ) : (
+          closedProjects.length > 0 ? (
+            closedProjects.map(renderProjectCard)
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateText}>No hay proyectos cerrados</Text>
+              <Text style={styles.emptyStateSubtext}>
+                Los proyectos completados, suspendidos o cancelados aparecerán aquí
+              </Text>
+            </View>
+          )
+        )}
+      </ScrollView>
+
+      {/* Add Project Modal */}
+      <AddProjectModal
+        visible={showAddModal}
+        onClose={() => setShowAddModal(false)}
+      />
     </View>
   );
 };
@@ -45,34 +247,160 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.BACKGROUND,
   },
   header: {
-    marginBottom: SPACING.LG,
+    padding: SPACING.MD,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.BORDER,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.SM,
   },
   title: {
     fontSize: FONT_SIZES.XXL,
     fontWeight: '700',
     color: COLORS.TEXT_PRIMARY,
   },
+  addButton: {
+    backgroundColor: COLORS.PRIMARY,
+    paddingHorizontal: SPACING.MD,
+    paddingVertical: SPACING.SM,
+    borderRadius: 8,
+  },
+  addButtonText: {
+    color: '#ffffff',
+    fontSize: FONT_SIZES.MD,
+    fontWeight: '600',
+  },
   subtitle: {
+    fontSize: FONT_SIZES.SM,
+    color: COLORS.TEXT_SECONDARY,
+  },
+  tabs: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.SURFACE,
+    marginHorizontal: SPACING.MD,
+    marginTop: SPACING.MD,
+    borderRadius: 8,
+    padding: 4,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: SPACING.SM,
+    alignItems: 'center',
+    borderRadius: 6,
+  },
+  activeTab: {
+    backgroundColor: COLORS.BACKGROUND,
+  },
+  tabText: {
     fontSize: FONT_SIZES.MD,
     color: COLORS.TEXT_SECONDARY,
-    marginTop: 4,
+    fontWeight: '500',
+  },
+  activeTabText: {
+    color: COLORS.TEXT_PRIMARY,
+    fontWeight: '600',
   },
   content: {
     flex: 1,
+    padding: SPACING.MD,
+  },
+  projectCard: {
+    backgroundColor: COLORS.SURFACE,
+    borderRadius: 12,
+    padding: SPACING.MD,
+    marginBottom: SPACING.MD,
+    borderWidth: 1,
+    borderColor: COLORS.BORDER,
+  },
+  projectHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: SPACING.SM,
+  },
+  projectInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  colorIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: SPACING.SM,
+  },
+  projectDetails: {
+    flex: 1,
+  },
+  projectName: {
+    fontSize: FONT_SIZES.LG,
+    fontWeight: '600',
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: 2,
+  },
+  projectStatus: {
+    fontSize: FONT_SIZES.SM,
+    fontWeight: '500',
+  },
+  projectActions: {
+    flexDirection: 'row',
+    gap: SPACING.XS,
+  },
+  actionButton: {
+    paddingHorizontal: SPACING.SM,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  actionButtonText: {
+    color: '#ffffff',
+    fontSize: FONT_SIZES.XS,
+    fontWeight: '600',
+  },
+  projectDescription: {
+    fontSize: FONT_SIZES.MD,
+    color: COLORS.TEXT_SECONDARY,
+    marginBottom: SPACING.SM,
+    lineHeight: 20,
+  },
+  projectFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  projectStats: {
+    fontSize: FONT_SIZES.SM,
+    color: COLORS.TEXT_SECONDARY,
+  },
+  emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: SPACING.LG,
+    paddingVertical: SPACING.XXL,
   },
-  placeholder: {
+  emptyStateText: {
     fontSize: FONT_SIZES.LG,
     color: COLORS.TEXT_PRIMARY,
-    textAlign: 'center',
-    marginBottom: SPACING.MD,
+    fontWeight: '600',
+    marginBottom: SPACING.SM,
   },
-  description: {
+  emptyStateSubtext: {
     fontSize: FONT_SIZES.MD,
     color: COLORS.TEXT_SECONDARY,
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 20,
+  },
+  loadingText: {
+    fontSize: FONT_SIZES.LG,
+    color: COLORS.TEXT_PRIMARY,
+    textAlign: 'center',
+    marginTop: SPACING.XXL,
+  },
+  errorText: {
+    fontSize: FONT_SIZES.LG,
+    color: COLORS.ERROR,
+    textAlign: 'center',
+    marginTop: SPACING.XXL,
   },
 });

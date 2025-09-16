@@ -18,6 +18,7 @@ export * from './layout/TabBar';
 // Componentes de features
 export * from '../features/tasks/components/TaskList';
 export * from '../features/tasks/components/TaskBoard';
+export * from '../features/tasks/components/TaskModal';
 export * from '../features/projects/components/ProjectBoard';
 export * from '../features/pomodoro/components/PomodoroBoard';
 export * from '../features/analytics/components/AnalyticsBoard';

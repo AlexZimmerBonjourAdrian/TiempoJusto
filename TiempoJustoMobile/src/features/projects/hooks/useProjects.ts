@@ -21,16 +21,16 @@ export const useProjects = (): UseProjectsReturn => {
   const [error, setError] = useState<string | null>(null);
   const [statistics, setStatistics] = useState<ProjectStatistics>({
     totalProjects: 0,
-    activeProjects: 0,
+    openProjects: 0,
+    suspendedProjects: 0,
+    cancelledProjects: 0,
     completedProjects: 0,
-    pausedProjects: 0,
-    archivedProjects: 0,
     averageProgress: 0,
     totalEstimatedHours: 0,
     totalActualHours: 0,
     completionRate: 0,
     averageCompletionTime: 0,
-    statusDistribution: { active: 0, completed: 0, paused: 0, archived: 0 },
+    statusDistribution: { open: 0, suspended: 0, cancelled: 0, completed: 0 },
     progressDistribution: { '0-25': 0, '26-50': 0, '51-75': 0, '76-100': 0 }
   });
 
@@ -256,6 +256,46 @@ export const useProjects = (): UseProjectsReturn => {
     );
   }, [projects]);
 
+  const getOpenProjects = useCallback((): Project[] => {
+    return projects.filter(project => project.status === 'open');
+  }, [projects]);
+
+  const getClosedProjects = useCallback((): Project[] => {
+    return projects.filter(project => 
+      project.status === 'completed' || 
+      project.status === 'cancelled' || 
+      project.status === 'suspended'
+    );
+  }, [projects]);
+
+  const addTaskToProject = useCallback(async (projectId: string, taskId: string): Promise<void> => {
+    try {
+      setError(null);
+      await projectService.addTaskToProject(projectId, taskId);
+      await loadProjects();
+      debugUtils.log('Task added to project', { projectId, taskId });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error adding task to project';
+      setError(errorMessage);
+      debugUtils.error('Error adding task to project', err);
+      throw err;
+    }
+  }, []);
+
+  const removeTaskFromProject = useCallback(async (projectId: string, taskId: string): Promise<void> => {
+    try {
+      setError(null);
+      await projectService.removeTaskFromProject(projectId, taskId);
+      await loadProjects();
+      debugUtils.log('Task removed from project', { projectId, taskId });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error removing task from project';
+      setError(errorMessage);
+      debugUtils.error('Error removing task from project', err);
+      throw err;
+    }
+  }, []);
+
   // ============================================================================
   // RETORNO DEL HOOK
   // ============================================================================
@@ -271,15 +311,19 @@ export const useProjects = (): UseProjectsReturn => {
     addProject,
     updateProject,
     deleteProject,
-    archiveProject,
-    unarchiveProject,
     
     // Funciones de consulta
     getProjectById,
     getProjectsByStatus,
+    getOpenProjects,
+    getClosedProjects,
     filterProjects,
     sortProjects,
     updateProjectProgress,
+    
+    // Funciones de gestión de tareas
+    addTaskToProject,
+    removeTaskFromProject,
     
     // Funciones de utilidad
     refreshProjects,

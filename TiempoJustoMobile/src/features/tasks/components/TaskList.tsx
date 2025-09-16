@@ -4,8 +4,8 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { Task, TaskPriority } from '../../../shared/types';
-import { TASK_PRIORITIES } from '../../../shared/constants';
+import { Task, TaskPriority } from '../types';
+import { COLORS, SPACING, FONT_SIZES, TASK_PRIORITIES } from '../../../shared/constants';
 
 // ============================================================================
 // TIPOS DE PROPS
@@ -129,7 +129,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
     <TouchableOpacity
       style={[
         styles.taskItem,
-        { borderLeftColor: priorityConfig.color },
+        { borderLeftColor: priorityConfig?.color || COLORS.PRIMARY },
         isCompleted && styles.completedTask
       ]}
       onPress={onPress}
@@ -145,7 +145,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
           </Text>
           <View style={[
             styles.priorityBadge,
-            { backgroundColor: priorityConfig.color }
+            { backgroundColor: priorityConfig?.color || COLORS.PRIMARY }
           ]}>
             <Text style={styles.priorityText}>{task.priority}</Text>
           </View>
@@ -227,17 +227,17 @@ const formatDueDate = (date: Date): string => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: COLORS.BACKGROUND,
   },
   listContainer: {
-    padding: 16,
+    padding: SPACING.MD,
     flexGrow: 1,
   },
   taskItem: {
-    backgroundColor: '#1e293b',
+    backgroundColor: COLORS.SURFACE,
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    padding: SPACING.MD,
+    marginBottom: SPACING.SM,
     borderLeftWidth: 4,
     flexDirection: 'row',
     alignItems: 'center',
@@ -252,21 +252,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: SPACING.XS,
   },
   taskTitle: {
-    fontSize: 16,
+    fontSize: FONT_SIZES.MD,
     fontWeight: '600',
-    color: '#f8fafc',
+    color: COLORS.TEXT_PRIMARY,
     flex: 1,
-    marginRight: 8,
+    marginRight: SPACING.XS,
   },
   completedText: {
     textDecorationLine: 'line-through',
-    color: '#94a3b8',
+    color: COLORS.TEXT_SECONDARY,
   },
   priorityBadge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: SPACING.XS,
     paddingVertical: 4,
     borderRadius: 12,
     minWidth: 24,
@@ -274,13 +274,13 @@ const styles = StyleSheet.create({
   },
   priorityText: {
     color: '#ffffff',
-    fontSize: 12,
+    fontSize: FONT_SIZES.XS,
     fontWeight: 'bold',
   },
   taskDescription: {
-    fontSize: 14,
-    color: '#94a3b8',
-    marginBottom: 8,
+    fontSize: FONT_SIZES.SM,
+    color: COLORS.TEXT_SECONDARY,
+    marginBottom: SPACING.XS,
   },
   taskFooter: {
     flexDirection: 'row',
@@ -288,35 +288,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   taskStatus: {
-    fontSize: 12,
-    color: '#64748b',
+    fontSize: FONT_SIZES.XS,
+    color: COLORS.TEXT_SECONDARY,
     textTransform: 'capitalize',
   },
   taskDueDate: {
-    fontSize: 12,
-    color: '#64748b',
+    fontSize: FONT_SIZES.XS,
+    color: COLORS.TEXT_SECONDARY,
   },
   taskActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 12,
+    marginLeft: SPACING.SM,
   },
   completeButton: {
-    backgroundColor: '#10b981',
+    backgroundColor: COLORS.SUCCESS,
     width: 32,
     height: 32,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8,
+    marginRight: SPACING.XS,
   },
   completeButtonText: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: FONT_SIZES.MD,
     fontWeight: 'bold',
   },
   deleteButton: {
-    backgroundColor: '#ef4444',
+    backgroundColor: COLORS.DANGER,
     width: 32,
     height: 32,
     borderRadius: 16,
@@ -325,51 +325,51 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     color: '#ffffff',
-    fontSize: 18,
+    fontSize: FONT_SIZES.LG,
     fontWeight: 'bold',
   },
   emptyState: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 48,
+    paddingVertical: SPACING.XL * 2,
   },
   emptyStateText: {
-    fontSize: 18,
+    fontSize: FONT_SIZES.LG,
     fontWeight: '600',
-    color: '#f8fafc',
-    marginBottom: 8,
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.XS,
   },
   emptyStateSubtext: {
-    fontSize: 14,
-    color: '#94a3b8',
+    fontSize: FONT_SIZES.SM,
+    color: COLORS.TEXT_SECONDARY,
     textAlign: 'center',
   },
   errorState: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 48,
+    paddingVertical: SPACING.XL * 2,
   },
   errorText: {
-    fontSize: 18,
+    fontSize: FONT_SIZES.LG,
     fontWeight: '600',
-    color: '#ef4444',
-    marginBottom: 8,
+    color: COLORS.DANGER,
+    marginBottom: SPACING.XS,
   },
   errorSubtext: {
-    fontSize: 14,
-    color: '#94a3b8',
+    fontSize: FONT_SIZES.SM,
+    color: COLORS.TEXT_SECONDARY,
     textAlign: 'center',
   },
   loadingState: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 48,
+    paddingVertical: SPACING.XL * 2,
   },
   loadingText: {
-    fontSize: 16,
-    color: '#94a3b8',
+    fontSize: FONT_SIZES.MD,
+    color: COLORS.TEXT_SECONDARY,
   },
 });
