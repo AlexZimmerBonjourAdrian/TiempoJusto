@@ -19,11 +19,19 @@ function Test-Command([string]$Name) {
 }
 
 function Install-WithWinget([string]$Id) {
-    if (-not (Test-Command 'winget')) {
-        throw "winget no está disponible. Instala manualmente: $Id"
+    if (Test-Command 'winget') {
+        Write-Info "Instalando con winget: $Id"
+        winget install --source winget -e --id $Id --accept-package-agreements --accept-source-agreements --silent | Out-Host
+        return
     }
-    Write-Info "Instalando con winget: $Id"
-    winget install --source winget -e --id $Id --accept-package-agreements --accept-source-agreements --silent | Out-Host
+    if (Test-Command 'choco') {
+        switch ($Id) {
+            'OpenJS.NodeJS.LTS' { Write-Info 'Instalando con choco: nodejs-lts'; choco install -y nodejs-lts | Out-Host; return }
+            'EclipseAdoptium.Temurin.17.JDK' { Write-Info 'Instalando con choco: temurin17jdk'; choco install -y temurin17jdk | Out-Host; return }
+            'Google.AndroidStudio' { Write-Info 'Instalando con choco: androidstudio'; choco install -y androidstudio | Out-Host; return }
+        }
+    }
+    throw "winget no está disponible. Instala manualmente: $Id"
 }
 
 function Ensure-NodeNpm() {

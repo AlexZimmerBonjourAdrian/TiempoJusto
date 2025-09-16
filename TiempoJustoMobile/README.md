@@ -204,14 +204,20 @@ Accesos directos para crear builds con EAS y probar el entorno con Expo Go.
 Ejemplos de uso:
 
 ```powershell
-# Build de producción (APK)
-./Build.ps1 -Profile production -Platform android
+# Build de producción (EAS cloud, APK)
+./Build.ps1
+
+# Build local en tu PC (APK)
+./Build.ps1 -Local
 
 # Build de preview (APK interno)
 ./Build.ps1 -Profile preview
 
 # Build de desarrollo, sin VCS y limpiando caché
 ./Build.ps1 -Profile development -NoVcs -ClearCache
+
+# Forzar setup de entorno (normalmente automático)
+./Build.ps1 -InstallJdk -InstallAndroid -SetUserEnv
 
 # Iniciar Expo para Expo Go (LAN por defecto)
 ./Testexpogo.ps1
