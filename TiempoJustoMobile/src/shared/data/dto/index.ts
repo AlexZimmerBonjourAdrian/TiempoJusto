@@ -1,6 +1,8 @@
 // ============================================================================
-// EXPORTACIONES DE HOOKS - SLICE DE PROYECTOS
+// EXPORTS DE DTOs - TIEMPOJUSTO
 // ============================================================================
 
-export * from './useProjects';
-export * from './useProjectUI';
+export * from './task.dto';
+export * from './project.dto';
+
+

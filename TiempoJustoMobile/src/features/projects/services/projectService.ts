@@ -6,6 +6,9 @@ import { Project, CreateProjectData, UpdateProjectData, ProjectFilters, ProjectS
 import { storageService } from '../../../shared/storage';
 import { STORAGE_KEYS } from '../../../shared/constants';
 import { debugUtils, arrayUtils } from '../../../shared/utils';
+import { ProjectFactory } from '../../../shared/factories';
+import { ProjectRepository } from '../../../shared/data/repositories';
+import { ProjectEntity } from '../../../shared/data/entities';
 
 // ============================================================================
 // CLASE DEL SERVICIO DE PROYECTOS
@@ -14,6 +17,7 @@ import { debugUtils, arrayUtils } from '../../../shared/utils';
 export class ProjectService {
   private projects: Project[] = [];
   private readonly storageKey = STORAGE_KEYS.PROJECTS;
+  private repository: ProjectRepository;
 
   // ============================================================================
   // MÉTODOS DE INICIALIZACIÓN
@@ -21,6 +25,9 @@ export class ProjectService {
 
   async initialize(): Promise<void> {
     try {
+      // Initialize repository
+      this.repository = new ProjectRepository();
+
       await this.loadProjects();
       debugUtils.log('ProjectService initialized successfully');
     } catch (error) {
@@ -35,30 +42,22 @@ export class ProjectService {
 
   async createProject(data: CreateProjectData): Promise<Project> {
     try {
-      const project: Project = {
-        id: this.generateId(),
-        name: data.name,
-        description: data.description,
-        status: 'open', // Los proyectos se crean en estado 'open' por defecto
-        color: data.color,
-        icon: data.icon,
-        startDate: data.startDate,
-        endDate: data.endDate,
-        estimatedHours: data.estimatedHours,
-        actualHours: 0,
-        progress: 0,
-        tags: data.tags || [],
-        notes: undefined,
-        taskIds: [], // Inicialmente sin tareas
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      // 1. Crear proyecto usando Factory
+      const project = ProjectFactory.createStandard(data);
 
-      this.projects.push(project);
+      // 2. Convertir a Entity
+      const entity = ProjectEntity.fromProject(project);
+
+      // 3. Guardar en repository
+      const savedEntity = await this.repository.create(entity);
+
+      // 4. Mantener sincronización con lista local (compatibilidad)
+      const savedProject = savedEntity.toProject();
+      this.projects.push(savedProject);
       await this.saveProjects();
-      
-      debugUtils.log('Project created successfully', { id: project.id, name: project.name });
-      return project;
+
+      debugUtils.log('Project created successfully', { id: savedProject.id, name: savedProject.name });
+      return savedProject; // Retornar Project para compatibilidad
     } catch (error) {
       debugUtils.error('Error creating project', error);
       throw error;
@@ -67,23 +66,45 @@ export class ProjectService {
 
   async updateProject(id: string, data: UpdateProjectData): Promise<Project> {
     try {
-      const projectIndex = this.projects.findIndex(project => project.id === id);
-      if (projectIndex === -1) {
+      // 1. Obtener la entidad del repository
+      const entity = await this.repository.findById(id);
+      if (!entity) {
         throw new Error(`Project with id ${id} not found`);
       }
 
-      const project = this.projects[projectIndex];
-      const updatedProject: Project = {
-        ...project,
-        ...data,
-        updatedAt: new Date()
-      };
+      // 2. Aplicar lógica de negocio usando la entidad
+      if (data.progress !== undefined) {
+        entity.updateProgress(data.progress);
+      } else {
+        // Aplicar otras actualizaciones
+        if (data.name !== undefined) entity.name = data.name;
+        if (data.description !== undefined) entity.description = data.description;
+        if (data.status !== undefined) entity.status = data.status;
+        if (data.color !== undefined) entity.color = data.color;
+        if (data.icon !== undefined) entity.icon = data.icon;
+        if (data.startDate !== undefined) entity.startDate = data.startDate ? new Date(data.startDate) : undefined;
+        if (data.endDate !== undefined) entity.endDate = data.endDate ? new Date(data.endDate) : undefined;
+        if (data.estimatedHours !== undefined) entity.estimatedHours = data.estimatedHours;
+        if (data.actualHours !== undefined) entity.actualHours = data.actualHours;
+        if (data.tags !== undefined) entity.tags = data.tags;
+        if (data.notes !== undefined) entity.notes = data.notes;
+        if (data.taskIds !== undefined) entity.taskIds = data.taskIds;
+        entity.updatedAt = new Date();
+      }
 
-      this.projects[projectIndex] = updatedProject;
-      await this.saveProjects();
-      
+      // 3. Guardar en repository
+      const updatedEntity = await this.repository.update(id, entity);
+
+      // 4. Mantener sincronización con lista local (compatibilidad)
+      const updatedProject = updatedEntity.toProject();
+      const projectIndex = this.projects.findIndex(p => p.id === id);
+      if (projectIndex !== -1) {
+        this.projects[projectIndex] = updatedProject;
+        await this.saveProjects();
+      }
+
       debugUtils.log('Project updated successfully', { id, updates: data });
-      return updatedProject;
+      return updatedProject; // Retornar Project para compatibilidad
     } catch (error) {
       debugUtils.error('Error updating project', error);
       throw error;

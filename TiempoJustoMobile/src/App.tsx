@@ -14,6 +14,7 @@ import { AppProvider, useAppContext } from './shared/context/AppContext';
 import { LoadingScreen } from './components/common/LoadingScreen';
 import { ErrorScreen } from './components/common/ErrorScreen';
 import { MainApp } from './components/layout/MainApp';
+import { VersionBadge } from './components/common/VersionBadge';
 
 // ============================================================================
 // COMPONENTE PRINCIPAL DE LA APLICACIÓN
@@ -43,6 +44,7 @@ function AppInner() {
     <View style={[styles.container, { paddingTop: Math.max(insets.top, RNStatusBar.currentHeight || 12) }]}>
       <StatusBar style="auto" />
       <MainApp />
+      <VersionBadge />
     </View>
   );
 }

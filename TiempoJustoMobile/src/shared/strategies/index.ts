@@ -1,6 +1,6 @@
 // ============================================================================
-// EXPORTACIONES DE HOOKS - SLICE DE PROYECTOS
+// EXPORTS DE ESTRATEGIAS - TIEMPOJUSTO
 // ============================================================================
 
-export * from './useProjects';
-export * from './useProjectUI';
+export * from './task-sort.strategy';
+export * from './pomodoro-mode.strategy';

@@ -1,6 +1,8 @@
 // ============================================================================
-// EXPORTACIONES DE HOOKS - SLICE DE PROYECTOS
+// EXPORTS DE ENTIDADES - TIEMPOJUSTO
 // ============================================================================
 
-export * from './useProjects';
-export * from './useProjectUI';
+export * from './task.entity';
+export * from './project.entity';
+
+

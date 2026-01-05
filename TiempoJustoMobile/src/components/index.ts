@@ -9,6 +9,7 @@ export * from './ui/Input';
 // Componentes comunes
 export * from './common/LoadingScreen';
 export * from './common/ErrorScreen';
+export * from './common/VersionBadge';
 
 // Componentes de layout
 export * from './layout/Header';

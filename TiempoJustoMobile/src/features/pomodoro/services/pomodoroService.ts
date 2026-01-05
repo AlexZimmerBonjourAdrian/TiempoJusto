@@ -6,6 +6,7 @@ import { PomodoroSession, CreatePomodoroSessionData, UpdatePomodoroSessionData, 
 import { storageService } from '../../../shared/storage';
 import { STORAGE_KEYS, DEFAULT_POMODORO_CONFIG } from '../../../shared/constants';
 import { debugUtils } from '../../../shared/utils';
+import { PomodoroFactory } from '../../../shared/factories';
 
 // ============================================================================
 // CLASE DEL SERVICIO DE POMODORO
@@ -44,25 +45,8 @@ export class PomodoroService {
         await this.stopSession();
       }
 
-      const session: PomodoroSession = {
-        id: this.generateId(),
-        taskId: data.taskId,
-        projectId: data.projectId,
-        state: 'working',
-        duration: data.duration || this.config.workDuration,
-        remainingTime: (data.duration || this.config.workDuration) * 60,
-        isActive: true,
-        isPaused: false,
-        startTime: new Date(),
-        endTime: undefined,
-        pauseTime: undefined,
-        totalPauseTime: 0,
-        completedCycles: 0,
-        totalCycles: data.totalCycles || 1,
-        notes: data.notes,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      // Crear sesión usando Factory
+      const session = PomodoroFactory.createWorkSession(this.config, data);
 
       this.currentSession = session;
       this.sessions.push(session);

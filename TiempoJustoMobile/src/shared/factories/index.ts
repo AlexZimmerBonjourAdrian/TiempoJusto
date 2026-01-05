@@ -1,6 +1,9 @@
 // ============================================================================
-// EXPORTACIONES DE HOOKS - SLICE DE PROYECTOS
+// EXPORTS DE FACTORIES - TIEMPOJUSTO
 // ============================================================================
 
-export * from './useProjects';
-export * from './useProjectUI';
+export * from './task.factory';
+export * from './project.factory';
+export * from './pomodoro.factory';
+
+

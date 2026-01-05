@@ -1,6 +1,9 @@
 // ============================================================================
-// EXPORTACIONES DE HOOKS - SLICE DE PROYECTOS
+// EXPORTS DE REPOSITORIES - TIEMPOJUSTO
 // ============================================================================
 
-export * from './useProjects';
-export * from './useProjectUI';
+export * from './base.repository';
+export * from './task.repository';
+export * from './project.repository';
+
+

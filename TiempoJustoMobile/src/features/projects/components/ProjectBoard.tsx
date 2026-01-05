@@ -2,9 +2,9 @@
 // COMPONENTE DE TABLERO DE PROYECTOS - TIEMPOJUSTO
 // ============================================================================
 
-import React, { useState } from 'react';
+import React from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { useProjects } from '../hooks/useProjects';
+import { useProjectUI } from '../hooks/useProjectUI';
 import { AddProjectModal } from './AddProjectModal';
 import { COLORS, SPACING, FONT_SIZES, PROJECT_STATUS } from '../../../shared/constants';
 import { Project, ProjectStatus } from '../../../shared/types';
@@ -14,33 +14,33 @@ import { Project, ProjectStatus } from '../../../shared/types';
 // ============================================================================
 
 export const ProjectBoard: React.FC = () => {
-  const { 
-    projects, 
-    loading, 
-    error, 
-    statistics, 
-    getOpenProjects, 
-    getClosedProjects,
-    updateProject,
-    deleteProject 
-  } = useProjects();
+  const {
+    // Estado de UI
+    isModalVisible,
+    selectedProject,
+    activeTab,
+    filteredProjects,
+    tabStats,
 
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
+    // Estado de negocio
+    loading,
+    error,
+    statistics,
+
+    // Acciones de UI
+    openCreateModal,
+    closeModal,
+    handleProjectSubmit,
+    handleStatusChange,
+    handleProjectDelete,
+    changeTab
+  } = useProjectUI();
 
   // ============================================================================
-  // FUNCIONES
+  // MANEJADORES DE UI
   // ============================================================================
 
-  const handleStatusChange = async (projectId: string, newStatus: ProjectStatus) => {
-    try {
-      await updateProject(projectId, { status: newStatus });
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo actualizar el estado del proyecto');
-    }
-  };
-
-  const handleDeleteProject = async (projectId: string, projectName: string) => {
+  const handleDeleteWithConfirmation = (projectId: string, projectName: string) => {
     Alert.alert(
       'Eliminar Proyecto',
       `¿Estás seguro de que quieres eliminar el proyecto "${projectName}"?`,
@@ -49,13 +49,7 @@ export const ProjectBoard: React.FC = () => {
         {
           text: 'Eliminar',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteProject(projectId);
-            } catch (error) {
-              Alert.alert('Error', 'No se pudo eliminar el proyecto');
-            }
-          }
+          onPress: () => handleProjectDelete(projectId)
         }
       ]
     );
@@ -120,7 +114,7 @@ export const ProjectBoard: React.FC = () => {
           )}
           <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: '#ef4444' }]}
-            onPress={() => handleDeleteProject(project.id, project.name)}
+            onPress={() => handleDeleteWithConfirmation(project.id, project.name)}
           >
             <Text style={styles.actionButtonText}>Eliminar</Text>
           </TouchableOpacity>
@@ -160,8 +154,6 @@ export const ProjectBoard: React.FC = () => {
     );
   }
 
-  const openProjects = getOpenProjects();
-  const closedProjects = getClosedProjects();
 
   return (
     <View style={styles.container}>
@@ -171,7 +163,7 @@ export const ProjectBoard: React.FC = () => {
           <Text style={styles.title}>Proyectos</Text>
           <TouchableOpacity
             style={styles.addButton}
-            onPress={() => setShowAddModal(true)}
+            onPress={openCreateModal}
           >
             <Text style={styles.addButtonText}>+ Nuevo</Text>
           </TouchableOpacity>
@@ -185,53 +177,43 @@ export const ProjectBoard: React.FC = () => {
       <View style={styles.tabs}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'open' && styles.activeTab]}
-          onPress={() => setActiveTab('open')}
+          onPress={() => changeTab('open')}
         >
           <Text style={[styles.tabText, activeTab === 'open' && styles.activeTabText]}>
-            Abiertos ({openProjects.length})
+            Abiertos ({tabStats.open})
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'closed' && styles.activeTab]}
-          onPress={() => setActiveTab('closed')}
+          onPress={() => changeTab('closed')}
         >
           <Text style={[styles.tabText, activeTab === 'closed' && styles.activeTabText]}>
-            Cerrados ({closedProjects.length})
+            Cerrados ({tabStats.closed})
           </Text>
         </TouchableOpacity>
       </View>
 
       {/* Content */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {activeTab === 'open' ? (
-          openProjects.length > 0 ? (
-            openProjects.map(renderProjectCard)
-          ) : (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>No hay proyectos abiertos</Text>
-              <Text style={styles.emptyStateSubtext}>
-                Crea tu primer proyecto para comenzar
-              </Text>
-            </View>
-          )
+        {filteredProjects.length > 0 ? (
+          filteredProjects.map(renderProjectCard)
         ) : (
-          closedProjects.length > 0 ? (
-            closedProjects.map(renderProjectCard)
-          ) : (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>No hay proyectos cerrados</Text>
-              <Text style={styles.emptyStateSubtext}>
-                Los proyectos completados, suspendidos o cancelados aparecerán aquí
-              </Text>
-            </View>
-          )
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>
+              {activeTab === 'open' ? 'No hay proyectos abiertos' : 'No hay proyectos cerrados'}
+            </Text>
+            <Text style={styles.emptyStateSubtext}>
+              {activeTab === 'open' ? 'Crea tu primer proyecto para comenzar' : 'Los proyectos cerrados aparecerán aquí'}
+            </Text>
+          </View>
         )}
       </ScrollView>
 
       {/* Add Project Modal */}
       <AddProjectModal
-        visible={showAddModal}
-        onClose={() => setShowAddModal(false)}
+        visible={isModalVisible}
+        onClose={closeModal}
+        onSave={handleProjectSubmit}
       />
     </View>
   );

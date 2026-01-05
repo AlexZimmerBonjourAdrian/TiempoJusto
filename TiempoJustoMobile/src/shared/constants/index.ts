@@ -312,7 +312,7 @@ export const IMPORT_FORMATS = {
 // CONSTANTES DE VERSIONADO
 // ============================================================================
 
-export const APP_VERSION = '1.0.0';
+export const APP_VERSION = '0.6.3';
 export const DATA_VERSION = '1.0.0';
 export const MIN_SUPPORTED_VERSION = '1.0.0';
 

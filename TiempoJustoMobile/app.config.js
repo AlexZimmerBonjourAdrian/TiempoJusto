@@ -2,7 +2,7 @@ export default {
     expo: {
         name: "TiempoJusto",
         slug: "tiempo-justo-mobile",
-        version: "1.0.0",
+        version: "0.6.3",
         orientation: "portrait",
         platforms: ["android"],
         jsEngine: "hermes",

@@ -6,6 +6,10 @@ import { Task, CreateTaskData, UpdateTaskData, TaskFilters, TaskSortOptions, Tas
 import { storageService } from '../../../shared/storage';
 import { STORAGE_KEYS } from '../../../shared/constants';
 import { debugUtils, productivityUtils, arrayUtils } from '../../../shared/utils';
+import { TaskFactory } from '../../../shared/factories';
+import { TaskRepository } from '../../../shared/data/repositories';
+import { TaskEntity } from '../../../shared/data/entities';
+import { TaskMapper } from '../../../shared/data/mappers';
 
 // ============================================================================
 // CLASE DEL SERVICIO DE TAREAS
@@ -14,6 +18,11 @@ import { debugUtils, productivityUtils, arrayUtils } from '../../../shared/utils
 export class TaskService {
   private tasks: Task[] = [];
   private readonly storageKey = STORAGE_KEYS.TASKS;
+  private repository: TaskRepository;
+
+  constructor() {
+    this.repository = new TaskRepository();
+  }
 
   // ============================================================================
   // MÉTODOS DE INICIALIZACIÓN
@@ -21,6 +30,9 @@ export class TaskService {
 
   async initialize(): Promise<void> {
     try {
+      // Initialize repository
+      this.repository = new TaskRepository();
+
       await this.loadTasks();
       debugUtils.log('TaskService initialized successfully');
     } catch (error) {
@@ -35,45 +47,39 @@ export class TaskService {
 
   async createTask(data: CreateTaskData): Promise<Task> {
     try {
-      // Validar que el projectId sea obligatorio
+      // 1. Validar que el projectId sea obligatorio
       if (!data.projectId || data.projectId.trim() === '') {
         throw new Error('El projectId es obligatorio. Una tarea debe pertenecer a un proyecto.');
       }
 
-      // Validar que no exista otra tarea con el mismo título en el mismo proyecto
-      const existingTask = this.tasks.find(
-        task => task.title.toLowerCase() === data.title.toLowerCase() && 
-                task.projectId === data.projectId
+      // 2. Validar duplicados usando repository
+      const existingTasks = await this.repository.findByProject(data.projectId);
+      const existingTask = existingTasks.find(
+        task => task.title.toLowerCase() === data.title.toLowerCase()
       );
-      
+
       if (existingTask) {
         throw new Error(`Ya existe una tarea con el título "${data.title}" en este proyecto.`);
       }
 
-      const task: Task = {
-        id: this.generateId(),
-        title: data.title,
-        description: data.description,
-        priority: data.priority,
-        status: 'pending',
-        projectId: data.projectId, // Ya validado que existe
-        dueDate: data.dueDate,
-        estimatedTime: data.estimatedTime,
-        actualTime: undefined,
-        tags: data.tags || [],
-        isRecurring: data.isRecurring || false,
-        recurringPattern: data.recurringPattern,
-        completedAt: undefined,
-        notes: undefined,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      // 3. Crear tarea usando Factory
+      const task = data.isRecurring
+        ? TaskFactory.createRecurring(data)
+        : TaskFactory.createStandard(data);
 
-      this.tasks.push(task);
+      // 4. Convertir a Entity
+      const entity = TaskEntity.fromTask(task);
+
+      // 5. Guardar en repository
+      const savedEntity = await this.repository.create(entity);
+
+      // 6. Mantener compatibilidad: actualizar array interno y guardar en storage
+      const savedTask = savedEntity.toTask();
+      this.tasks.push(savedTask);
       await this.saveTasks();
-      
-      debugUtils.log('Task created successfully', { id: task.id, title: task.title, projectId: task.projectId });
-      return task;
+
+      debugUtils.log('Task created successfully', { id: savedTask.id, title: savedTask.title, projectId: savedTask.projectId });
+      return savedTask;
     } catch (error) {
       debugUtils.error('Error creating task', error);
       throw error;
@@ -82,47 +88,60 @@ export class TaskService {
 
   async updateTask(id: string, data: UpdateTaskData): Promise<Task> {
     try {
-      const taskIndex = this.tasks.findIndex(task => task.id === id);
-      if (taskIndex === -1) {
+      // 1. Obtener la entidad del repository
+      const entity = await this.repository.findById(id);
+      if (!entity) {
         throw new Error(`Task with id ${id} not found`);
       }
 
-      const task = this.tasks[taskIndex];
-
-      // Validar que si se cambia el projectId, sea válido
-      if (data.projectId !== undefined) {
+      // 2. Validar cambios de projectId si aplica
+      if (data.projectId !== undefined && data.projectId !== entity.projectId) {
         if (!data.projectId || data.projectId.trim() === '') {
           throw new Error('El projectId no puede estar vacío. Una tarea debe pertenecer a un proyecto.');
         }
 
         // Validar que no exista otra tarea con el mismo título en el nuevo proyecto
-        const existingTask = this.tasks.find(
-          t => t.id !== id && 
-               t.title.toLowerCase() === task.title.toLowerCase() && 
-               t.projectId === data.projectId
+        const tasksInNewProject = await this.repository.findByProject(data.projectId);
+        const existingTask = tasksInNewProject.find(
+          t => t.id !== id && t.title.toLowerCase() === entity.title.toLowerCase()
         );
-        
+
         if (existingTask) {
-          throw new Error(`Ya existe una tarea con el título "${task.title}" en el proyecto seleccionado.`);
+          throw new Error(`Ya existe una tarea con el título "${entity.title}" en el proyecto seleccionado.`);
         }
       }
 
-      const updatedTask: Task = {
-        ...task,
-        ...data,
-        updatedAt: new Date()
-      };
-
-      // Si se marca como completada, establecer completedAt
-      if (data.status === 'completed' && task.status !== 'completed') {
-        updatedTask.completedAt = new Date();
+      // 3. Aplicar lógica de negocio usando la entidad
+      if (data.status === 'completed' && entity.status !== 'completed') {
+        entity.complete(); // Usa el método de negocio de la entidad
+      } else {
+        // Aplicar otras actualizaciones
+        if (data.title !== undefined) entity.title = data.title;
+        if (data.description !== undefined) entity.description = data.description;
+        if (data.priority !== undefined) entity.updatePriority(data.priority);
+        if (data.status !== undefined && data.status !== 'completed') entity.status = data.status;
+        if (data.projectId !== undefined) entity.projectId = data.projectId;
+        if (data.dueDate !== undefined) entity.dueDate = data.dueDate ? new Date(data.dueDate) : undefined;
+        if (data.estimatedTime !== undefined) entity.estimatedTime = data.estimatedTime;
+        if (data.actualTime !== undefined) entity.actualTime = data.actualTime;
+        if (data.tags !== undefined) entity.tags = data.tags;
+        if (data.notes !== undefined) entity.notes = data.notes;
+        entity.updatedAt = new Date();
       }
 
-      this.tasks[taskIndex] = updatedTask;
-      await this.saveTasks();
-      
+      // 4. Guardar en repository
+      const updatedEntity = await this.repository.update(id, entity);
+
+      // 5. Mantener sincronización con lista local (compatibilidad)
+      const updatedTask = updatedEntity.toTask();
+      const taskIndex = this.tasks.findIndex(t => t.id === id);
+      if (taskIndex !== -1) {
+        this.tasks[taskIndex] = updatedTask;
+        await this.saveTasks();
+      }
+
       debugUtils.log('Task updated successfully', { id, updates: data });
-      return updatedTask;
+      return updatedTask; // Retornar Task para compatibilidad
     } catch (error) {
       debugUtils.error('Error updating task', error);
       throw error;
@@ -148,9 +167,8 @@ export class TaskService {
 
   async completeTask(id: string): Promise<Task> {
     try {
-      return await this.updateTask(id, { 
-        status: 'completed',
-        completedAt: new Date()
+      return await this.updateTask(id, {
+        status: 'completed'
       });
     } catch (error) {
       debugUtils.error('Error completing task', error);

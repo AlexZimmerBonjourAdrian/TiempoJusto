@@ -2,13 +2,12 @@
 // COMPONENTE DE TABLERO DE TAREAS - TIEMPOJUSTO
 // ============================================================================
 
-import React, { useState } from 'react';
+import React from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, Alert } from 'react-native';
-import { useTasks } from '../hooks/useTasks';
+import { useTaskUI } from '../hooks/useTaskUI';
 import { TaskList } from './TaskList';
 import { TaskModal } from './TaskModal';
 import { Button } from '../../../components/ui/Button';
-import { Task } from '../types';
 import { COLORS, SPACING, FONT_SIZES } from '../../../shared/constants';
 
 // ============================================================================
@@ -16,52 +15,34 @@ import { COLORS, SPACING, FONT_SIZES } from '../../../shared/constants';
 // ============================================================================
 
 export const TaskBoard: React.FC = () => {
-  const { tasks, loading, error, statistics, addTask, updateTask, deleteTask } = useTasks();
-  const [showCompleted, setShowCompleted] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const {
+    // Estado de UI
+    isModalVisible,
+    selectedTask,
+    filter,
+    filteredTasks,
+    filteredStats,
+
+    // Estado de negocio
+    loading,
+    error,
+    statistics,
+
+    // Acciones de UI
+    openCreateModal,
+    openEditModal,
+    closeModal,
+    handleTaskSubmit,
+    handleTaskDelete,
+    handleTaskComplete,
+    changeFilter
+  } = useTaskUI();
 
   // ============================================================================
-  // FUNCIONES
+  // MANEJADORES DE UI
   // ============================================================================
 
-  const handleAddTask = () => {
-    setEditingTask(null);
-    setModalVisible(true);
-  };
-
-  const handleEditTask = (task: Task) => {
-    setEditingTask(task);
-    setModalVisible(true);
-  };
-
-  const handleSaveTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
-    try {
-      if (editingTask) {
-        await updateTask(editingTask.id, taskData);
-      } else {
-        await addTask(taskData);
-      }
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const handleCompleteTask = async (taskId: string) => {
-    try {
-      const task = tasks.find(t => t.id === taskId);
-      if (task) {
-        await updateTask(taskId, {
-          ...task,
-          status: task.status === 'completed' ? 'pending' : 'completed'
-        });
-      }
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo actualizar la tarea');
-    }
-  };
-
-  const handleDeleteTask = (taskId: string) => {
+  const handleDeleteWithConfirmation = (taskId: string) => {
     Alert.alert(
       'Eliminar Tarea',
       '¿Estás seguro de que quieres eliminar esta tarea?',
@@ -70,25 +51,11 @@ export const TaskBoard: React.FC = () => {
         {
           text: 'Eliminar',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteTask(taskId);
-            } catch (error) {
-              Alert.alert('Error', 'No se pudo eliminar la tarea');
-            }
-          }
+          onPress: () => handleTaskDelete(taskId)
         }
       ]
     );
   };
-
-  // Filtrar tareas según el estado
-  const filteredTasks = tasks.filter(task => {
-    if (showCompleted) {
-      return task.status === 'completed';
-    }
-    return task.status !== 'completed';
-  });
 
   return (
     <View style={styles.container}>
@@ -121,30 +88,45 @@ export const TaskBoard: React.FC = () => {
         <TouchableOpacity
           style={[
             styles.filterButton,
-            !showCompleted && styles.filterButtonActive
+            filter === 'pending' && styles.filterButtonActive
           ]}
-          onPress={() => setShowCompleted(false)}
+          onPress={() => changeFilter('pending')}
         >
           <Text style={[
             styles.filterButtonText,
-            !showCompleted && styles.filterButtonTextActive
+            filter === 'pending' && styles.filterButtonTextActive
           ]}>
-            Pendientes
+            Pendientes ({filteredStats.pending})
           </Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           style={[
             styles.filterButton,
-            showCompleted && styles.filterButtonActive
+            filter === 'all' && styles.filterButtonActive
           ]}
-          onPress={() => setShowCompleted(true)}
+          onPress={() => changeFilter('all')}
         >
           <Text style={[
             styles.filterButtonText,
-            showCompleted && styles.filterButtonTextActive
+            filter === 'all' && styles.filterButtonTextActive
           ]}>
-            Completadas
+            Todas ({filteredStats.total})
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.filterButton,
+            filter === 'completed' && styles.filterButtonActive
+          ]}
+          onPress={() => changeFilter('completed')}
+        >
+          <Text style={[
+            styles.filterButtonText,
+            filter === 'completed' && styles.filterButtonTextActive
+          ]}>
+            Completadas ({filteredStats.completed})
           </Text>
         </TouchableOpacity>
       </View>
@@ -155,9 +137,9 @@ export const TaskBoard: React.FC = () => {
           tasks={filteredTasks}
           loading={loading}
           error={error}
-          onTaskPress={handleEditTask}
-          onTaskComplete={handleCompleteTask}
-          onTaskDelete={handleDeleteTask}
+          onTaskPress={openEditModal}
+          onTaskComplete={handleTaskComplete}
+          onTaskDelete={handleDeleteWithConfirmation}
         />
       </View>
 
@@ -165,7 +147,7 @@ export const TaskBoard: React.FC = () => {
       <View style={styles.addButtonContainer}>
         <Button
           title="Agregar Tarea"
-          onPress={handleAddTask}
+          onPress={openCreateModal}
           variant="primary"
           fullWidth
         />
@@ -173,10 +155,10 @@ export const TaskBoard: React.FC = () => {
 
       {/* Modal de tarea */}
       <TaskModal
-        visible={modalVisible}
-        task={editingTask}
-        onClose={() => setModalVisible(false)}
-        onSave={handleSaveTask}
+        visible={isModalVisible}
+        task={selectedTask}
+        onClose={closeModal}
+        onSave={handleTaskSubmit}
       />
     </View>
   );
